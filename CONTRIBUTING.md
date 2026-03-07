@@ -158,6 +158,33 @@ All `.proto` files live under `proto/<domain>/`. Follow these rules:
 
 ## Commit & PR Guidelines
 
+### Branching
+
+Branch off `main` using this naming convention:
+
+```
+<type>/<short-description>
+```
+
+| Type | Use for |
+|---|---|
+| `feat` | New feature or RPC |
+| `fix` | Bug fix |
+| `proto` | Proto-only change |
+| `refactor` | Restructuring without behavior change |
+| `docs` | Documentation only |
+| `chore` | Build scripts, CI, deps |
+
+**Examples:**
+
+```bash
+git checkout -b feat/stream-security-alerts
+git checkout -b proto/add-confidence-field
+git checkout -b fix/gateway-hardware-route
+```
+
+Keep branch names lowercase and hyphen-separated. Delete the branch after the PR is merged.
+
 ### Commit messages
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
@@ -194,8 +221,9 @@ fix(gateway): correct route prefix for hardware endpoints
   - `make proto-lint`
   - `make proto-breaking`
   - `make test`
-- Describe *why* the change is needed, not just what it does
-
+  - `make proto-breaking`
+- attach the results of above to the PR request as a text file
+- Describe *why* the change is needed, not just what it does 
 ---
 
 ## Make Targets Reference
