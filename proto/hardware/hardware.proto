@@ -1,0 +1,106 @@
+syntax = "proto3";
+package jarvis.hardware;
+option go_package = "github.com/rkrimper1/jarvis/gen/hardware";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum DeviceType {
+  DEVICE_UNSPECIFIED = 0;
+  DEVICE_IRON_SUIT   = 1;
+  DEVICE_ARC_REACTOR = 2;
+  DEVICE_SENSOR      = 3;
+  DEVICE_SATELLITE   = 4;
+  DEVICE_HUD         = 5;
+}
+
+enum PowerState {
+  POWER_UNSPECIFIED = 0;
+  POWER_OFF         = 1;
+  POWER_STANDBY     = 2;
+  POWER_ON          = 3;
+  POWER_CRITICAL    = 4;
+}
+
+message Device {
+  string     device_id    = 1;
+  string     name         = 2;
+  DeviceType type         = 3;
+  PowerState power_state  = 4;
+  float      power_level  = 5;
+  string     firmware_ver = 6;
+  string     location     = 7;
+  google.protobuf.Timestamp last_sync = 8;
+}
+
+message TelemetryReading {
+  string device_id   = 1;
+  string sensor_type = 2;
+  double value       = 3;
+  string unit        = 4;
+  jarvis.common.Severity alert_level = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message DeviceCommandRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string device_id               = 2;
+  string command                 = 3;
+  map<string, string> params     = 4;
+}
+
+message DeviceCommandResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string device_id                = 2;
+  string command_executed         = 3;
+  string result_detail            = 4;
+}
+
+message DiagnosticsRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string device_id               = 2;
+  bool   deep_scan               = 3;
+}
+
+message DiagnosticsResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  string device_id                 = 2;
+  repeated string warnings         = 3;
+  repeated string errors           = 4;
+  float  overall_health_score      = 5;
+  map<string, string> system_stats = 6;
+}
+
+message EnergySourceRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string location                = 2;
+  float  scan_radius_km          = 3;
+}
+
+message EnergySourceResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated EnergySource sources  = 2;
+}
+
+message EnergySource {
+  string source_id   = 1;
+  string type        = 2;
+  float  power_level = 3;
+  string location    = 4;
+  bool   is_hostile  = 5;
+}
+
+service HardwareService {
+  rpc SendCommand(DeviceCommandRequest) returns (DeviceCommandResponse) {
+    option (google.api.http) = { post: "/v1/hardware/{device_id}/command" body: "*" };
+  }
+  rpc RunDiagnostics(DiagnosticsRequest) returns (DiagnosticsResponse) {
+    option (google.api.http) = { get: "/v1/hardware/{device_id}/diagnostics" };
+  }
+  rpc ScanEnergySources(EnergySourceRequest) returns (EnergySourceResponse) {
+    option (google.api.http) = { get: "/v1/hardware/energy/scan" };
+  }
+  rpc StreamTelemetry(DiagnosticsRequest) returns (stream TelemetryReading);
+  rpc SuitControlStream(stream DeviceCommandRequest) returns (stream TelemetryReading);
+}

@@ -1,0 +1,197 @@
+admin:
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+
+  listeners:
+
+  # ── gRPC passthrough on :9090 ─────────────────────────────────────
+  # Clients that speak gRPC natively (grpcurl, other services, mobile) hit
+  # this listener directly. Envoy forwards to the correct backend based on
+  # the gRPC service name in the :authority header.
+  - name: grpc_listener
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 9090
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: grpc_ingress
+          codec_type: AUTO
+          route_config:
+            name: grpc_routes
+            virtual_hosts:
+            - name: jarvis_grpc
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/jarvis.nlp" }
+                route: { cluster: nlp_service }
+              - match: { prefix: "/jarvis.security" }
+                route: { cluster: security_service }
+              - match: { prefix: "/jarvis.agent" }
+                route: { cluster: agent_coordinator }
+              - match: { prefix: "/jarvis.hardware" }
+                route: { cluster: hardware_service }
+              - match: { prefix: "/jarvis.facility" }
+                route: { cluster: facility_service }
+              - match: { prefix: "/jarvis.intelligence" }
+                route: { cluster: intelligence_service }
+              - match: { prefix: "/jarvis.business" }
+                route: { cluster: business_ops_service }
+              - match: { prefix: "/jarvis.learning" }
+                route: { cluster: learning_service }
+              - match: { prefix: "/grpc.health" }
+                route: { cluster: nlp_service }  # health checks route to any service
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  # ── REST gateway on :8080 ─────────────────────────────────────────
+  # REST clients hit this listener. Envoy forwards all /v1/ and /healthz
+  # traffic to the Go gateway service which handles gRPC-Gateway transcoding.
+  - name: rest_listener
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 8080
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: rest_ingress
+          codec_type: AUTO
+          route_config:
+            name: rest_routes
+            virtual_hosts:
+            - name: jarvis_rest
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/" }
+                route:
+                  cluster: gateway
+                  timeout: 30s
+          http_filters:
+          - name: envoy.filters.http.cors
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+
+  - name: gateway
+    connect_timeout: 5s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: gateway
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: gateway, port_value: 8080 }
+
+  - name: nlp_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: nlp_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: nlp-service, port_value: 50051 }
+
+  - name: security_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: security_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: security-service, port_value: 50052 }
+
+  - name: agent_coordinator
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: agent_coordinator
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: agent-coordinator, port_value: 50053 }
+
+  - name: hardware_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: hardware_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: hardware-service, port_value: 50054 }
+
+  - name: facility_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: facility_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: facility-service, port_value: 50055 }
+
+  - name: intelligence_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: intelligence_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: intelligence-service, port_value: 50056 }
+
+  - name: business_ops_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: business_ops_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: business-ops-service, port_value: 50057 }
+
+  - name: learning_service
+    connect_timeout: 5s
+    type: STRICT_DNS
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: learning_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address: { address: learning-service, port_value: 50058 }

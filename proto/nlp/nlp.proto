@@ -1,0 +1,89 @@
+syntax = "proto3";
+package jarvis.nlp;
+option go_package = "github.com/rkrimper1/jarvis/gen/nlp";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum Intent {
+  INTENT_UNKNOWN          = 0;
+  INTENT_QUERY            = 1;
+  INTENT_COMMAND          = 2;
+  INTENT_STATUS_CHECK     = 3;
+  INTENT_SYSTEM_CONTROL   = 4;
+  INTENT_THREAT_ALERT     = 5;
+  INTENT_SCHEDULE         = 6;
+  INTENT_RESEARCH         = 7;
+  INTENT_EMERGENCY        = 8;
+  INTENT_ANALYSIS_REQUEST = 9;
+  INTENT_SMALL_TALK       = 10;
+}
+
+// Entity field names match Go service code exactly
+message Entity {
+  string type  = 1;
+  string value = 2;
+  float  score = 3;
+}
+
+// ParseRequest / ParseResponse — used by ParseIntent and StreamVoiceInput
+message ParseRequest {
+  jarvis.common.RequestMeta meta  = 1;
+  string raw_text                 = 2;
+  repeated string context_tags   = 3;
+  string session_id               = 4;
+  string language_code            = 5;
+}
+
+message ParseResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  Intent   intent                  = 2;
+  float    confidence              = 3;
+  string   canonical_command       = 4;
+  repeated Entity entities         = 5;
+  repeated string suggested_actions = 6;
+}
+
+// DialogueTurnRequest — field is "utterance" not "user_input"
+message DialogueTurnRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string session_id              = 2;
+  string utterance               = 3;
+  string context_hint            = 4;
+}
+
+// DialogueTurnResponse — fields are reply_text and requires_confirmation
+message DialogueTurnResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string session_id               = 2;
+  string reply_text               = 3;
+  Intent resolved_intent          = 4;
+  bool   requires_confirmation    = 5;
+}
+
+// DialogueHistory tracks conversation turns per session
+message DialogueHistory {
+  string role      = 1;
+  string text      = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+service NLPService {
+  rpc ParseIntent(ParseRequest) returns (ParseResponse) {
+    option (google.api.http) = {
+      post: "/v1/nlp/parse"
+      body: "*"
+    };
+  }
+
+  rpc ProcessDialogueTurn(DialogueTurnRequest) returns (DialogueTurnResponse) {
+    option (google.api.http) = {
+      post: "/v1/nlp/dialogue"
+      body: "*"
+    };
+  }
+
+  // Bidi-streaming: send ParseRequest chunks, receive ParseResponse per frame
+  rpc StreamVoiceInput(stream ParseRequest) returns (stream ParseResponse);
+}

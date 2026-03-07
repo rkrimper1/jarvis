@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package jarvis.common;
+
+option go_package = "github.com/rkrimper1/jarvis/gen/common";
+
+import "google/protobuf/timestamp.proto";
+
+// Standard metadata attached to every request
+message RequestMeta {
+  string request_id    = 1;
+  string user_id       = 2;
+  string session_id    = 3;
+  string source        = 4; // e.g. "voice", "hud", "api"
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// Standard response wrapper
+message ResponseMeta {
+  string request_id    = 1;
+  bool   success       = 2;
+  string error_code    = 3;
+  string error_message = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+// Severity levels for events and alerts
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO        = 1;
+  SEVERITY_WARNING     = 2;
+  SEVERITY_CRITICAL    = 3;
+  SEVERITY_EMERGENCY   = 4;
+}
+
+// Generic key-value pair for extensible metadata
+message KeyValue {
+  string key   = 1;
+  string value = 2;
+}

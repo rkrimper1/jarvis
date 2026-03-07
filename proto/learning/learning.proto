@@ -1,0 +1,88 @@
+syntax = "proto3";
+package jarvis.learning;
+option go_package = "github.com/rkrimper1/jarvis/gen/learning";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum FeedbackType {
+  FEEDBACK_UNSPECIFIED = 0;
+  FEEDBACK_POSITIVE    = 1;
+  FEEDBACK_NEGATIVE    = 2;
+  FEEDBACK_CORRECTION  = 3;
+}
+
+enum ModelDomain {
+  DOMAIN_UNSPECIFIED = 0;
+  DOMAIN_NLP         = 1;
+  DOMAIN_THREAT      = 2;
+  DOMAIN_HARDWARE    = 3;
+  DOMAIN_BEHAVIOR    = 4;
+}
+
+message FeedbackRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string       interaction_id   = 2;
+  FeedbackType feedback_type    = 3;
+  string       correction       = 4;
+  float        rating           = 5;
+  string       notes            = 6;
+}
+
+message FeedbackResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  bool   queued_for_training      = 2;
+  string feedback_id              = 3;
+}
+
+message BehaviorProfileRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string subject_id              = 2;
+}
+
+message BehaviorProfileResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  string subject_id               = 2;
+  map<string, float> trait_scores = 3;
+  repeated string preferred_interaction_patterns = 4;
+  google.protobuf.Timestamp profile_updated_at   = 5;
+}
+
+message ModelPerformanceRequest {
+  jarvis.common.RequestMeta meta = 1;
+  ModelDomain domain             = 2;
+  google.protobuf.Timestamp from = 3;
+  google.protobuf.Timestamp to   = 4;
+}
+
+message ModelPerformanceResponse {
+  jarvis.common.ResponseMeta meta      = 1;
+  ModelDomain domain                   = 2;
+  float accuracy                       = 3;
+  float precision                      = 4;
+  float recall                         = 5;
+  int64 total_inferences               = 6;
+  repeated string degradation_warnings = 7;
+}
+
+message AdaptationEvent {
+  string      event_id       = 1;
+  ModelDomain domain         = 2;
+  string      description    = 3;
+  float       delta_accuracy = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+service LearningService {
+  rpc SubmitFeedback(FeedbackRequest) returns (FeedbackResponse) {
+    option (google.api.http) = { post: "/v1/learning/feedback" body: "*" };
+  }
+  rpc GetBehaviorProfile(BehaviorProfileRequest) returns (BehaviorProfileResponse) {
+    option (google.api.http) = { get: "/v1/learning/profile/{subject_id}" };
+  }
+  rpc GetModelPerformance(ModelPerformanceRequest) returns (ModelPerformanceResponse) {
+    option (google.api.http) = { get: "/v1/learning/performance" };
+  }
+  rpc StreamAdaptationEvents(jarvis.common.RequestMeta) returns (stream AdaptationEvent);
+}

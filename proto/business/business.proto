@@ -1,0 +1,128 @@
+syntax = "proto3";
+package jarvis.business;
+option go_package = "github.com/rkrimper1/jarvis/gen/business";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum TaskStatus {
+  TASK_UNSPECIFIED = 0;
+  TASK_PENDING     = 1;
+  TASK_IN_PROGRESS = 2;
+  TASK_DONE        = 3;
+  TASK_CANCELLED   = 4;
+}
+
+enum MessageChannel {
+  CHANNEL_UNSPECIFIED = 0;
+  CHANNEL_EMAIL       = 1;
+  CHANNEL_SMS         = 2;
+  CHANNEL_SLACK       = 3;
+  CHANNEL_SECURE      = 4;
+}
+
+message ScheduledEvent {
+  string   event_id    = 1;
+  string   title       = 2;
+  string   location    = 3;
+  repeated string attendees = 4;
+  google.protobuf.Timestamp start = 5;
+  google.protobuf.Timestamp end   = 6;
+  TaskStatus status    = 7;
+}
+
+message ScheduleEventRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string   title                 = 2;
+  string   description           = 3;
+  string   location              = 4;
+  repeated string attendees      = 5;
+  google.protobuf.Timestamp start = 6;
+  google.protobuf.Timestamp end   = 7;
+  bool     high_priority         = 8;
+}
+
+message ScheduleEventResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string   event_id               = 2;
+  repeated string conflicts       = 3;
+  bool     auto_resolved          = 4;
+}
+
+message GetScheduleRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string subject_id              = 2;
+  google.protobuf.Timestamp from = 3;
+  google.protobuf.Timestamp to   = 4;
+}
+
+message GetScheduleResponse {
+  jarvis.common.ResponseMeta meta   = 1;
+  repeated ScheduledEvent events    = 2;
+}
+
+message CreateTaskRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string title                   = 2;
+  string description             = 3;
+  string assignee_id             = 4;
+  int32  priority                = 5;
+  google.protobuf.Timestamp due  = 6;
+}
+
+message TaskResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string     task_id              = 2;
+  TaskStatus status               = 3;
+}
+
+message SendMessageRequest {
+  jarvis.common.RequestMeta meta = 1;
+  repeated string recipients     = 2;
+  string   subject               = 3;
+  string   body                  = 4;
+  MessageChannel channel         = 5;
+  bool     encrypt               = 6;
+}
+
+message SendMessageResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string   message_id             = 2;
+  repeated string delivered_to    = 3;
+  repeated string failed_to       = 4;
+}
+
+message GenerateReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string   report_type           = 2;
+  repeated string filters        = 3;
+  google.protobuf.Timestamp from = 4;
+  google.protobuf.Timestamp to   = 5;
+}
+
+message GenerateReportResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string   report_id              = 2;
+  string   summary                = 3;
+  bytes    report_data            = 4;
+  string   format                 = 5;
+}
+
+service BusinessOpsService {
+  rpc ScheduleEvent(ScheduleEventRequest) returns (ScheduleEventResponse) {
+    option (google.api.http) = { post: "/v1/business/schedule" body: "*" };
+  }
+  rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse) {
+    option (google.api.http) = { get: "/v1/business/schedule/{subject_id}" };
+  }
+  rpc CreateTask(CreateTaskRequest) returns (TaskResponse) {
+    option (google.api.http) = { post: "/v1/business/tasks" body: "*" };
+  }
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {
+    option (google.api.http) = { post: "/v1/business/messages" body: "*" };
+  }
+  rpc GenerateReport(GenerateReportRequest) returns (GenerateReportResponse) {
+    option (google.api.http) = { post: "/v1/business/reports" body: "*" };
+  }
+}

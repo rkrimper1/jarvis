@@ -1,0 +1,16 @@
+$ cd /home/vagrant/jarvis
+$ bash setup.sh           # installs buf, generates gen/, runs go mod tidy
+$ go mod tidy
+# Brings all the services up managed by envoy
+$ cd docker && docker-compose build && docker-compose up -d
+or 
+$ sudo make docker-up
+
+#Check services
+$ sudo docker-compose -f ~/jarvis/docker/docker-compose.yml ps
+
+#To remove volumes
+$ sudo docker-compose down -v
+
+#Shut-down
+$ sudo make docker-down

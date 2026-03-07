@@ -1,0 +1,95 @@
+syntax = "proto3";
+package jarvis.intelligence;
+option go_package = "github.com/rkrimper1/jarvis/gen/intelligence";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum SubjectType {
+  SUBJECT_UNSPECIFIED  = 0;
+  SUBJECT_PERSON       = 1;
+  SUBJECT_ORGANIZATION = 2;
+  SUBJECT_TECHNOLOGY   = 3;
+  SUBJECT_LOCATION     = 4;
+  SUBJECT_ARTIFACT     = 5;
+}
+
+enum AnalysisDepth {
+  DEPTH_SURFACE  = 0;
+  DEPTH_STANDARD = 1;
+  DEPTH_DEEP     = 2;
+}
+
+message IntelQueryRequest {
+  jarvis.common.RequestMeta meta = 1;
+  SubjectType   subject_type     = 2;
+  string        query            = 3;
+  AnalysisDepth depth            = 4;
+  repeated string data_sources   = 5;
+}
+
+message IntelFact {
+  string source      = 1;
+  string fact        = 2;
+  float  reliability = 3;
+  google.protobuf.Timestamp recorded_at = 4;
+}
+
+message IntelQueryResponse {
+  jarvis.common.ResponseMeta meta    = 1;
+  string   subject_id                = 2;
+  string   summary                   = 3;
+  repeated IntelFact facts           = 4;
+  repeated string related_subjects   = 5;
+  float    confidence                = 6;
+}
+
+message ArtifactAnalysisRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string artifact_id             = 2;
+  bytes  scan_data               = 3;
+  string artifact_description    = 4;
+}
+
+message ArtifactAnalysisResponse {
+  jarvis.common.ResponseMeta meta           = 1;
+  string  artifact_id                       = 2;
+  string  composition_summary               = 3;
+  bool    is_known_technology               = 4;
+  bool    is_potentially_hostile            = 5;
+  repeated string anomalies                 = 6;
+  map<string, double> element_breakdown     = 7;
+}
+
+message CrossReferenceRequest {
+  jarvis.common.RequestMeta meta = 1;
+  repeated string subject_ids    = 2;
+  string relationship_hint       = 3;
+}
+
+message Relationship {
+  string subject_a = 1;
+  string subject_b = 2;
+  string rel_type  = 3;
+  float  strength  = 4;
+  string evidence  = 5;
+}
+
+message CrossReferenceResponse {
+  jarvis.common.ResponseMeta meta      = 1;
+  repeated Relationship relationships  = 2;
+}
+
+service IntelligenceService {
+  rpc QueryIntel(IntelQueryRequest) returns (IntelQueryResponse) {
+    option (google.api.http) = { post: "/v1/intel/query" body: "*" };
+  }
+  rpc AnalyzeArtifact(ArtifactAnalysisRequest) returns (ArtifactAnalysisResponse) {
+    option (google.api.http) = { post: "/v1/intel/artifact" body: "*" };
+  }
+  rpc CrossReference(CrossReferenceRequest) returns (CrossReferenceResponse) {
+    option (google.api.http) = { post: "/v1/intel/crossref" body: "*" };
+  }
+  rpc StreamIntelUpdates(IntelQueryRequest) returns (stream IntelQueryResponse);
+}

@@ -1,0 +1,105 @@
+syntax = "proto3";
+package jarvis.agent;
+option go_package = "github.com/rkrimper1/jarvis/gen/agent";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum AgentType {
+  AGENT_UNSPECIFIED  = 0;
+  AGENT_IRON_SUIT    = 1;
+  AGENT_DRONE        = 2;
+  AGENT_TURRET       = 3;
+  AGENT_AI_ASSISTANT = 4;
+  AGENT_EXTERNAL     = 5;
+}
+
+enum AgentStatus {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_IDLE        = 1;
+  STATUS_ACTIVE      = 2;
+  STATUS_BUSY        = 3;
+  STATUS_ERROR       = 4;
+  STATUS_OFFLINE     = 5;
+}
+
+enum TaskPriority {
+  PRIORITY_LOW      = 0;
+  PRIORITY_NORMAL   = 1;
+  PRIORITY_HIGH     = 2;
+  PRIORITY_CRITICAL = 3;
+}
+
+message Agent {
+  string      agent_id     = 1;
+  string      name         = 2;
+  AgentType   type         = 3;
+  AgentStatus status       = 4;
+  string      location     = 5;
+  repeated string capabilities = 6;
+  google.protobuf.Timestamp last_seen = 7;
+}
+
+message DispatchTaskRequest {
+  jarvis.common.RequestMeta meta     = 1;
+  string   task_id                   = 2;
+  string   task_description          = 3;
+  TaskPriority priority              = 4;
+  repeated string target_agent_ids  = 5;
+  map<string, string> parameters    = 6;
+}
+
+message DispatchTaskResponse {
+  jarvis.common.ResponseMeta meta   = 1;
+  string   task_id                  = 2;
+  repeated string assigned_agents   = 3;
+  google.protobuf.Timestamp estimated_completion = 4;
+}
+
+message AgentStatusRequest {
+  jarvis.common.RequestMeta meta   = 1;
+  repeated string agent_ids        = 2;
+}
+
+message AgentStatusResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated Agent agents           = 2;
+}
+
+message CoordinationEvent {
+  string       event_id   = 1;
+  string       agent_id   = 2;
+  string       task_id    = 3;
+  string       event_type = 4;
+  string       payload    = 5;
+  jarvis.common.Severity severity = 6;
+  google.protobuf.Timestamp timestamp = 7;
+}
+
+message BroadcastRequest {
+  jarvis.common.RequestMeta meta    = 1;
+  string   message                  = 2;
+  repeated string target_agent_ids = 3;
+  TaskPriority priority             = 4;
+}
+
+message BroadcastResponse {
+  jarvis.common.ResponseMeta meta      = 1;
+  int32           agents_reached       = 2;
+  repeated string unresponsive_agents  = 3;
+}
+
+service AgentCoordinatorService {
+  rpc DispatchTask(DispatchTaskRequest) returns (DispatchTaskResponse) {
+    option (google.api.http) = { post: "/v1/agents/dispatch" body: "*" };
+  }
+  rpc GetAgentStatus(AgentStatusRequest) returns (AgentStatusResponse) {
+    option (google.api.http) = { get: "/v1/agents/status" };
+  }
+  rpc Broadcast(BroadcastRequest) returns (BroadcastResponse) {
+    option (google.api.http) = { post: "/v1/agents/broadcast" body: "*" };
+  }
+  rpc StreamCoordinationEvents(jarvis.common.RequestMeta) returns (stream CoordinationEvent);
+  rpc AgentHeartbeat(stream CoordinationEvent) returns (stream CoordinationEvent);
+}

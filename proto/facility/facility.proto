@@ -1,0 +1,89 @@
+syntax = "proto3";
+package jarvis.facility;
+option go_package = "github.com/rkrimper1/jarvis/gen/facility";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum ZoneType {
+  ZONE_UNSPECIFIED = 0;
+  ZONE_LAB         = 1;
+  ZONE_WORKSHOP    = 2;
+  ZONE_RESIDENCE   = 3;
+  ZONE_SERVER_ROOM = 4;
+  ZONE_HANGAR      = 5;
+  ZONE_PERIMETER   = 6;
+}
+
+enum SystemType {
+  SYSTEM_UNSPECIFIED  = 0;
+  SYSTEM_LIGHTING     = 1;
+  SYSTEM_HVAC         = 2;
+  SYSTEM_POWER        = 3;
+  SYSTEM_ACCESS_DOORS = 4;
+  SYSTEM_CAMERAS      = 5;
+  SYSTEM_COMMS        = 6;
+}
+
+message Zone {
+  string   zone_id     = 1;
+  string   name        = 2;
+  ZoneType type        = 3;
+  string   building_id = 4;
+  int32    floor       = 5;
+  repeated string active_systems = 6;
+}
+
+message EnvironmentReading {
+  string zone_id          = 1;
+  float  temperature_c    = 2;
+  float  humidity_pct     = 3;
+  float  air_quality      = 4;
+  string composition      = 5;
+  bool   anomaly_detected = 6;
+  google.protobuf.Timestamp timestamp = 7;
+}
+
+message SystemControlRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string     zone_id             = 2;
+  SystemType system              = 3;
+  string     command             = 4;
+  map<string, string> settings   = 5;
+}
+
+message SystemControlResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string     zone_id              = 2;
+  SystemType system               = 3;
+  string     new_state            = 4;
+  repeated string side_effects    = 5;
+}
+
+message AccessControlRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string subject_id              = 2;
+  string zone_id                 = 3;
+  string action                  = 4;
+}
+
+message AccessControlResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  bool   access_granted           = 2;
+  string reason                   = 3;
+  google.protobuf.Timestamp valid_until = 4;
+}
+
+service FacilityService {
+  rpc ControlSystem(SystemControlRequest) returns (SystemControlResponse) {
+    option (google.api.http) = { post: "/v1/facility/zones/{zone_id}/system" body: "*" };
+  }
+  rpc ManageAccess(AccessControlRequest) returns (AccessControlResponse) {
+    option (google.api.http) = { post: "/v1/facility/zones/{zone_id}/access" body: "*" };
+  }
+  rpc GetEnvironmentReading(SystemControlRequest) returns (EnvironmentReading) {
+    option (google.api.http) = { get: "/v1/facility/zones/{zone_id}/environment" };
+  }
+  rpc StreamEnvironment(SystemControlRequest) returns (stream EnvironmentReading);
+}
