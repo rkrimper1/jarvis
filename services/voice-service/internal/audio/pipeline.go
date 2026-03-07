@@ -52,7 +52,7 @@ func (v *VAD) Feed(pcmData []byte, capturedAt time.Time) (voiced bool, eos bool)
 		return false, false
 	}
 
-	if time.Since(v.lastVoiceAt) >= v.silenceDuration {
+	if capturedAt.Sub(v.lastVoiceAt) >= v.silenceDuration {
 		return false, true
 	}
 
