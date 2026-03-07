@@ -18,7 +18,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
     "subject_id": "tony-stark",
     "method": "AUTH_TOKEN",
     "credential_data": ""
-  }' | jq -r '.token')
+  }' | jq -r '.accessToken')
 
 # 2. Use the token
 curl http://localhost:8080/v1/agents/status \

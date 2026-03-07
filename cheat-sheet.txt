@@ -14,3 +14,13 @@ $ sudo docker-compose down -v
 
 #Shut-down
 $ sudo make docker-down
+
+#Get an AuthToken
+TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "auth-001"},
+    "subject_id": "tony-stark",
+    "method": "AUTH_TOKEN",
+    "credentialPayload": ""
+  }' | jq -r '.accessToken')
