@@ -1,0 +1,346 @@
+syntax = "proto3";
+
+package jarvis.voice;
+
+option go_package = "github.com/rkrimper1/jarvis/gen/voice";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VoiceService
+//
+// Real-time voice interface between Jarvis iOS clients and the backend.
+// Sits alongside NLPService — the voice stream handles raw audio upstream
+// and pipes through STT → NLP (ParseIntent / ProcessDialogueTurn) → TTS
+// on the server side. Clients receive transcripts, replies, TTS audio,
+// and HUD actions over a single bidirectional stream.
+// ─────────────────────────────────────────────────────────────────────────────
+service VoiceService {
+  // Converse opens a full-duplex voice session.
+  // First message must be a StreamConfig. Subsequent messages are AudioChunks
+  // and ControlEvents. Server streams back StatusEvents, Transcripts, Replies,
+  // AudioReplies, and HUD Actions.
+  rpc Converse(stream VoiceRequest) returns (stream VoiceResponse);
+
+  // GetSession retrieves metadata for a session — used after reconnect.
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
+    option (google.api.http) = {
+      get: "/v1/voice/sessions/{session_id}"
+    };
+  }
+
+  // ListSessions returns recent sessions for a user (HUD history / replay).
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/voice/sessions"
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Upstream envelope — client → server
+// ─────────────────────────────────────────────────────────────────────────────
+
+message VoiceRequest {
+  oneof payload {
+    // Sent exactly once as the very first message to configure the stream.
+    StreamConfig config = 1;
+    // Continuous raw audio frames.
+    AudioChunk audio = 2;
+    // Control signals: end-of-speech, cancel, keep-alive, new-turn.
+    ControlEvent event = 3;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// StreamConfig — initialises the bidirectional stream
+// ─────────────────────────────────────────────────────────────────────────────
+
+message StreamConfig {
+  // Standard Jarvis request metadata (request_id, user_id, session_id, source).
+  jarvis.common.RequestMeta meta = 1;
+
+  // Device / client context.
+  ClientInfo client_info = 2;
+
+  // Audio encoding and capture parameters.
+  AudioConfig audio_config = 3;
+
+  // Optional BCP-47 language hint, e.g. "en-US". Defaults to "en-US".
+  string language_code = 4;
+
+  // Optional voice ID for TTS reply synthesis.
+  string voice_id = 5;
+
+  // NLP context tags forwarded to ParseIntent on each recognised utterance.
+  // Maps to ParseRequest.context_tags in nlp.proto.
+  repeated string context_tags = 6;
+}
+
+message ClientInfo {
+  // e.g. "ios", "android", "web"
+  string platform = 1;
+  // e.g. "1.4.2"
+  string app_version = 2;
+  // e.g. "iPhone 15 Pro"
+  string device_model = 3;
+  // e.g. "17.4"
+  string os_version = 4;
+}
+
+message AudioConfig {
+  AudioEncoding encoding = 1;
+  // Samples per second. Recommended: 16000.
+  int32 sample_rate_hz = 2;
+  // Number of channels. Recommended: 1 (mono).
+  int32 channel_count = 3;
+  // For OPUS: frame duration in ms (10 | 20 | 40 | 60). Default: 20.
+  int32 frame_duration_ms = 4;
+}
+
+enum AudioEncoding {
+  AUDIO_ENCODING_UNSPECIFIED = 0;
+  // Linear PCM, 16-bit signed little-endian.
+  AUDIO_ENCODING_PCM_16BIT = 1;
+  // Opus in OGG container.
+  AUDIO_ENCODING_OPUS = 2;
+  // AAC-LC.
+  AUDIO_ENCODING_AAC = 3;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AudioChunk — continuous audio frames sent upstream
+// ─────────────────────────────────────────────────────────────────────────────
+
+message AudioChunk {
+  // Encoded audio bytes (format declared in StreamConfig.audio_config).
+  bytes data = 1;
+  // Monotonically increasing frame counter for ordering / loss detection.
+  int64 sequence_num = 2;
+  // Client-side capture timestamp (Unix ms).
+  int64 captured_at_ms = 3;
+  // True when the on-device wake word detector flagged this frame as the
+  // "Hey Jarvis" trigger — lets the server skip VAD buffering overhead.
+  bool is_wake_word_frame = 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ControlEvent — client signals that influence stream behaviour
+// ─────────────────────────────────────────────────────────────────────────────
+
+message ControlEvent {
+  enum Type {
+    TYPE_UNSPECIFIED  = 0;
+    // On-device VAD detected end-of-speech.
+    TYPE_END_OF_SPEECH = 1;
+    // Cancel the current in-flight STT/NLP/TTS pipeline.
+    TYPE_CANCEL        = 2;
+    // Keep-alive ping — prevents stream timeout during silence.
+    TYPE_KEEP_ALIVE    = 3;
+    // Client explicitly started a new turn (e.g. PTT re-press).
+    TYPE_NEW_TURN      = 4;
+  }
+  Type   type   = 1;
+  string reason = 2;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Downstream envelope — server → client
+// ─────────────────────────────────────────────────────────────────────────────
+
+message VoiceResponse {
+  // Mirrors StreamConfig.meta.session_id for client-side correlation.
+  string session_id  = 1;
+  // Server-assigned monotonic index for ordering concurrent messages.
+  int64  sequence_num = 2;
+
+  oneof payload {
+    // Session lifecycle + state machine transitions.
+    StatusEvent status      = 3;
+    // Real-time STT output (partial and final).
+    Transcript  transcript  = 4;
+    // Jarvis natural-language reply + intent (mirrors NLP DialogueTurnResponse).
+    Reply       reply       = 5;
+    // TTS audio for Jarvis's spoken response.
+    AudioReply  audio_reply = 6;
+    // Structured HUD action (open app, show card, dispatch agent, etc.).
+    HUDAction   action      = 7;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// StatusEvent — voice session state machine
+//
+// Mirrors AgentStatus from agent.proto so the HUD can render a consistent
+// Jarvis system state indicator across agent and voice contexts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+message StatusEvent {
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    // Stream open, awaiting wake word or first audio chunk.
+    STATE_IDLE        = 1;
+    // Actively capturing + streaming user speech.
+    STATE_LISTENING   = 2;
+    // STT committed, running NLP pipeline.
+    STATE_PROCESSING  = 3;
+    // Streaming TTS audio reply to the client.
+    STATE_SPEAKING    = 4;
+    // Non-fatal error — stream stays open.
+    STATE_ERROR       = 5;
+    // Session ended (server-initiated).
+    STATE_ENDED       = 6;
+  }
+
+  State  state      = 1;
+  // Human-readable detail. Required when state == STATE_ERROR.
+  string message    = 2;
+  // Structured error code for the client to handle programmatically.
+  VoiceErrorCode error_code = 3;
+}
+
+// Mirrors ErrorCode style from other Jarvis services.
+enum VoiceErrorCode {
+  VOICE_ERROR_UNSPECIFIED   = 0;
+  VOICE_ERROR_STT_FAILURE   = 1;
+  VOICE_ERROR_NLP_TIMEOUT   = 2;
+  VOICE_ERROR_TTS_FAILURE   = 3;
+  VOICE_ERROR_AUTH_EXPIRED  = 4;
+  VOICE_ERROR_RATE_LIMITED  = 5;
+  VOICE_ERROR_WAKE_WORD_NOT_DETECTED = 6;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Transcript — streaming STT output
+// ─────────────────────────────────────────────────────────────────────────────
+
+message Transcript {
+  // Recognised text (may be partial when is_final == false).
+  string text              = 1;
+  // False = interim / partial. True = committed, will not be revised.
+  bool   is_final          = 2;
+  // Model confidence [0.0, 1.0]. Meaningful only when is_final == true.
+  float  confidence        = 3;
+  // Word-level timing populated when is_final == true (for HUD subtitle sync).
+  repeated WordInfo words  = 4;
+  // BCP-47 language detected (may differ from requested language_code).
+  string detected_language = 5;
+}
+
+message WordInfo {
+  string word       = 1;
+  int64  start_ms   = 2;
+  int64  end_ms     = 3;
+  float  confidence = 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reply — Jarvis NLP response
+//
+// Fields align with NLPService.DialogueTurnResponse so the voice-service
+// can forward NLP results directly without re-mapping.
+// ─────────────────────────────────────────────────────────────────────────────
+
+message Reply {
+  // Natural-language response text (maps to DialogueTurnResponse.reply_text).
+  string reply_text         = 1;
+  // Resolved intent label (maps to DialogueTurnResponse.resolved_intent).
+  // Uses the same Intent enum values as nlp.proto.
+  string intent             = 2;
+  // Whether this reply needs user confirmation before acting.
+  // Maps to DialogueTurnResponse.requires_confirmation.
+  bool   requires_confirmation = 3;
+  // Arbitrary metadata: trace IDs, intent slots, etc.
+  map<string, string> metadata = 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AudioReply — TTS audio streamed back to the client
+// ─────────────────────────────────────────────────────────────────────────────
+
+message AudioReply {
+  // Encoded TTS audio bytes.
+  bytes         data            = 1;
+  AudioEncoding encoding        = 2;
+  // Spoken text — rendered as HUD subtitle during playback.
+  string        text            = 3;
+  // True on the last chunk of a complete TTS utterance.
+  bool          is_final_chunk  = 4;
+  // Monotonic chunk index within this reply.
+  int32         chunk_index     = 5;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HUDAction — structured commands pushed to the iOS HUD / OS
+//
+// Designed to compose with AgentCoordinatorService.DispatchTask and
+// HardwareService.SendCommand — the action payload_json carries the
+// same parameters map used in those RPCs.
+// ─────────────────────────────────────────────────────────────────────────────
+
+message HUDAction {
+  enum Type {
+    TYPE_UNSPECIFIED    = 0;
+    // Launch an iOS app or deep-link URL.
+    TYPE_OPEN_APP       = 1;
+    // Render an information card in the HUD overlay.
+    TYPE_SHOW_CARD      = 2;
+    // Set a countdown timer visible in the HUD.
+    TYPE_SET_TIMER      = 3;
+    // Navigate to a map location or facility zone.
+    TYPE_NAVIGATE       = 4;
+    // Dismiss the HUD overlay.
+    TYPE_DISMISS_HUD    = 5;
+    // Dispatch an agent task (wraps AgentCoordinatorService.DispatchTask).
+    TYPE_DISPATCH_AGENT = 6;
+    // Execute a hardware command (wraps HardwareService.SendCommand).
+    TYPE_HARDWARE_CMD   = 7;
+    // Trigger a security protocol (wraps SecurityService.ExecuteProtocol).
+    TYPE_SECURITY_PROTOCOL = 8;
+  }
+
+  Type   type         = 1;
+  // JSON payload specific to the action type.
+  // Schemas are documented in gateway/docs/api-reference.md.
+  string payload_json = 2;
+  // Severity hint for HUD rendering — reuses common.Severity.
+  jarvis.common.Severity severity = 3;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Session RPCs
+// ─────────────────────────────────────────────────────────────────────────────
+
+message GetSessionRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string session_id              = 2;
+}
+
+message GetSessionResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  VoiceSession session            = 2;
+}
+
+message ListSessionsRequest {
+  jarvis.common.RequestMeta meta = 1;
+  int32  page_size               = 2;
+  string page_token              = 3;
+}
+
+message ListSessionsResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  repeated VoiceSession sessions   = 2;
+  string next_page_token           = 3;
+}
+
+message VoiceSession {
+  string session_id                = 1;
+  string user_id                   = 2;
+  google.protobuf.Timestamp started_at  = 3;
+  google.protobuf.Timestamp ended_at    = 4;
+  // Final STT transcript turns for this session.
+  repeated Transcript turns        = 5;
+  StatusEvent.State terminal_state = 6;
+}

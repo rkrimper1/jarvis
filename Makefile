@@ -9,7 +9,7 @@
 
 SERVICES := nlp-service security-service agent-coordinator \
             hardware-service facility-service intelligence-service \
-            business-ops-service learning-service gateway
+            business-ops-service learning-service voice-service gateway
 
 # ── Docker Compose command ────────────────────────────────────────────
 # Auto-detect Compose V2 plugin (docker compose) vs V1 standalone (docker-compose).
@@ -40,7 +40,7 @@ build:          ## Build all service binaries locally
 	@mkdir -p bin
 	@for svc in nlp-service security-service agent-coordinator \
 	            hardware-service facility-service intelligence-service \
-	            business-ops-service learning-service; do \
+	            business-ops-service learning-service voice-service; do \
 		echo "▶ Building $$svc..."; \
 		go build -o bin/$$svc ./services/$$svc/cmd/server; \
 	done
