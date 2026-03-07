@@ -34,6 +34,7 @@ services:
       - intelligence-service
       - business-ops-service
       - learning-service
+      - voice-service
     restart: unless-stopped
 
   # ── API Gateway ───────────────────────────────────────────────────────
@@ -54,6 +55,7 @@ services:
       - INTELLIGENCE_ADDR=intelligence-service:50056
       - BUSINESS_ADDR=business-ops-service:50057
       - LEARNING_ADDR=learning-service:50058
+      - VOICE_ADDR=voice-service:50059
       - DIAL_TIMEOUT=5s
     ports:
       - "8081:8080"
@@ -66,6 +68,7 @@ services:
       - intelligence-service
       - business-ops-service
       - learning-service
+      - voice-service
     restart: unless-stopped
 
   # ── Core Services ─────────────────────────────────────────────────────
@@ -157,4 +160,25 @@ services:
       - LOG_LEVEL=info
     ports:
       - "50058:50058"
+    restart: unless-stopped
+
+  voice-service:
+    build:
+      context: ..
+      dockerfile: docker/voice-service/Dockerfile
+    environment:
+      - GRPC_PORT=50059
+      - LOG_LEVEL=info
+      - NLP_ADDR=nlp-service:50051
+      - NLP_DIAL_TIMEOUT=5s
+      - AUDIO_SAMPLE_RATE_HZ=16000
+      - AUDIO_CHUNK_DURATION_MS=20
+      - AUDIO_VAD_SILENCE_MS=800
+      - AUDIO_MAX_UTTERANCE_SEC=30
+      - SESSION_TTL=30m
+      - SESSION_MAX=1000
+    ports:
+      - "50059:50059"
+    depends_on:
+      - nlp-service
     restart: unless-stopped

@@ -5,11 +5,11 @@
 
 .PHONY: all proto proto-lint proto-breaking build test \
         docker-build docker-up docker-down docker-logs docker-ps \
-        gateway tidy clean help
+        gateway tidy clean ios-open ios-clean help
 
 SERVICES := nlp-service security-service agent-coordinator \
             hardware-service facility-service intelligence-service \
-            business-ops-service learning-service gateway
+            business-ops-service learning-service voice-service gateway
 
 # ── Docker Compose command ────────────────────────────────────────────
 # Auto-detect Compose V2 plugin (docker compose) vs V1 standalone (docker-compose).
@@ -40,7 +40,7 @@ build:          ## Build all service binaries locally
 	@mkdir -p bin
 	@for svc in nlp-service security-service agent-coordinator \
 	            hardware-service facility-service intelligence-service \
-	            business-ops-service learning-service; do \
+	            business-ops-service learning-service voice-service; do \
 		echo "▶ Building $$svc..."; \
 		go build -o bin/$$svc ./services/$$svc/cmd/server; \
 	done
@@ -105,6 +105,21 @@ tidy: proto     ## Generate protos then tidy Go modules (gen/ must exist first)
 
 clean:          ## Remove compiled binaries and generated code
 	rm -rf bin/ gen/ docs/openapi/
+
+# ── iOS Client ────────────────────────────────────────────────────────
+
+IOS_PROJECT := clients/ios/JarvisClient/JarvisClient.xcodeproj
+
+ios-open:       ## Generate protos then open the Xcode project
+	@$(MAKE) proto
+	open $(IOS_PROJECT)
+
+ios-clean:      ## Remove Swift generated stubs
+	rm -rf gen/swift/
+
+
+test-voice:     ## Run voice-service unit + integration tests only
+	go test ./services/voice-service/... -v -race -count=1 -timeout=60s
 
 compose-version: ## Show which Docker Compose version is being used
 	@echo "Using: $(DC)"

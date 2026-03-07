@@ -221,7 +221,6 @@ fix(gateway): correct route prefix for hardware endpoints
   - `make proto-lint`
   - `make proto-breaking`
   - `make test`
-  - `make proto-breaking`
 - attach the results of above to the PR request as a text file
 - Describe *why* the change is needed, not just what it does 
 ---
