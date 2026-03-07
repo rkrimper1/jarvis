@@ -62,6 +62,19 @@ func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 	}, nil
 }
 
+// NewWithClient creates a VoiceServer with a pre-wired NLP client.
+// Intended for use in tests and integration harnesses where the caller
+// manages the NLP connection (e.g. via bufconn) rather than dialling by address.
+func NewWithClient(cfg *config.Config, nlpClient nlpv1.NLPServiceClient, log *slog.Logger) *VoiceServer {
+	return &VoiceServer{
+		cfg:      cfg,
+		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
+		nlp:      nlpClient,
+		log:      log,
+	}
+}
+
+
 // ── Converse ───────────────────────────────────────────────────────────────
 
 // Converse is the primary bidirectional stream.

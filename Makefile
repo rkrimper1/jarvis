@@ -117,6 +117,10 @@ ios-open:       ## Generate protos then open the Xcode project
 ios-clean:      ## Remove Swift generated stubs
 	rm -rf gen/swift/
 
+
+test-voice:     ## Run voice-service unit + integration tests only
+	go test ./services/voice-service/... -v -race -count=1 -timeout=60s
+
 compose-version: ## Show which Docker Compose version is being used
 	@echo "Using: $(DC)"
 	@$(DC) version
