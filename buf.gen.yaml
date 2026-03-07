@@ -8,34 +8,40 @@ managed:
       path: proto
 
 plugins:
+# ── Go: protobuf messages ──────────────────────────────────────────
   - remote: buf.build/protocolbuffers/go
     out: gen
     opt:
       - paths=source_relative
 
+  # ── Go: gRPC service stubs ─────────────────────────────────────────
   - remote: buf.build/grpc/go
     out: gen
     opt:
       - paths=source_relative
-      
-  # ── Swift: protobuf messages (iOS Jarvis client) ───────────────────
+
+  # ── Swift: protobuf messages → gen/swift/ (iOS JarvisClient) ──────
+  # Consumed by clients/ios/JarvisClient/Package.swift JarvisProto target.
   - remote: buf.build/apple/swift
     out: gen/swift
     opt:
       - Visibility=Public
 
-  # ── Swift: gRPC client stubs (iOS Jarvis client, client-side only) ─
+  # ── Swift: gRPC client stubs → gen/swift/ (client-side only) ──────
   - remote: buf.build/grpc/swift
     out: gen/swift
     opt:
       - Visibility=Public
       - Client=true
-      - Server=false
+      - Server=false   # iOS never runs the gRPC server
+
+  # ── Go: grpc-gateway HTTP transcoding ─────────────────────────────
   - remote: buf.build/grpc-ecosystem/gateway
     out: gen
     opt:
       - paths=source_relative
 
+  # ── Go: OpenAPI v2 docs ───────────────────────────────────────────
   - remote: buf.build/grpc-ecosystem/openapiv2
     out: docs/openapi
     opt:

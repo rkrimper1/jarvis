@@ -5,7 +5,7 @@
 
 .PHONY: all proto proto-lint proto-breaking build test \
         docker-build docker-up docker-down docker-logs docker-ps \
-        gateway tidy clean help
+        gateway tidy clean ios-open ios-clean help
 
 SERVICES := nlp-service security-service agent-coordinator \
             hardware-service facility-service intelligence-service \
@@ -105,6 +105,17 @@ tidy: proto     ## Generate protos then tidy Go modules (gen/ must exist first)
 
 clean:          ## Remove compiled binaries and generated code
 	rm -rf bin/ gen/ docs/openapi/
+
+# ── iOS Client ────────────────────────────────────────────────────────
+
+IOS_PROJECT := clients/ios/JarvisClient/JarvisClient.xcodeproj
+
+ios-open:       ## Generate protos then open the Xcode project
+	@$(MAKE) proto
+	open $(IOS_PROJECT)
+
+ios-clean:      ## Remove Swift generated stubs
+	rm -rf gen/swift/
 
 compose-version: ## Show which Docker Compose version is being used
 	@echo "Using: $(DC)"
