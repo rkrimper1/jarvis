@@ -21,6 +21,6 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
   -d '{
     "meta": {"request_id": "auth-001"},
     "subject_id": "tony-stark",
-    "method": "AUTH_TOKEN",
-    "credentialPayload": ""
+    "method": "AUTH_METHOD_TOKEN",
+    "credential_payload": ""
   }' | jq -r '.accessToken')
