@@ -35,11 +35,12 @@ type VoiceServer struct {
 	cfg      *config.Config
 	sessions *session.Store
 	nlp      nlpv1.NLPServiceClient
+	transcriber audio.Transcriber
 	log      *slog.Logger
 }
 
-// New creates a VoiceServer, dials the NLP upstream, and initialises
-// the session store. Mirrors the New() pattern across all Jarvis services.
+// New creates a VoiceServer, dials the NLP upstream, builds the STT
+// transcriber from config, and initialises the session store.
 func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 	dialCtx, cancel := context.WithTimeout(context.Background(), cfg.NLP.DialTimeout)
 	defer cancel()
@@ -54,22 +55,43 @@ func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 		return nil, fmt.Errorf("dial nlp-service at %s: %w", cfg.NLP.Addr, err)
 	}
 
+	transcriber, err := newTranscriber(context.Background(), cfg, log)
+	if err != nil {
+		return nil, fmt.Errorf("init STT transcriber: %w", err)
+	}
+
+
 	return &VoiceServer{
 		cfg:      cfg,
 		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
 		nlp:      nlpv1.NewNLPServiceClient(nlpConn),
+		transcriber: transcriber,
 		log:      log,
 	}, nil
 }
 
+// newTranscriber builds the correct Transcriber from config.
+// cloud_speech wiring lives in stt_cloud.go — added when the dep is available.
+func newTranscriber(_ context.Context, cfg *config.Config, log *slog.Logger) (audio.Transcriber, error) {
+	switch cfg.STT.Provider {
+	case "cloud_speech":
+		return newCloudSpeechTranscriber(cfg, log)
+	default:
+		log.Info("STT provider: stub", slog.String("provider", cfg.STT.Provider))
+		return audio.NewStubTranscriber(), nil
+	}
+}
+
+
 // NewWithClient creates a VoiceServer with a pre-wired NLP client.
-// Intended for use in tests and integration harnesses where the caller
-// manages the NLP connection (e.g. via bufconn) rather than dialling by address.
+// Intended for tests and integration harnesses. Uses StubTranscriber.
+// Signature is stable — tests do not need to supply a transcriber.
 func NewWithClient(cfg *config.Config, nlpClient nlpv1.NLPServiceClient, log *slog.Logger) *VoiceServer {
 	return &VoiceServer{
 		cfg:      cfg,
 		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
 		nlp:      nlpClient,
+		transcriber: audio.NewStubTranscriber(),
 		log:      log,
 	}
 }
@@ -235,8 +257,8 @@ func (s *VoiceServer) processUtterance(
 		return err
 	}
 
-	// 2. STT
-	sttResult, err := audio.Transcribe(pcm, s.cfg.Audio.SampleRateHz, streamCfg.GetLanguageCode())
+	// 2. STT — delegates to the injected Transcriber (stub or Cloud Speech)
+	sttResult, err := s.transcriber.Transcribe(ctx, pcm, s.cfg.Audio.SampleRateHz, streamCfg.GetLanguageCode())
 	if err != nil {
 		return fmt.Errorf("STT failed: %w", err)
 	}
