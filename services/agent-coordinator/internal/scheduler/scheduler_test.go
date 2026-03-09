@@ -20,7 +20,7 @@ func TestDispatch_AutoAssign(t *testing.T) {
 
 	assigned, eta, err := sched.Dispatch(
 		"task-001", "Patrol perimeter",
-		agentv1.TaskPriority_PRIORITY_NORMAL,
+		agentv1.TaskPriority_TASK_PRIORITY_NORMAL,
 		nil, nil,
 	)
 	if err != nil {
@@ -39,7 +39,7 @@ func TestDispatch_CriticalAssignsMultiple(t *testing.T) {
 
 	assigned, _, err := sched.Dispatch(
 		"task-crit", "Critical intercept",
-		agentv1.TaskPriority_PRIORITY_CRITICAL,
+		agentv1.TaskPriority_TASK_PRIORITY_CRITICAL,
 		nil, nil,
 	)
 	if err != nil {
@@ -56,7 +56,7 @@ func TestDispatch_TargetedAgents(t *testing.T) {
 
 	assigned, _, err := sched.Dispatch(
 		"task-targeted", "Targeted recon",
-		agentv1.TaskPriority_PRIORITY_HIGH,
+		agentv1.TaskPriority_TASK_PRIORITY_HIGH,
 		nil, []string{"drone-01"},
 	)
 	if err != nil {
@@ -72,7 +72,7 @@ func TestDispatch_UnknownTargetReturnsError(t *testing.T) {
 
 	_, _, err := sched.Dispatch(
 		"task-bad", "Bad target",
-		agentv1.TaskPriority_PRIORITY_NORMAL,
+		agentv1.TaskPriority_TASK_PRIORITY_NORMAL,
 		nil, []string{"ghost-agent-9999"},
 	)
 	if err == nil {
@@ -91,7 +91,7 @@ func TestDispatch_QueueCapacity(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		_, _, lastErr = sched.Dispatch(
 			scheduler.NewTaskID("cap-test"), "fill queue",
-			agentv1.TaskPriority_PRIORITY_LOW,
+			agentv1.TaskPriority_TASK_PRIORITY_NORMAL,
 			nil, nil,
 		)
 		if lastErr != nil {
@@ -109,7 +109,7 @@ func TestComplete_FreesAgents(t *testing.T) {
 
 	assigned, _, err := sched.Dispatch(
 		"task-complete", "Test task",
-		agentv1.TaskPriority_PRIORITY_NORMAL,
+		agentv1.TaskPriority_TASK_PRIORITY_NORMAL,
 		nil, nil,
 	)
 	if err != nil {
@@ -118,7 +118,7 @@ func TestComplete_FreesAgents(t *testing.T) {
 
 	// Agent should be BUSY
 	a, _ := reg.Get(assigned[0])
-	if a.Status != agentv1.AgentStatus_STATUS_BUSY {
+	if a.Status != agentv1.AgentStatus_AGENT_STATUS_BUSY {
 		t.Errorf("agent should be BUSY after dispatch, got %v", a.Status)
 	}
 
@@ -128,7 +128,7 @@ func TestComplete_FreesAgents(t *testing.T) {
 
 	// Agent should be IDLE again
 	a, _ = reg.Get(assigned[0])
-	if a.Status != agentv1.AgentStatus_STATUS_IDLE {
+	if a.Status != agentv1.AgentStatus_AGENT_STATUS_IDLE {
 		t.Errorf("agent should be IDLE after complete, got %v", a.Status)
 	}
 }
@@ -138,14 +138,14 @@ func TestFail_FreesAgents(t *testing.T) {
 
 	assigned, _, _ := sched.Dispatch(
 		"task-fail", "Will fail",
-		agentv1.TaskPriority_PRIORITY_NORMAL,
+		agentv1.TaskPriority_TASK_PRIORITY_NORMAL,
 		nil, nil,
 	)
 
 	_ = sched.Fail("task-fail")
 
 	a, _ := reg.Get(assigned[0])
-	if a.Status != agentv1.AgentStatus_STATUS_IDLE {
+	if a.Status != agentv1.AgentStatus_AGENT_STATUS_IDLE {
 		t.Errorf("agent should be IDLE after fail, got %v", a.Status)
 	}
 }
@@ -161,8 +161,8 @@ func TestGet_UnknownTask(t *testing.T) {
 func TestStats(t *testing.T) {
 	sched, _ := newScheduler()
 
-	_, _, _ = sched.Dispatch("t1", "task one", agentv1.TaskPriority_PRIORITY_NORMAL, nil, nil)
-	_, _, _ = sched.Dispatch("t2", "task two", agentv1.TaskPriority_PRIORITY_NORMAL, nil, nil)
+	_, _, _ = sched.Dispatch("t1", "task one", agentv1.TaskPriority_TASK_PRIORITY_NORMAL, nil, nil)
+	_, _, _ = sched.Dispatch("t2", "task two", agentv1.TaskPriority_TASK_PRIORITY_NORMAL, nil, nil)
 	_ = sched.Complete("t1")
 
 	stats := sched.Stats()

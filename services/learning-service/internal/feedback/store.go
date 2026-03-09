@@ -47,7 +47,7 @@ func (s *Store) Submit(
 	id = fmt.Sprintf("fb-%06d", s.seq.Load())
 
 	// Queue for training if it's a correction or a very low rating
-	queued = fbType == learningv1.FeedbackType_FEEDBACK_CORRECTION || rating < 0.4
+	queued = fbType == learningv1.FeedbackType_FEEDBACK_TYPE_CORRECTION || rating < 0.4
 
 	s.mu.Lock()
 	s.entries[id] = &Entry{

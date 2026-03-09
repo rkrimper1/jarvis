@@ -59,8 +59,8 @@ func New(cfg *config.Config, log *slog.Logger) *SecurityServer {
 
 func (s *SecurityServer) Authenticate(
 	ctx context.Context,
-	req *securityv1.AuthRequest,
-) (*securityv1.AuthResponse, error) {
+	req *securityv1.AuthenticateRequest,
+) (*securityv1.AuthenticateResponse, error) {
 
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (s *SecurityServer) Authenticate(
 			slog.String("subject_id", req.SubjectId),
 			slog.String("reason", result.Reason),
 		)
-		return &securityv1.AuthResponse{
+		return &securityv1.AuthenticateResponse{
 			Meta:          metaError(req.Meta.RequestId, "AUTH_FAILED", result.Reason),
 			Authenticated: false,
 		}, nil
@@ -101,7 +101,7 @@ func (s *SecurityServer) Authenticate(
 		slog.Any("scopes", result.GrantedScopes),
 	)
 
-	return &securityv1.AuthResponse{
+	return &securityv1.AuthenticateResponse{
 		Meta:          metaOK(req.Meta.RequestId),
 		Authenticated: true,
 		AccessToken:   accessToken,
@@ -114,8 +114,8 @@ func (s *SecurityServer) Authenticate(
 
 func (s *SecurityServer) AssessThreat(
 	ctx context.Context,
-	req *securityv1.ThreatAssessmentRequest,
-) (*securityv1.ThreatAssessmentResponse, error) {
+	req *securityv1.AssessThreatRequest,
+) (*securityv1.AssessThreatResponse, error) {
 
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
@@ -137,11 +137,11 @@ func (s *SecurityServer) AssessThreat(
 	)
 
 	// Broadcast high+ threats to all streaming subscribers
-	if result.Level >= securityv1.ThreatLevel_THREAT_HIGH {
+	if result.Level >= securityv1.ThreatLevel_THREAT_LEVEL_HIGH {
 		s.broadcast.Publish(result)
 	}
 
-	return &securityv1.ThreatAssessmentResponse{
+	return &securityv1.AssessThreatResponse{
 		Meta:               metaOK(req.Meta.RequestId),
 		Level:              result.Level,
 		Confidence:         result.Confidence,
@@ -154,13 +154,13 @@ func (s *SecurityServer) AssessThreat(
 
 func (s *SecurityServer) ExecuteProtocol(
 	ctx context.Context,
-	req *securityv1.ProtocolRequest,
-) (*securityv1.ProtocolResponse, error) {
+	req *securityv1.ExecuteProtocolRequest,
+) (*securityv1.ExecuteProtocolResponse, error) {
 
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
-	if req.Protocol == securityv1.ProtocolType_PROTOCOL_UNSPECIFIED {
+	if req.Protocol == securityv1.ProtocolType_PROTOCOL_TYPE_UNSPECIFIED {
 		return nil, status.Error(codes.InvalidArgument, "protocol must be specified")
 	}
 
@@ -186,7 +186,7 @@ func (s *SecurityServer) ExecuteProtocol(
 
 	s.auditLog.Append(req.Meta.UserId, "protocol:executed:"+req.Protocol.String(), "security/protocol", true)
 
-	return &securityv1.ProtocolResponse{
+	return &securityv1.ExecuteProtocolResponse{
 		Meta:             metaOK(req.Meta.RequestId),
 		ProtocolExecuted: result.Protocol,
 		ActionsTaken:     result.ActionsTaken,
@@ -197,8 +197,8 @@ func (s *SecurityServer) ExecuteProtocol(
 
 func (s *SecurityServer) GetAuditLog(
 	ctx context.Context,
-	req *securityv1.AuditLogRequest,
-) (*securityv1.AuditLogResponse, error) {
+	req *securityv1.GetAuditLogRequest,
+) (*securityv1.GetAuditLogResponse, error) {
 
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
@@ -227,7 +227,7 @@ func (s *SecurityServer) GetAuditLog(
 		return nil, status.Errorf(codes.InvalidArgument, "query error: %v", err)
 	}
 
-	return &securityv1.AuditLogResponse{
+	return &securityv1.GetAuditLogResponse{
 		Meta:          metaOK(req.Meta.RequestId),
 		Entries:       entries,
 		NextPageToken: nextToken,
@@ -237,11 +237,11 @@ func (s *SecurityServer) GetAuditLog(
 // ── StreamSecurityAlerts ──────────────────────────────────────────────
 
 func (s *SecurityServer) StreamSecurityAlerts(
-	meta *commonv1.RequestMeta,
+	req *securityv1.StreamSecurityAlertsRequest,
 	stream securityv1.SecurityService_StreamSecurityAlertsServer,
 ) error {
 
-	subscriberID := meta.GetRequestId()
+	subscriberID := req.GetMeta().GetRequestId()
 	s.log.Info("StreamSecurityAlerts subscriber connected",
 		slog.String("subscriber_id", subscriberID),
 	)
@@ -261,12 +261,12 @@ func (s *SecurityServer) StreamSecurityAlerts(
 			if !ok {
 				return nil
 			}
-			resp := &securityv1.ThreatAssessmentResponse{
-				Meta:               metaOK(subscriberID),
-				Level:              result.Level,
-				Confidence:         result.Confidence,
-				ThreatSummary:      result.Summary,
-				RecommendedActions: result.RecommendedActions,
+			resp := &securityv1.StreamSecurityAlertsResponse{
+				Meta: metaOK(subscriberID),
+				Alert: &securityv1.SecurityAlert{
+					Level:   result.Level,
+					Message: result.Summary,
+				},
 			}
 			if err := stream.Send(resp); err != nil {
 				s.log.Error("StreamSecurityAlerts: send error", slog.Any("err", err))

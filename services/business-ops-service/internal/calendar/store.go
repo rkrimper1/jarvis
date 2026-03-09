@@ -51,7 +51,7 @@ func (s *Store) Schedule(
 
 	// Detect conflicts for the same attendees
 	for _, ev := range s.events {
-		if ev.Status == businessv1.TaskStatus_TASK_CANCELLED {
+		if ev.Status == businessv1.TaskStatus_TASK_STATUS_CANCELLED {
 			continue
 		}
 		if rangesOverlap(ev.Start, ev.End, start, end) && hasCommonAttendee(ev.Attendees, attendees) {
@@ -63,7 +63,7 @@ func (s *Store) Schedule(
 	if highPriority && len(conflicts) > 0 {
 		for _, cid := range conflicts {
 			if ev, ok := s.events[cid]; ok && !ev.Priority {
-				ev.Status = businessv1.TaskStatus_TASK_CANCELLED
+				ev.Status = businessv1.TaskStatus_TASK_STATUS_CANCELLED
 			}
 		}
 		autoResolved = true
@@ -78,7 +78,7 @@ func (s *Store) Schedule(
 		Start:     start,
 		End:       end,
 		Priority:  highPriority,
-		Status:    businessv1.TaskStatus_TASK_PENDING,
+		Status:    businessv1.TaskStatus_TASK_STATUS_PENDING,
 	}
 	return id, conflicts, autoResolved
 }
@@ -90,7 +90,7 @@ func (s *Store) List(subjectID string, from, to time.Time) []*businessv1.Schedul
 
 	var result []*businessv1.ScheduledEvent
 	for _, ev := range s.events {
-		if ev.Status == businessv1.TaskStatus_TASK_CANCELLED {
+		if ev.Status == businessv1.TaskStatus_TASK_STATUS_CANCELLED {
 			continue
 		}
 		if !from.IsZero() && ev.Start.Before(from) {
@@ -149,13 +149,13 @@ func (s *Store) seed() {
 		Attendees: []string{"tony-stark", "pepper-potts", "happy-hogan"},
 		Start:     now.Add(2 * time.Hour), End: now.Add(4 * time.Hour),
 		Location: "stark-tower-boardroom", Priority: true,
-		Status: businessv1.TaskStatus_TASK_PENDING,
+		Status: businessv1.TaskStatus_TASK_STATUS_PENDING,
 	}
 	s.events["evt-0002"] = &Event{
 		ID: "evt-0002", Title: "MIT Research Lecture",
 		Attendees: []string{"tony-stark"},
 		Start:     now.Add(24 * time.Hour), End: now.Add(26 * time.Hour),
 		Location: "mit-kresge-auditorium", Priority: false,
-		Status: businessv1.TaskStatus_TASK_PENDING,
+		Status: businessv1.TaskStatus_TASK_STATUS_PENDING,
 	}
 }

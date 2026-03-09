@@ -52,7 +52,7 @@ func TestManager_BuildReply(t *testing.T) {
 		{nlpv1.Intent_INTENT_COMMAND, 0.40, 0.60, true, true},  // low confidence → confirm
 		{nlpv1.Intent_INTENT_QUERY, 0.80, 0.60, false, true},
 		{nlpv1.Intent_INTENT_SMALL_TALK, 0.85, 0.60, false, true},
-		{nlpv1.Intent_INTENT_UNKNOWN, 0.00, 0.60, false, true},
+		{nlpv1.Intent_INTENT_UNSPECIFIED, 0.00, 0.60, false, true},
 	}
 
 	for _, tt := range tests {

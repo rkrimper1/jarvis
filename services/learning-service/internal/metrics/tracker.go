@@ -88,10 +88,10 @@ func (t *Tracker) Get(domain learningv1.ModelDomain, from, to time.Time) *Snapsh
 
 func (t *Tracker) seed() {
 	baselines := []Snapshot{
-		{Domain: learningv1.ModelDomain_DOMAIN_NLP, Accuracy: 0.94, Precision: 0.93, Recall: 0.95, TotalInferences: 1_284_002},
-		{Domain: learningv1.ModelDomain_DOMAIN_THREAT, Accuracy: 0.97, Precision: 0.96, Recall: 0.98, TotalInferences: 482_910},
-		{Domain: learningv1.ModelDomain_DOMAIN_HARDWARE, Accuracy: 0.91, Precision: 0.90, Recall: 0.92, TotalInferences: 210_445},
-		{Domain: learningv1.ModelDomain_DOMAIN_BEHAVIOR, Accuracy: 0.88, Precision: 0.87, Recall: 0.89, TotalInferences: 95_330},
+		{Domain: learningv1.ModelDomain_MODEL_DOMAIN_NLP, Accuracy: 0.94, Precision: 0.93, Recall: 0.95, TotalInferences: 1_284_002},
+		{Domain: learningv1.ModelDomain_MODEL_DOMAIN_THREAT, Accuracy: 0.97, Precision: 0.96, Recall: 0.98, TotalInferences: 482_910},
+		{Domain: learningv1.ModelDomain_MODEL_DOMAIN_HARDWARE, Accuracy: 0.91, Precision: 0.90, Recall: 0.92, TotalInferences: 210_445},
+		{Domain: learningv1.ModelDomain_MODEL_DOMAIN_BEHAVIOR, Accuracy: 0.88, Precision: 0.87, Recall: 0.89, TotalInferences: 95_330},
 	}
 	for i := range baselines {
 		b := baselines[i]

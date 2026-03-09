@@ -18,10 +18,10 @@ func TestExecute_AllProtocols(t *testing.T) {
 	e := newExecutor()
 
 	protocols := []securityv1.ProtocolType{
-		securityv1.ProtocolType_PROTOCOL_LOCKDOWN,
-		securityv1.ProtocolType_PROTOCOL_EVACUATION,
-		securityv1.ProtocolType_PROTOCOL_CLEAN_SLATE,
-		securityv1.ProtocolType_PROTOCOL_BLACKOUT,
+		securityv1.ProtocolType_PROTOCOL_TYPE_LOCKDOWN,
+		securityv1.ProtocolType_PROTOCOL_TYPE_EVACUATION,
+		securityv1.ProtocolType_PROTOCOL_TYPE_CLEAN_SLATE,
+		securityv1.ProtocolType_PROTOCOL_TYPE_BLACKOUT,
 	}
 
 	for _, p := range protocols {
@@ -42,7 +42,7 @@ func TestExecute_AllProtocols(t *testing.T) {
 
 func TestExecute_UnknownProtocol(t *testing.T) {
 	e := newExecutor()
-	_, err := e.Execute(securityv1.ProtocolType_PROTOCOL_UNSPECIFIED, "test")
+	_, err := e.Execute(securityv1.ProtocolType_PROTOCOL_TYPE_UNSPECIFIED, "test")
 	if err == nil {
 		t.Error("expected error for PROTOCOL_UNSPECIFIED, got nil")
 	}
@@ -50,7 +50,7 @@ func TestExecute_UnknownProtocol(t *testing.T) {
 
 func TestExecute_LockdownActions(t *testing.T) {
 	e := newExecutor()
-	result, err := e.Execute(securityv1.ProtocolType_PROTOCOL_LOCKDOWN, "intruder detected")
+	result, err := e.Execute(securityv1.ProtocolType_PROTOCOL_TYPE_LOCKDOWN, "intruder detected")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestExecute_LockdownActions(t *testing.T) {
 
 func TestExecute_CleanSlateActions(t *testing.T) {
 	e := newExecutor()
-	result, err := e.Execute(securityv1.ProtocolType_PROTOCOL_CLEAN_SLATE, "Pepper said so")
+	result, err := e.Execute(securityv1.ProtocolType_PROTOCOL_TYPE_CLEAN_SLATE, "Pepper said so")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

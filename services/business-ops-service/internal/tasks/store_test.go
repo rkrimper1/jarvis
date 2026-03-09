@@ -21,7 +21,7 @@ func TestCreate_And_Get(t *testing.T) {
 	if task.Title != "Test Task" {
 		t.Errorf("title = %q, want Test Task", task.Title)
 	}
-	if task.Status != businessv1.TaskStatus_TASK_PENDING {
+	if task.Status != businessv1.TaskStatus_TASK_STATUS_PENDING {
 		t.Errorf("status = %v, want TASK_PENDING", task.Status)
 	}
 }
@@ -40,18 +40,18 @@ func TestCreate_SeededTasks(t *testing.T) {
 func TestUpdateStatus(t *testing.T) {
 	s := tasks.New()
 	id := s.Create("Status Test", "", "pepper-potts", time.Now().Add(time.Hour), 2)
-	if err := s.UpdateStatus(id, businessv1.TaskStatus_TASK_DONE); err != nil {
+	if err := s.UpdateStatus(id, businessv1.TaskStatus_TASK_STATUS_DONE); err != nil {
 		t.Fatalf("UpdateStatus: %v", err)
 	}
 	task, _ := s.Get(id)
-	if task.Status != businessv1.TaskStatus_TASK_DONE {
+	if task.Status != businessv1.TaskStatus_TASK_STATUS_DONE {
 		t.Errorf("status = %v, want TASK_DONE", task.Status)
 	}
 }
 
 func TestUpdateStatus_UnknownTask(t *testing.T) {
 	s := tasks.New()
-	if err := s.UpdateStatus("ghost-task", businessv1.TaskStatus_TASK_DONE); err == nil {
+	if err := s.UpdateStatus("ghost-task", businessv1.TaskStatus_TASK_STATUS_DONE); err == nil {
 		t.Error("expected error for unknown task")
 	}
 }

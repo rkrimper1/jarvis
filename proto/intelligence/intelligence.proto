@@ -7,21 +7,21 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum SubjectType {
-  SUBJECT_UNSPECIFIED  = 0;
-  SUBJECT_PERSON       = 1;
-  SUBJECT_ORGANIZATION = 2;
-  SUBJECT_TECHNOLOGY   = 3;
-  SUBJECT_LOCATION     = 4;
-  SUBJECT_ARTIFACT     = 5;
+  SUBJECT_TYPE_UNSPECIFIED  = 0;
+  SUBJECT_TYPE_PERSON       = 1;
+  SUBJECT_TYPE_ORGANIZATION = 2;
+  SUBJECT_TYPE_TECHNOLOGY   = 3;
+  SUBJECT_TYPE_LOCATION     = 4;
+  SUBJECT_TYPE_ARTIFACT     = 5;
 }
 
 enum AnalysisDepth {
-  DEPTH_SURFACE  = 0;
-  DEPTH_STANDARD = 1;
-  DEPTH_DEEP     = 2;
+  ANALYSIS_DEPTH_UNSPECIFIED = 0;
+  ANALYSIS_DEPTH_STANDARD    = 1;
+  ANALYSIS_DEPTH_DEEP        = 2;
 }
 
-message IntelQueryRequest {
+message QueryIntelRequest {
   jarvis.common.RequestMeta meta = 1;
   SubjectType   subject_type     = 2;
   string        query            = 3;
@@ -36,7 +36,7 @@ message IntelFact {
   google.protobuf.Timestamp recorded_at = 4;
 }
 
-message IntelQueryResponse {
+message QueryIntelResponse {
   jarvis.common.ResponseMeta meta    = 1;
   string   subject_id                = 2;
   string   summary                   = 3;
@@ -45,14 +45,14 @@ message IntelQueryResponse {
   float    confidence                = 6;
 }
 
-message ArtifactAnalysisRequest {
+message AnalyzeArtifactRequest {
   jarvis.common.RequestMeta meta = 1;
   string artifact_id             = 2;
   bytes  scan_data               = 3;
   string artifact_description    = 4;
 }
 
-message ArtifactAnalysisResponse {
+message AnalyzeArtifactResponse {
   jarvis.common.ResponseMeta meta           = 1;
   string  artifact_id                       = 2;
   string  composition_summary               = 3;
@@ -81,15 +81,24 @@ message CrossReferenceResponse {
   repeated Relationship relationships  = 2;
 }
 
+message StreamIntelUpdatesRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message StreamIntelUpdatesResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  QueryIntelResponse update       = 2;
+}
+
 service IntelligenceService {
-  rpc QueryIntel(IntelQueryRequest) returns (IntelQueryResponse) {
+  rpc QueryIntel(QueryIntelRequest) returns (QueryIntelResponse) {
     option (google.api.http) = { post: "/v1/intel/query" body: "*" };
   }
-  rpc AnalyzeArtifact(ArtifactAnalysisRequest) returns (ArtifactAnalysisResponse) {
+  rpc AnalyzeArtifact(AnalyzeArtifactRequest) returns (AnalyzeArtifactResponse) {
     option (google.api.http) = { post: "/v1/intel/artifact" body: "*" };
   }
   rpc CrossReference(CrossReferenceRequest) returns (CrossReferenceResponse) {
     option (google.api.http) = { post: "/v1/intel/crossref" body: "*" };
   }
-  rpc StreamIntelUpdates(IntelQueryRequest) returns (stream IntelQueryResponse);
+  rpc StreamIntelUpdates(StreamIntelUpdatesRequest) returns (stream StreamIntelUpdatesResponse);
 }

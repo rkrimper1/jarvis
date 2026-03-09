@@ -75,7 +75,7 @@ func (e *Engine) Verify(
 	payloadHash := sha256Hex(credentialPayload)
 
 	switch method {
-	case securityv1.AuthMethod_AUTH_VOICE_PRINT:
+	case securityv1.AuthMethod_AUTH_METHOD_VOICE_PRINT:
 		if record.VoicePrint == "" {
 			return VerifyResult{Valid: false, Reason: "voiceprint not enrolled"}
 		}
@@ -83,7 +83,7 @@ func (e *Engine) Verify(
 			return VerifyResult{Valid: false, Reason: "voiceprint mismatch"}
 		}
 
-	case securityv1.AuthMethod_AUTH_RETINAL_SCAN:
+	case securityv1.AuthMethod_AUTH_METHOD_RETINAL_SCAN:
 		if record.RetinalHash == "" {
 			return VerifyResult{Valid: false, Reason: "retinal scan not enrolled"}
 		}
@@ -91,12 +91,12 @@ func (e *Engine) Verify(
 			return VerifyResult{Valid: false, Reason: "retinal scan mismatch"}
 		}
 
-	case securityv1.AuthMethod_AUTH_PASSCODE:
+	case securityv1.AuthMethod_AUTH_METHOD_PASSCODE:
 		if payloadHash != record.PasscodeHash {
 			return VerifyResult{Valid: false, Reason: "incorrect passcode"}
 		}
 
-	case securityv1.AuthMethod_AUTH_BIOMETRIC:
+	case securityv1.AuthMethod_AUTH_METHOD_BIOMETRIC:
 		// Biometric = voice + retinal combined; accept if either passes (demo logic)
 		vpOK := record.VoicePrint != "" && payloadHash == record.VoicePrint
 		retOK := record.RetinalHash != "" && payloadHash == record.RetinalHash
@@ -104,7 +104,7 @@ func (e *Engine) Verify(
 			return VerifyResult{Valid: false, Reason: "biometric verification failed"}
 		}
 
-	case securityv1.AuthMethod_AUTH_TOKEN:
+	case securityv1.AuthMethod_AUTH_METHOD_TOKEN:
 		// Token validation is handled upstream by the token.Manager.
 		// If we reach here the token has already been validated.
 		return VerifyResult{Valid: true, GrantedScopes: record.Roles}

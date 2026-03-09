@@ -25,7 +25,7 @@ func New(log *slog.Logger) *FacilityServer {
 	return &FacilityServer{zones: zone.New(), log: log}
 }
 
-func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.SystemControlRequest) (*facilityv1.SystemControlResponse, error) {
+func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.ControlSystemRequest) (*facilityv1.ControlSystemResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.Syst
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "%v", err)
 	}
-	return &facilityv1.SystemControlResponse{
+	return &facilityv1.ControlSystemResponse{
 		Meta:        metaOK(req.Meta.RequestId),
 		ZoneId:      req.ZoneId,
 		System:      req.System,
@@ -47,7 +47,7 @@ func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.Syst
 	}, nil
 }
 
-func (s *FacilityServer) ManageAccess(ctx context.Context, req *facilityv1.AccessControlRequest) (*facilityv1.AccessControlResponse, error) {
+func (s *FacilityServer) ManageAccess(ctx context.Context, req *facilityv1.ManageAccessRequest) (*facilityv1.ManageAccessResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *FacilityServer) ManageAccess(ctx context.Context, req *facilityv1.Acces
 		reason = "subject does not have clearance for zone " + req.ZoneId
 	}
 
-	return &facilityv1.AccessControlResponse{
+	return &facilityv1.ManageAccessResponse{
 		Meta:          metaOK(req.Meta.RequestId),
 		AccessGranted: granted,
 		Reason:        reason,
@@ -77,14 +77,17 @@ func (s *FacilityServer) ManageAccess(ctx context.Context, req *facilityv1.Acces
 	}, nil
 }
 
-func (s *FacilityServer) GetEnvironmentReading(ctx context.Context, req *facilityv1.SystemControlRequest) (*facilityv1.EnvironmentReading, error) {
+func (s *FacilityServer) GetEnvironmentReading(ctx context.Context, req *facilityv1.GetEnvironmentReadingRequest) (*facilityv1.GetEnvironmentReadingResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
-	return environment.Reading(req.ZoneId), nil
+	return &facilityv1.GetEnvironmentReadingResponse{
+		Meta:    metaOK(req.Meta.RequestId),
+		Reading: environment.Reading(req.ZoneId),
+	}, nil
 }
 
-func (s *FacilityServer) StreamEnvironment(req *facilityv1.SystemControlRequest, stream facilityv1.FacilityService_StreamEnvironmentServer) error {
+func (s *FacilityServer) StreamEnvironment(req *facilityv1.StreamEnvironmentRequest, stream facilityv1.FacilityService_StreamEnvironmentServer) error {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for {
@@ -93,7 +96,7 @@ func (s *FacilityServer) StreamEnvironment(req *facilityv1.SystemControlRequest,
 			return nil
 		case <-ticker.C:
 			reading := environment.Reading(req.ZoneId)
-			if err := stream.Send(reading); err != nil {
+			if err := stream.Send(&facilityv1.StreamEnvironmentResponse{Reading: reading}); err != nil {
 				return status.Errorf(codes.Internal, "stream send: %v", err)
 			}
 		}

@@ -7,19 +7,19 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum TaskStatus {
-  TASK_UNSPECIFIED = 0;
-  TASK_PENDING     = 1;
-  TASK_IN_PROGRESS = 2;
-  TASK_DONE        = 3;
-  TASK_CANCELLED   = 4;
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_PENDING     = 1;
+  TASK_STATUS_IN_PROGRESS = 2;
+  TASK_STATUS_DONE        = 3;
+  TASK_STATUS_CANCELLED   = 4;
 }
 
 enum MessageChannel {
-  CHANNEL_UNSPECIFIED = 0;
-  CHANNEL_EMAIL       = 1;
-  CHANNEL_SMS         = 2;
-  CHANNEL_SLACK       = 3;
-  CHANNEL_SECURE      = 4;
+  MESSAGE_CHANNEL_UNSPECIFIED = 0;
+  MESSAGE_CHANNEL_EMAIL       = 1;
+  MESSAGE_CHANNEL_SMS         = 2;
+  MESSAGE_CHANNEL_SLACK       = 3;
+  MESSAGE_CHANNEL_SECURE      = 4;
 }
 
 message ScheduledEvent {
@@ -71,7 +71,7 @@ message CreateTaskRequest {
   google.protobuf.Timestamp due  = 6;
 }
 
-message TaskResponse {
+message CreateTaskResponse {
   jarvis.common.ResponseMeta meta = 1;
   string     task_id              = 2;
   TaskStatus status               = 3;
@@ -116,7 +116,7 @@ service BusinessOpsService {
   rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse) {
     option (google.api.http) = { get: "/v1/business/schedule/{subject_id}" };
   }
-  rpc CreateTask(CreateTaskRequest) returns (TaskResponse) {
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {
     option (google.api.http) = { post: "/v1/business/tasks" body: "*" };
   }
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {

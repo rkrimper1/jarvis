@@ -77,7 +77,6 @@ func TestSchedule_NoConflictDifferentAttendees(t *testing.T) {
 
 func TestList_Filtering(t *testing.T) {
 	s := calendar.New()
-	now := time.Now()
 
 	// Seeded events have tony-stark
 	events := s.List("tony-stark", time.Time{}, time.Time{})

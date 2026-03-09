@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum Intent {
-  INTENT_UNKNOWN          = 0;
+  INTENT_UNSPECIFIED      = 0;
   INTENT_QUERY            = 1;
   INTENT_COMMAND          = 2;
   INTENT_STATUS_CHECK     = 3;
@@ -27,8 +27,7 @@ message Entity {
   float  score = 3;
 }
 
-// ParseRequest / ParseResponse — used by ParseIntent and StreamVoiceInput
-message ParseRequest {
+message ParseIntentRequest {
   jarvis.common.RequestMeta meta  = 1;
   string raw_text                 = 2;
   repeated string context_tags   = 3;
@@ -36,7 +35,7 @@ message ParseRequest {
   string language_code            = 5;
 }
 
-message ParseResponse {
+message ParseIntentResponse {
   jarvis.common.ResponseMeta meta  = 1;
   Intent   intent                  = 2;
   float    confidence              = 3;
@@ -46,15 +45,15 @@ message ParseResponse {
 }
 
 // DialogueTurnRequest — field is "utterance" not "user_input"
-message DialogueTurnRequest {
+message ProcessDialogueTurnRequest {
   jarvis.common.RequestMeta meta = 1;
   string session_id              = 2;
   string utterance               = 3;
   string context_hint            = 4;
 }
 
-// DialogueTurnResponse — fields are reply_text and requires_confirmation
-message DialogueTurnResponse {
+// ProcessDialogueTurnResponse — fields are reply_text and requires_confirmation
+message ProcessDialogueTurnResponse {
   jarvis.common.ResponseMeta meta = 1;
   string session_id               = 2;
   string reply_text               = 3;
@@ -69,21 +68,38 @@ message DialogueHistory {
   google.protobuf.Timestamp timestamp = 3;
 }
 
+message StreamVoiceInputRequest {
+  jarvis.common.RequestMeta meta  = 1;
+  string raw_text                 = 2;
+  repeated string context_tags   = 3;
+  string session_id               = 4;
+  string language_code            = 5;
+}
+
+message StreamVoiceInputResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  Intent   intent                  = 2;
+  float    confidence              = 3;
+  string   canonical_command       = 4;
+  repeated Entity entities         = 5;
+  repeated string suggested_actions = 6;
+}
+
 service NLPService {
-  rpc ParseIntent(ParseRequest) returns (ParseResponse) {
+  rpc ParseIntent(ParseIntentRequest) returns (ParseIntentResponse) {
     option (google.api.http) = {
       post: "/v1/nlp/parse"
       body: "*"
     };
   }
 
-  rpc ProcessDialogueTurn(DialogueTurnRequest) returns (DialogueTurnResponse) {
+  rpc ProcessDialogueTurn(ProcessDialogueTurnRequest) returns (ProcessDialogueTurnResponse) {
     option (google.api.http) = {
       post: "/v1/nlp/dialogue"
       body: "*"
     };
   }
 
-  // Bidi-streaming: send ParseRequest chunks, receive ParseResponse per frame
-  rpc StreamVoiceInput(stream ParseRequest) returns (stream ParseResponse);
+  // Bidi-streaming: send StreamVoiceInputRequest chunks, receive StreamVoiceInputResponse per frame
+  rpc StreamVoiceInput(stream StreamVoiceInputRequest) returns (stream StreamVoiceInputResponse);
 }

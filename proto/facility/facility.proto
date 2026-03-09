@@ -7,23 +7,23 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum ZoneType {
-  ZONE_UNSPECIFIED = 0;
-  ZONE_LAB         = 1;
-  ZONE_WORKSHOP    = 2;
-  ZONE_RESIDENCE   = 3;
-  ZONE_SERVER_ROOM = 4;
-  ZONE_HANGAR      = 5;
-  ZONE_PERIMETER   = 6;
+  ZONE_TYPE_UNSPECIFIED = 0;
+  ZONE_TYPE_LAB         = 1;
+  ZONE_TYPE_WORKSHOP    = 2;
+  ZONE_TYPE_RESIDENCE   = 3;
+  ZONE_TYPE_SERVER_ROOM = 4;
+  ZONE_TYPE_HANGAR      = 5;
+  ZONE_TYPE_PERIMETER   = 6;
 }
 
 enum SystemType {
-  SYSTEM_UNSPECIFIED  = 0;
-  SYSTEM_LIGHTING     = 1;
-  SYSTEM_HVAC         = 2;
-  SYSTEM_POWER        = 3;
-  SYSTEM_ACCESS_DOORS = 4;
-  SYSTEM_CAMERAS      = 5;
-  SYSTEM_COMMS        = 6;
+  SYSTEM_TYPE_UNSPECIFIED  = 0;
+  SYSTEM_TYPE_LIGHTING     = 1;
+  SYSTEM_TYPE_HVAC         = 2;
+  SYSTEM_TYPE_POWER        = 3;
+  SYSTEM_TYPE_ACCESS_DOORS = 4;
+  SYSTEM_TYPE_CAMERAS      = 5;
+  SYSTEM_TYPE_COMMS        = 6;
 }
 
 message Zone {
@@ -45,7 +45,7 @@ message EnvironmentReading {
   google.protobuf.Timestamp timestamp = 7;
 }
 
-message SystemControlRequest {
+message ControlSystemRequest {
   jarvis.common.RequestMeta meta = 1;
   string     zone_id             = 2;
   SystemType system              = 3;
@@ -53,7 +53,7 @@ message SystemControlRequest {
   map<string, string> settings   = 5;
 }
 
-message SystemControlResponse {
+message ControlSystemResponse {
   jarvis.common.ResponseMeta meta = 1;
   string     zone_id              = 2;
   SystemType system               = 3;
@@ -61,29 +61,49 @@ message SystemControlResponse {
   repeated string side_effects    = 5;
 }
 
-message AccessControlRequest {
+message ManageAccessRequest {
   jarvis.common.RequestMeta meta = 1;
   string subject_id              = 2;
   string zone_id                 = 3;
   string action                  = 4;
 }
 
-message AccessControlResponse {
+message ManageAccessResponse {
   jarvis.common.ResponseMeta meta = 1;
   bool   access_granted           = 2;
   string reason                   = 3;
   google.protobuf.Timestamp valid_until = 4;
 }
 
+message GetEnvironmentReadingRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string zone_id                 = 2;
+}
+
+message GetEnvironmentReadingResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  EnvironmentReading reading      = 2;
+}
+
+message StreamEnvironmentRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string zone_id                 = 2;
+}
+
+message StreamEnvironmentResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  EnvironmentReading reading      = 2;
+}
+
 service FacilityService {
-  rpc ControlSystem(SystemControlRequest) returns (SystemControlResponse) {
+  rpc ControlSystem(ControlSystemRequest) returns (ControlSystemResponse) {
     option (google.api.http) = { post: "/v1/facility/zones/{zone_id}/system" body: "*" };
   }
-  rpc ManageAccess(AccessControlRequest) returns (AccessControlResponse) {
+  rpc ManageAccess(ManageAccessRequest) returns (ManageAccessResponse) {
     option (google.api.http) = { post: "/v1/facility/zones/{zone_id}/access" body: "*" };
   }
-  rpc GetEnvironmentReading(SystemControlRequest) returns (EnvironmentReading) {
+  rpc GetEnvironmentReading(GetEnvironmentReadingRequest) returns (GetEnvironmentReadingResponse) {
     option (google.api.http) = { get: "/v1/facility/zones/{zone_id}/environment" };
   }
-  rpc StreamEnvironment(SystemControlRequest) returns (stream EnvironmentReading);
+  rpc StreamEnvironment(StreamEnvironmentRequest) returns (stream StreamEnvironmentResponse);
 }

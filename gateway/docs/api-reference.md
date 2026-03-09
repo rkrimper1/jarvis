@@ -1,6 +1,6 @@
 # JARVIS REST API Reference
 
-Base URL: `http://localhost:8080` (via Envoy)  
+Base URL: `http://localhost:8080` (via Envoy)
 Direct gateway: `http://localhost:8081` (bypass Envoy — dev only)
 
 ---
@@ -16,8 +16,8 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
   -d '{
     "meta": {"request_id": "auth-001"},
     "subject_id": "tony-stark",
-    "method": "AUTH_TOKEN",
-    "credential_data": ""
+    "method": "AUTH_METHOD_TOKEN",
+    "credential_payload": ""
   }' | jq -r '.accessToken')
 
 # 2. Use the token
@@ -45,7 +45,7 @@ curl -X POST http://localhost:8080/v1/nlp/parse \
   -H "Content-Type: application/json" \
   -d '{
     "meta": {"request_id": "nlp-001"},
-    "utterance": "JARVIS, run diagnostics on the Mark VII suit",
+    "raw_text": "JARVIS, run diagnostics on the Mark VII suit",
     "language_code": "en-US",
     "session_id": "session-tony-001"
   }'
@@ -59,7 +59,7 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -d '{
     "meta": {"request_id": "dlg-001"},
     "session_id": "session-tony-001",
-    "user_input": "What is the current threat level?"
+    "utterance": "What is the current threat level?"
   }'
 ```
 
@@ -74,7 +74,7 @@ curl -X POST http://localhost:8080/v1/security/authenticate \
   -d '{
     "meta": {"request_id": "sec-auth-001"},
     "subject_id": "tony-stark",
-    "method": "AUTH_TOKEN"
+    "method": "AUTH_METHOD_TOKEN"
   }'
 ```
 
@@ -85,9 +85,9 @@ curl -X POST http://localhost:8080/v1/security/threat \
   -H "Content-Type: application/json" \
   -d '{
     "meta": {"request_id": "threat-001"},
-    "subject": "ivan-vanko",
+    "subject_id": "ivan-vanko",
     "location": "monaco-circuit",
-    "signals": ["energy_signature", "weapons_detected", "criminal_record"]
+    "observed_signals": ["energy_signature", "weapons_detected", "criminal_record"]
   }'
 ```
 
@@ -98,8 +98,8 @@ curl -X POST http://localhost:8080/v1/security/protocol \
   -H "Content-Type: application/json" \
   -d '{
     "meta": {"request_id": "proto-001"},
-    "protocol_name": "LOCKDOWN",
-    "authorisation_code": "STARK-ALPHA-7",
+    "protocol": "PROTOCOL_TYPE_LOCKDOWN",
+    "reason": "intruder detected",
     "requires_confirmation": false
   }'
 ```
@@ -128,7 +128,7 @@ curl -X POST http://localhost:8080/v1/agents/dispatch \
   -d '{
     "meta": {"request_id": "dispatch-001"},
     "task_description": "Perimeter patrol — sector 7",
-    "priority": "PRIORITY_HIGH",
+    "priority": "TASK_PRIORITY_HIGH",
     "target_agent_ids": ["drone-01", "drone-02"]
   }'
 ```
@@ -141,7 +141,7 @@ curl -X POST http://localhost:8080/v1/agents/broadcast \
   -d '{
     "meta": {"request_id": "broadcast-001"},
     "message": "Return to base immediately",
-    "priority": "PRIORITY_CRITICAL"
+    "priority": "TASK_PRIORITY_CRITICAL"
   }'
 ```
 
@@ -185,7 +185,7 @@ curl -X POST http://localhost:8080/v1/facility/zones/workshop/system \
   -d '{
     "meta": {"request_id": "fac-001"},
     "zone_id": "workshop",
-    "system": "SYSTEM_LIGHTING",
+    "system": "SYSTEM_TYPE_LIGHTING",
     "command": "SET",
     "settings": {"brightness": "80", "color_temp": "warm"}
   }'
@@ -222,8 +222,8 @@ curl -X POST http://localhost:8080/v1/intel/query \
   -d '{
     "meta": {"request_id": "intel-001"},
     "query": "ivan-vanko",
-    "subject_type": "SUBJECT_PERSON",
-    "depth": "DEPTH_DEEP",
+    "subject_type": "SUBJECT_TYPE_PERSON",
+    "depth": "ANALYSIS_DEPTH_DEEP",
     "data_sources": ["SHIELD", "STARK_DB"]
   }'
 ```
@@ -297,7 +297,7 @@ curl -X POST http://localhost:8080/v1/business/messages \
   -d '{
     "meta": {"request_id": "msg-001"},
     "recipients": ["pepper-potts"],
-    "channel": "CHANNEL_ENCRYPTED",
+    "channel": "MESSAGE_CHANNEL_SECURE",
     "subject": "Urgent: Board meeting rescheduled",
     "body": "Please move the Q4 review to 1400 tomorrow.",
     "encrypt": true
@@ -327,7 +327,7 @@ curl -X POST http://localhost:8080/v1/learning/feedback \
   -d '{
     "meta": {"request_id": "fb-001"},
     "interaction_id": "dlg-001",
-    "feedback_type": "FEEDBACK_CORRECTION",
+    "feedback_type": "FEEDBACK_TYPE_CORRECTION",
     "correction": "The threat level was HIGH not MODERATE",
     "rating": 0.3
   }'
@@ -341,7 +341,7 @@ curl http://localhost:8080/v1/learning/profile/tony-stark \
 
 ### Get Model Performance
 ```bash
-curl "http://localhost:8080/v1/learning/performance?domain=DOMAIN_NLP" \
+curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -356,13 +356,13 @@ grpcurl -plaintext localhost:9090 list
 # Call NLP directly
 grpcurl -plaintext -d '{
   "meta": {"request_id": "grpc-001"},
-  "utterance": "Power up the Mark VII",
+  "raw_text": "Power up the Mark VII",
   "session_id": "session-001"
 }' localhost:9090 jarvis.nlp.NLPService/ParseIntent
 
 # Stream coordination events
 grpcurl -plaintext -d '{
-  "request_id": "stream-001"
+  "meta": {"request_id": "stream-001"}
 }' localhost:9090 jarvis.agent.AgentCoordinatorService/StreamCoordinationEvents
 ```
 
@@ -392,6 +392,6 @@ grpcurl -plaintext -d '{
           │                                                      │
           │  nlp:50051   security:50052  agent:50053             │
           │  hardware:50054  facility:50055  intel:50056         │
-          │  business:50057  learning:50058                      │
+          │  business:50057  learning:50058  voice:50059         │
           └──────────────────────────────────────────────────────┘
 ```

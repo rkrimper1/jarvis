@@ -92,16 +92,16 @@ func (s *Store) ControlSystem(zoneID string, sys facilityv1.SystemType, command 
 func computeSideEffects(sys facilityv1.SystemType, state string, z *ZoneRecord) []string {
 	var effects []string
 	switch sys {
-	case facilityv1.SystemType_SYSTEM_HVAC:
+	case facilityv1.SystemType_SYSTEM_TYPE_HVAC:
 		effects = append(effects, "HVAC rebalanced across all floors")
 		if state == "OFF" {
 			effects = append(effects, "backup ventilation engaged")
 		}
-	case facilityv1.SystemType_SYSTEM_POWER:
+	case facilityv1.SystemType_SYSTEM_TYPE_POWER:
 		if state == "OFF" {
 			effects = append(effects, "emergency lighting activated", "UPS engaged")
 		}
-	case facilityv1.SystemType_SYSTEM_ACCESS_DOORS:
+	case facilityv1.SystemType_SYSTEM_TYPE_ACCESS_DOORS:
 		if state == "OFF" {
 			effects = append(effects, "all doors locked", "security notified")
 		}
@@ -117,21 +117,21 @@ func (s *Store) seed() {
 		building string
 		floor    int32
 	}{
-		{"workshop", "Tony's Workshop", facilityv1.ZoneType_ZONE_WORKSHOP, "malibu-mansion", -1},
-		{"lab-01", "Research Lab Alpha", facilityv1.ZoneType_ZONE_LAB, "stark-tower", 40},
-		{"server-room", "Primary Server Room", facilityv1.ZoneType_ZONE_SERVER_ROOM, "stark-tower", 38},
-		{"hangar-a", "Hangar A", facilityv1.ZoneType_ZONE_HANGAR, "malibu-mansion", 0},
-		{"residence", "Penthouse Residence", facilityv1.ZoneType_ZONE_RESIDENCE, "stark-tower", 93},
-		{"perimeter", "Outer Perimeter", facilityv1.ZoneType_ZONE_PERIMETER, "malibu-mansion", 0},
+		{"workshop", "Tony's Workshop", facilityv1.ZoneType_ZONE_TYPE_WORKSHOP, "malibu-mansion", -1},
+		{"lab-01", "Research Lab Alpha", facilityv1.ZoneType_ZONE_TYPE_LAB, "stark-tower", 40},
+		{"server-room", "Primary Server Room", facilityv1.ZoneType_ZONE_TYPE_SERVER_ROOM, "stark-tower", 38},
+		{"hangar-a", "Hangar A", facilityv1.ZoneType_ZONE_TYPE_HANGAR, "malibu-mansion", 0},
+		{"residence", "Penthouse Residence", facilityv1.ZoneType_ZONE_TYPE_RESIDENCE, "stark-tower", 93},
+		{"perimeter", "Outer Perimeter", facilityv1.ZoneType_ZONE_TYPE_PERIMETER, "malibu-mansion", 0},
 	}
 
 	allSystems := []facilityv1.SystemType{
-		facilityv1.SystemType_SYSTEM_LIGHTING,
-		facilityv1.SystemType_SYSTEM_HVAC,
-		facilityv1.SystemType_SYSTEM_POWER,
-		facilityv1.SystemType_SYSTEM_ACCESS_DOORS,
-		facilityv1.SystemType_SYSTEM_CAMERAS,
-		facilityv1.SystemType_SYSTEM_COMMS,
+		facilityv1.SystemType_SYSTEM_TYPE_LIGHTING,
+		facilityv1.SystemType_SYSTEM_TYPE_HVAC,
+		facilityv1.SystemType_SYSTEM_TYPE_POWER,
+		facilityv1.SystemType_SYSTEM_TYPE_ACCESS_DOORS,
+		facilityv1.SystemType_SYSTEM_TYPE_CAMERAS,
+		facilityv1.SystemType_SYSTEM_TYPE_COMMS,
 	}
 
 	for _, z := range zones {

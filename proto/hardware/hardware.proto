@@ -7,20 +7,20 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum DeviceType {
-  DEVICE_UNSPECIFIED = 0;
-  DEVICE_IRON_SUIT   = 1;
-  DEVICE_ARC_REACTOR = 2;
-  DEVICE_SENSOR      = 3;
-  DEVICE_SATELLITE   = 4;
-  DEVICE_HUD         = 5;
+  DEVICE_TYPE_UNSPECIFIED = 0;
+  DEVICE_TYPE_IRON_SUIT   = 1;
+  DEVICE_TYPE_ARC_REACTOR = 2;
+  DEVICE_TYPE_SENSOR      = 3;
+  DEVICE_TYPE_SATELLITE   = 4;
+  DEVICE_TYPE_HUD         = 5;
 }
 
 enum PowerState {
-  POWER_UNSPECIFIED = 0;
-  POWER_OFF         = 1;
-  POWER_STANDBY     = 2;
-  POWER_ON          = 3;
-  POWER_CRITICAL    = 4;
+  POWER_STATE_UNSPECIFIED = 0;
+  POWER_STATE_OFF         = 1;
+  POWER_STATE_STANDBY     = 2;
+  POWER_STATE_ON          = 3;
+  POWER_STATE_CRITICAL    = 4;
 }
 
 message Device {
@@ -43,27 +43,27 @@ message TelemetryReading {
   google.protobuf.Timestamp timestamp = 6;
 }
 
-message DeviceCommandRequest {
+message SendCommandRequest {
   jarvis.common.RequestMeta meta = 1;
   string device_id               = 2;
   string command                 = 3;
   map<string, string> params     = 4;
 }
 
-message DeviceCommandResponse {
+message SendCommandResponse {
   jarvis.common.ResponseMeta meta = 1;
   string device_id                = 2;
   string command_executed         = 3;
   string result_detail            = 4;
 }
 
-message DiagnosticsRequest {
+message RunDiagnosticsRequest {
   jarvis.common.RequestMeta meta = 1;
   string device_id               = 2;
   bool   deep_scan               = 3;
 }
 
-message DiagnosticsResponse {
+message RunDiagnosticsResponse {
   jarvis.common.ResponseMeta meta  = 1;
   string device_id                 = 2;
   repeated string warnings         = 3;
@@ -72,13 +72,13 @@ message DiagnosticsResponse {
   map<string, string> system_stats = 6;
 }
 
-message EnergySourceRequest {
+message ScanEnergySourcesRequest {
   jarvis.common.RequestMeta meta = 1;
   string location                = 2;
   float  scan_radius_km          = 3;
 }
 
-message EnergySourceResponse {
+message ScanEnergySourcesResponse {
   jarvis.common.ResponseMeta meta = 1;
   repeated EnergySource sources  = 2;
 }
@@ -91,16 +91,38 @@ message EnergySource {
   bool   is_hostile  = 5;
 }
 
+message StreamTelemetryRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string device_id               = 2;
+}
+
+message StreamTelemetryResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  TelemetryReading reading        = 2;
+}
+
+message SuitControlStreamRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string device_id               = 2;
+  string command                 = 3;
+  map<string, string> params     = 4;
+}
+
+message SuitControlStreamResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  TelemetryReading reading        = 2;
+}
+
 service HardwareService {
-  rpc SendCommand(DeviceCommandRequest) returns (DeviceCommandResponse) {
+  rpc SendCommand(SendCommandRequest) returns (SendCommandResponse) {
     option (google.api.http) = { post: "/v1/hardware/{device_id}/command" body: "*" };
   }
-  rpc RunDiagnostics(DiagnosticsRequest) returns (DiagnosticsResponse) {
+  rpc RunDiagnostics(RunDiagnosticsRequest) returns (RunDiagnosticsResponse) {
     option (google.api.http) = { get: "/v1/hardware/{device_id}/diagnostics" };
   }
-  rpc ScanEnergySources(EnergySourceRequest) returns (EnergySourceResponse) {
+  rpc ScanEnergySources(ScanEnergySourcesRequest) returns (ScanEnergySourcesResponse) {
     option (google.api.http) = { get: "/v1/hardware/energy/scan" };
   }
-  rpc StreamTelemetry(DiagnosticsRequest) returns (stream TelemetryReading);
-  rpc SuitControlStream(stream DeviceCommandRequest) returns (stream TelemetryReading);
+  rpc StreamTelemetry(StreamTelemetryRequest) returns (stream StreamTelemetryResponse);
+  rpc SuitControlStream(stream SuitControlStreamRequest) returns (stream SuitControlStreamResponse);
 }

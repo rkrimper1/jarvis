@@ -66,16 +66,16 @@ func (r *Registry) ExecuteCommand(id, command string, params map[string]string) 
 
 	switch command {
 	case "POWER_ON":
-		d.PowerState = hardwarev1.PowerState_POWER_ON
+		d.PowerState = hardwarev1.PowerState_POWER_STATE_ON
 		return fmt.Sprintf("Device %s powered on. All systems nominal.", d.Name), nil
 	case "POWER_OFF":
-		d.PowerState = hardwarev1.PowerState_POWER_OFF
+		d.PowerState = hardwarev1.PowerState_POWER_STATE_OFF
 		return fmt.Sprintf("Device %s powered off gracefully.", d.Name), nil
 	case "STANDBY":
-		d.PowerState = hardwarev1.PowerState_POWER_STANDBY
+		d.PowerState = hardwarev1.PowerState_POWER_STATE_STANDBY
 		return fmt.Sprintf("Device %s entering standby mode.", d.Name), nil
 	case "REBOOT":
-		d.PowerState = hardwarev1.PowerState_POWER_STANDBY
+		d.PowerState = hardwarev1.PowerState_POWER_STATE_STANDBY
 		return fmt.Sprintf("Device %s rebooting... estimated time: 30 seconds.", d.Name), nil
 	case "REROUTE_POWER":
 		target := params["target"]
@@ -107,7 +107,7 @@ func (r *Registry) RunDiagnostics(id string, deepScan bool) (warnings, errors []
 	}
 
 	score = 1.0
-	if d.PowerState == hardwarev1.PowerState_POWER_CRITICAL {
+	if d.PowerState == hardwarev1.PowerState_POWER_STATE_CRITICAL {
 		warnings = append(warnings, "power level critical — immediate recharge recommended")
 		score -= 0.4
 	}
@@ -129,18 +129,18 @@ func (r *Registry) RunDiagnostics(id string, deepScan bool) (warnings, errors []
 // seed populates the registry with Tony Stark's hardware inventory.
 func (r *Registry) seed() {
 	devices := []*hardwarev1.Device{
-		{DeviceId: "mark-ii-suit", Name: "Iron Man Mark II", Type: hardwarev1.DeviceType_DEVICE_IRON_SUIT,
-			PowerState: hardwarev1.PowerState_POWER_STANDBY, PowerLevel: 100, FirmwareVer: "2.1.0", Location: "hangar-a"},
-		{DeviceId: "mark-vii-suit", Name: "Iron Man Mark VII", Type: hardwarev1.DeviceType_DEVICE_IRON_SUIT,
-			PowerState: hardwarev1.PowerState_POWER_ON, PowerLevel: 87.5, FirmwareVer: "7.3.2", Location: "hangar-b"},
-		{DeviceId: "arc-reactor-primary", Name: "Primary Arc Reactor", Type: hardwarev1.DeviceType_DEVICE_ARC_REACTOR,
-			PowerState: hardwarev1.PowerState_POWER_ON, PowerLevel: 98.1, FirmwareVer: "3.0.1", Location: "basement"},
-		{DeviceId: "arc-reactor-backup", Name: "Backup Arc Reactor", Type: hardwarev1.DeviceType_DEVICE_ARC_REACTOR,
-			PowerState: hardwarev1.PowerState_POWER_STANDBY, PowerLevel: 100, FirmwareVer: "3.0.1", Location: "basement"},
-		{DeviceId: "stark-satellite-1", Name: "Stark Satellite Alpha", Type: hardwarev1.DeviceType_DEVICE_SATELLITE,
-			PowerState: hardwarev1.PowerState_POWER_ON, PowerLevel: 91.0, FirmwareVer: "1.4.0", Location: "orbit-leo"},
-		{DeviceId: "hud-mk7", Name: "HUD Mark VII", Type: hardwarev1.DeviceType_DEVICE_HUD,
-			PowerState: hardwarev1.PowerState_POWER_ON, PowerLevel: 99.9, FirmwareVer: "7.1.0", Location: "mark-vii-suit"},
+		{DeviceId: "mark-ii-suit", Name: "Iron Man Mark II", Type: hardwarev1.DeviceType_DEVICE_TYPE_IRON_SUIT,
+			PowerState: hardwarev1.PowerState_POWER_STATE_STANDBY, PowerLevel: 100, FirmwareVer: "2.1.0", Location: "hangar-a"},
+		{DeviceId: "mark-vii-suit", Name: "Iron Man Mark VII", Type: hardwarev1.DeviceType_DEVICE_TYPE_IRON_SUIT,
+			PowerState: hardwarev1.PowerState_POWER_STATE_ON, PowerLevel: 87.5, FirmwareVer: "7.3.2", Location: "hangar-b"},
+		{DeviceId: "arc-reactor-primary", Name: "Primary Arc Reactor", Type: hardwarev1.DeviceType_DEVICE_TYPE_ARC_REACTOR,
+			PowerState: hardwarev1.PowerState_POWER_STATE_ON, PowerLevel: 98.1, FirmwareVer: "3.0.1", Location: "basement"},
+		{DeviceId: "arc-reactor-backup", Name: "Backup Arc Reactor", Type: hardwarev1.DeviceType_DEVICE_TYPE_ARC_REACTOR,
+			PowerState: hardwarev1.PowerState_POWER_STATE_STANDBY, PowerLevel: 100, FirmwareVer: "3.0.1", Location: "basement"},
+		{DeviceId: "stark-satellite-1", Name: "Stark Satellite Alpha", Type: hardwarev1.DeviceType_DEVICE_TYPE_SATELLITE,
+			PowerState: hardwarev1.PowerState_POWER_STATE_ON, PowerLevel: 91.0, FirmwareVer: "1.4.0", Location: "orbit-leo"},
+		{DeviceId: "hud-mk7", Name: "HUD Mark VII", Type: hardwarev1.DeviceType_DEVICE_TYPE_HUD,
+			PowerState: hardwarev1.PowerState_POWER_STATE_ON, PowerLevel: 99.9, FirmwareVer: "7.1.0", Location: "mark-vii-suit"},
 	}
 	for _, d := range devices {
 		d.LastSync = timestamppb.Now()
