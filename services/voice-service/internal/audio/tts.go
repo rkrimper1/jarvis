@@ -18,7 +18,10 @@
 // playback start on-device before the full utterance is synthesised.
 package audio
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -89,7 +92,9 @@ type Synthesizer interface {
 // StubSynthesizer satisfies Synthesizer without any external calls.
 // It returns a single empty PCM chunk so the full gRPC stream protocol
 // (SPEAKING state → AudioReply → back to IDLE) is exercised in tests.
+// Safe for concurrent use — lastErr is protected by mu.
 type StubSynthesizer struct {
+	mu      sync.Mutex
 	lastErr error
 }
 
@@ -97,22 +102,29 @@ type StubSynthesizer struct {
 func NewStubSynthesizer() *StubSynthesizer { return &StubSynthesizer{} }
 
 // Synthesize returns a channel that immediately emits one stub chunk and closes.
-func (s *StubSynthesizer) Synthesize(_ context.Context, req SynthesisRequest) (<-chan SynthesisChunk, error) {
+func (s *StubSynthesizer) Synthesize(_ context.Context, _ SynthesisRequest) (<-chan SynthesisChunk, error) {
 	ch := make(chan SynthesisChunk, 1)
 	ch <- SynthesisChunk{
-		// Empty PCM so tests don't play noise, but IsFinal=true closes the turn.
+																																												 
 		Data:     []byte("[TTS stub — wire Cloud TTS here]"),
 		Encoding: 1, // PCM_16BIT
 		IsFinal:  true,
 		Index:    0,
 	}
 	close(ch)
+	s.mu.Lock()
 	s.lastErr = nil
+	s.mu.Unlock()
 	return ch, nil
 }
 
-// Err always returns nil for the stub.
-func (s *StubSynthesizer) Err() error { return s.lastErr }
+// Err returns the error from the most recent Synthesize call.
+// Safe to call after the chunk channel has been fully drained.
+func (s *StubSynthesizer) Err() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.lastErr
+}
 
 // Close is a no-op for the stub.
 func (s *StubSynthesizer) Close() error { return nil }
