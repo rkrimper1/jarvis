@@ -36,11 +36,12 @@ type VoiceServer struct {
 	sessions *session.Store
 	nlp      nlpv1.NLPServiceClient
 	transcriber audio.Transcriber
+	synthesizer audio.Synthesizer
 	log      *slog.Logger
 }
 
 // New creates a VoiceServer, dials the NLP upstream, builds the STT
-// transcriber from config, and initialises the session store.
+// transcriber and TTS synthesizer  from config, and initialises the session store.
 func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 	dialCtx, cancel := context.WithTimeout(context.Background(), cfg.NLP.DialTimeout)
 	defer cancel()
@@ -60,12 +61,17 @@ func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 		return nil, fmt.Errorf("init STT transcriber: %w", err)
 	}
 
+	synthesizer, err := newSynthesizer(cfg, log)
+	if err != nil {
+		return nil, fmt.Errorf("init TTS synthesizer: %w", err)
+	}
 
 	return &VoiceServer{
 		cfg:      cfg,
 		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
 		nlp:      nlpv1.NewNLPServiceClient(nlpConn),
 		transcriber: transcriber,
+		synthesizer: synthesizer,
 		log:      log,
 	}, nil
 }
@@ -82,16 +88,28 @@ func newTranscriber(_ context.Context, cfg *config.Config, log *slog.Logger) (au
 	}
 }
 
+// newSynthesizer builds the correct Synthesizer from config.
+// cloud_tts wiring lives in tts_cloud.go — added when the dep is available.
+func newSynthesizer(cfg *config.Config, log *slog.Logger) (audio.Synthesizer, error) {
+	switch cfg.TTS.Provider {
+	case "cloud_tts":
+		return newCloudTTSSynthesizer(cfg, log)
+	default:
+		log.Info("TTS provider: stub", slog.String("provider", cfg.TTS.Provider))
+		return audio.NewStubSynthesizer(), nil
+	}
+}
 
 // NewWithClient creates a VoiceServer with a pre-wired NLP client.
-// Intended for tests and integration harnesses. Uses StubTranscriber.
-// Signature is stable — tests do not need to supply a transcriber.
+// Intended for tests and integration harnesses. Uses stub STT and TTS.
+// Signature is stable — tests do not need to supply backends.
 func NewWithClient(cfg *config.Config, nlpClient nlpv1.NLPServiceClient, log *slog.Logger) *VoiceServer {
 	return &VoiceServer{
 		cfg:      cfg,
 		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
 		nlp:      nlpClient,
 		transcriber: audio.NewStubTranscriber(),
+		synthesizer: audio.NewStubSynthesizer(),
 		log:      log,
 	}
 }
@@ -241,7 +259,7 @@ func (s *VoiceServer) Converse(stream voicev1.VoiceService_ConverseServer) error
 	return nil
 }
 
-// ── processUtterance: STT → NLP → TTS stub → HUDAction ───────────────
+// ── processUtterance: STT → NLP → TTS → HUDAction ────────────────────
 
 func (s *VoiceServer) processUtterance(
 	ctx context.Context,
@@ -315,22 +333,25 @@ func (s *VoiceServer) processUtterance(
 		return err
 	}
 
-	// TTS stub — replace with Cloud Text-to-Speech or ElevenLabs in prod.
-	if err := stream.Send(&voicev1.ConverseResponse{
-		SessionId:  sess.ID,
-		SequenceNum: seqNum,
-		Payload: &voicev1.ConverseResponse_AudioReply{
-			AudioReply: &voicev1.AudioReply{
-				Data:          []byte("[TTS stub — wire Cloud TTS here]"),
-				Encoding:      voicev1.AudioEncoding_AUDIO_ENCODING_PCM_16BIT,
-				Text:          nlpResp.ReplyText,
-				IsFinalChunk:  true,
-				ChunkIndex:    0,
-			},
-		},
-	}); err != nil {
-		return err
-	}
+	if err := s.streamTTS(ctx, stream, sess.ID, seqNum, nlpResp.ReplyText, streamCfg); err != nil {
+		return fmt.Errorf("TTS failed: %w", err)
+	}	
+	// // TTS stub — replace with Cloud Text-to-Speech or ElevenLabs in prod.
+	// if err := stream.Send(&voicev1.ConverseResponse{
+	// 	SessionId:  sess.ID,
+	// 	SequenceNum: seqNum,
+	// 	Payload: &voicev1.ConverseResponse_AudioReply{
+	// 		AudioReply: &voicev1.AudioReply{
+	// 			Data:          []byte("[TTS stub — wire Cloud TTS here]"),
+	// 			Encoding:      voicev1.AudioEncoding_AUDIO_ENCODING_PCM_16BIT,
+	// 			Text:          nlpResp.ReplyText,
+	// 			IsFinalChunk:  true,
+	// 			ChunkIndex:    0,
+	// 		},
+	// 	},
+	// }); err != nil {
+	// 	return err
+	// }
 
 	// 7. HUDAction — map NLP intent to a structured client action
 	if action := intentToHUDAction(nlpResp); action != nil {
@@ -344,6 +365,82 @@ func (s *VoiceServer) processUtterance(
 	}
 
 	return nil
+}
+
+
+// ── streamTTS ───────────────────────────────────────────────────────────────
+
+// streamTTS calls the injected Synthesizer and forwards every SynthesisChunk
+// to the client as an AudioReply message. This lets the iOS client begin
+// playing audio before synthesis is fully complete.
+//
+// The encoding integer from SynthesisChunk is mapped to the proto enum:
+//
+//	1 → PCM_16BIT   2 → OPUS   3 → AAC
+func (s *VoiceServer) streamTTS(
+	ctx context.Context,
+	stream voicev1.VoiceService_ConverseServer,
+	sessionID string,
+	seqNum int64,
+	replyText string,
+	streamCfg *voicev1.StreamConfig,
+) error {
+	req := audio.SynthesisRequest{
+		Text:         replyText,
+		LanguageCode: streamCfg.GetLanguageCode(),
+		VoiceID:      streamCfg.GetVoiceId(),
+		SpeakingRate: s.cfg.TTS.SpeakingRate,
+		Pitch:        s.cfg.TTS.Pitch,
+	}
+	// Fill in service-level defaults when the stream config omits them.
+	if req.LanguageCode == "" {
+		req.LanguageCode = s.cfg.TTS.LanguageCode
+	}
+	if req.VoiceID == "" {
+		req.VoiceID = s.cfg.TTS.VoiceID
+	}
+
+	chunks, err := s.synthesizer.Synthesize(ctx, req)
+	if err != nil {
+		return fmt.Errorf("synthesizer.Synthesize: %w", err)
+	}
+
+	for chunk := range chunks {
+		enc := encodingFromInt(chunk.Encoding)
+		if err := stream.Send(&voicev1.ConverseResponse{
+			SessionId:   sessionID,
+			SequenceNum: seqNum,
+			Payload: &voicev1.ConverseResponse_AudioReply{
+				AudioReply: &voicev1.AudioReply{
+					Data:         chunk.Data,
+					Encoding:     enc,
+					Text:         replyText,
+					IsFinalChunk: chunk.IsFinal,
+					ChunkIndex:   chunk.Index,
+				},
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
+	// Check for synthesis error that closed the channel early.
+	if err := s.synthesizer.Err(); err != nil {
+		return fmt.Errorf("synthesizer error: %w", err)
+	}
+	return nil
+}
+
+// encodingFromInt maps SynthesisChunk.Encoding int32 values to the proto enum.
+func encodingFromInt(enc int32) voicev1.AudioEncoding {
+	switch enc {
+	case 2:
+		return voicev1.AudioEncoding_AUDIO_ENCODING_OPUS
+	case 3:
+		return voicev1.AudioEncoding_AUDIO_ENCODING_AAC
+	default:
+		return voicev1.AudioEncoding_AUDIO_ENCODING_PCM_16BIT
+	}
 }
 
 // ── GetSession ──────────────────────────────────────────────────────────────

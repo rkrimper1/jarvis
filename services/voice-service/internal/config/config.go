@@ -15,6 +15,7 @@ type Config struct {
 	Server   ServerConfig
 	Audio    AudioConfig
 	STT      STTConfig
+	TTS      TTSConfig
 	NLP      NLPUpstreamConfig
 	Session  SessionConfig
 	Log      LogConfig
@@ -63,6 +64,33 @@ type STTConfig struct {
 	SpeechContextPhrases []string
 }
 
+// TTSConfig selects and configures the text-to-speech backend.
+type TTSConfig struct {
+	// Provider selects the backend: "stub" (default) or "cloud_tts".
+	Provider string
+	// GCPProject is required when Provider == "cloud_tts".
+	GCPProject string
+	// CredentialsFile is the path to a GCP service-account JSON key.
+	// Leave empty to use Application Default Credentials.
+	CredentialsFile string
+	// VoiceID selects the Cloud TTS voice, e.g. "en-US-Journey-D".
+	// See: https://cloud.google.com/text-to-speech/docs/voices
+	VoiceID string
+	// LanguageCode is the BCP-47 fallback when the stream config omits it.
+	LanguageCode string
+	// SpeakingRate adjusts speed [0.25, 4.0]. 0 uses the API default (1.0).
+	SpeakingRate float64
+	// Pitch adjusts pitch in semitones [-20, 20]. 0 uses the API default.
+	Pitch float64
+	// AudioEncoding controls the wire format sent to the iOS client.
+	// Supported values: "pcm" (LINEAR16), "opus", "aac". Default: "pcm".
+	AudioEncoding string
+	// ChunkSizeBytes is the target PCM chunk size per AudioReply message.
+	// Smaller = lower first-byte latency; larger = fewer messages.
+	// Default: 8192 (≈256ms at 16kHz mono PCM-16).
+	ChunkSizeBytes int
+}
+
 // NLPUpstreamConfig dials the nlp-service for intent + dialogue processing.
 // Mirrors the upstream pattern used in gateway/internal/config/config.go.
 type NLPUpstreamConfig struct {
@@ -107,6 +135,17 @@ func Load() (*Config, error) {
 			MaxSyncDurationSec:         envInt("STT_MAX_SYNC_DURATION_SEC", 55),
 			EnableWordTimeOffsets:      envBool("STT_WORD_TIME_OFFSETS", false),
 			EnableAutomaticPunctuation: envBool("STT_AUTO_PUNCTUATION", true),
+		},
+		TTS: TTSConfig{
+			Provider:        envString("TTS_PROVIDER", "stub"),
+			GCPProject:      envString("GCP_PROJECT", ""),
+			CredentialsFile: envString("GOOGLE_APPLICATION_CREDENTIALS", ""),
+			VoiceID:         envString("TTS_VOICE_ID", "en-US-Journey-D"),
+			LanguageCode:    envString("TTS_LANGUAGE_CODE", "en-US"),
+			SpeakingRate:    envFloat("TTS_SPEAKING_RATE", 1.0),
+			Pitch:           envFloat("TTS_PITCH", 0.0),
+			AudioEncoding:   envString("TTS_AUDIO_ENCODING", "pcm"),
+			ChunkSizeBytes:  envInt("TTS_CHUNK_SIZE_BYTES", 8192),
 		},
 		NLP: NLPUpstreamConfig{
 			Addr:        envString("NLP_ADDR", "nlp-service:50051"),
@@ -175,6 +214,15 @@ func envBool(key string, def bool) bool {
 			return true
 		case "false", "0", "no":
 			return false
+		}
+	}
+	return def
+}
+
+func envFloat(key string, def float64) float64 {
+	if v := os.Getenv(key); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f
 		}
 	}
 	return def
