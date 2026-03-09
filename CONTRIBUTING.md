@@ -50,27 +50,59 @@ make build
 
 ```
 jarvis/
-├── proto/          # Source of truth — edit these, never gen/
-│   ├── common/     # Shared types (RequestMeta, ResponseMeta, …)
-│   ├── nlp/
-│   ├── security/
-│   ├── agent/
-│   ├── hardware/
-│   ├── facility/
-│   ├── intelligence/
-│   ├── business/
-│   └── learning/
-├── gen/            # Generated Go code — gitignored, do not edit
-├── services/       # Service implementations
+├── proto/                        # Source of truth — edit these, never gen/
+│   ├── common/common.proto       # Shared types (RequestMeta, ResponseMeta, Severity, …)
+│   ├── nlp/nlp.proto
+│   ├── security/security.proto
+│   ├── agent/agent.proto
+│   ├── hardware/hardware.proto
+│   ├── facility/facility.proto
+│   ├── intelligence/intelligence.proto
+│   ├── business/business.proto
+│   ├── learning/learning.proto
+│   └── voice/voice.proto
+├── gen/                          # Generated code — gitignored, do not edit
+│   ├── <domain>/                 # Go stubs (protobuf + gRPC)
+│   └── swift/                    # Swift stubs for the iOS client
+├── services/                     # gRPC service implementations (Go)
 │   ├── nlp-service/
-│   └── …
-├── gateway/        # gRPC-Gateway (REST ↔ gRPC transcoding)
-├── docker/         # Dockerfiles + docker-compose.yml
-├── docs/openapi/   # Generated OpenAPI spec — gitignored
-├── buf.yaml        # Buf lint / breaking-change config
-├── buf.gen.yaml    # Code generation config
-├── go.mod
-└── Makefile
+│   ├── security-service/
+│   ├── agent-coordinator/
+│   ├── hardware-service/
+│   ├── facility-service/
+│   ├── intelligence-service/
+│   ├── business-ops-service/
+│   ├── learning-service/
+│   └── voice-service/
+│       └── cmd/server/           # Each service follows this layout
+│           internal/             # (business logic, unexported)
+│           └── pkg/middleware/   # (shared gRPC interceptors)
+├── gateway/                      # API Gateway — REST ↔ gRPC transcoding
+│   ├── cmd/server/main.go
+│   ├── internal/
+│   │   ├── config/
+│   │   ├── middleware/
+│   │   └── proxy/
+│   └── docs/api-reference.md
+├── clients/
+│   └── ios/JarvisClient/         # SwiftUI iOS client
+│       ├── JarvisClient/
+│       │   ├── Services/         # GRPCVoiceService, AudioCaptureEngine, WakeWordDetector
+│       │   ├── ViewModels/       # VoiceViewModel
+│       │   └── Proto/            # Symlink / copy of gen/swift stubs
+│       └── Views/                # HUDView, TranscriptView, WaveformView, DesignSystem
+├── docker/                       # Dockerfiles + orchestration
+│   ├── docker-compose.yml
+│   ├── envoy.yaml
+│   ├── proto-gen/Dockerfile      # Buf codegen container
+│   └── <service>/Dockerfile      # One per service + gateway
+├── docs/openapi/                 # Generated OpenAPI spec — gitignored
+├── buf.yaml                      # Buf lint / breaking-change config
+├── buf.gen.yaml                  # Code generation config (Go + Swift plugins)
+├── buf.lock                      # Pinned buf dependency versions
+├── go.mod / go.sum
+├── Makefile
+└── setup.sh                      # First-time bootstrap script
 ```
 
 ---
