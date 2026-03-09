@@ -81,20 +81,20 @@ var signalWeights = map[string]int{
 func scoreToLevel(score int) (securityv1.ThreatLevel, float32) {
 	switch {
 	case score >= 50:
-		return securityv1.ThreatLevel_THREAT_CRITICAL, 0.95
+		return securityv1.ThreatLevel_THREAT_LEVEL_CRITICAL, 0.95
 	case score >= 30:
-		return securityv1.ThreatLevel_THREAT_HIGH, 0.85
+		return securityv1.ThreatLevel_THREAT_LEVEL_HIGH, 0.85
 	case score >= 15:
-		return securityv1.ThreatLevel_THREAT_MODERATE, 0.75
+		return securityv1.ThreatLevel_THREAT_LEVEL_MODERATE, 0.75
 	case score >= 5:
-		return securityv1.ThreatLevel_THREAT_LOW, 0.65
+		return securityv1.ThreatLevel_THREAT_LEVEL_LOW, 0.65
 	default:
-		return securityv1.ThreatLevel_THREAT_NONE, 0.90
+		return securityv1.ThreatLevel_THREAT_LEVEL_UNSPECIFIED, 0.90
 	}
 }
 
 func buildSummary(subjectID, location string, level securityv1.ThreatLevel, signals []string) string {
-	if level == securityv1.ThreatLevel_THREAT_NONE {
+	if level == securityv1.ThreatLevel_THREAT_LEVEL_UNSPECIFIED {
 		return fmt.Sprintf("No threat detected for subject %q at %q.", subjectID, location)
 	}
 	return fmt.Sprintf(
@@ -105,7 +105,7 @@ func buildSummary(subjectID, location string, level securityv1.ThreatLevel, sign
 
 func recommendActions(level securityv1.ThreatLevel) []string {
 	switch level {
-	case securityv1.ThreatLevel_THREAT_CRITICAL:
+	case securityv1.ThreatLevel_THREAT_LEVEL_CRITICAL:
 		return []string{
 			"engage_lockdown",
 			"alert_all_personnel",
@@ -113,20 +113,20 @@ func recommendActions(level securityv1.ThreatLevel) []string {
 			"notify_avengers",
 			"seal_perimeter",
 		}
-	case securityv1.ThreatLevel_THREAT_HIGH:
+	case securityv1.ThreatLevel_THREAT_LEVEL_HIGH:
 		return []string{
 			"restrict_zone_access",
 			"alert_security_team",
 			"increase_surveillance",
 			"prepare_countermeasures",
 		}
-	case securityv1.ThreatLevel_THREAT_MODERATE:
+	case securityv1.ThreatLevel_THREAT_LEVEL_MODERATE:
 		return []string{
 			"monitor_subject",
 			"verify_identity",
 			"log_for_review",
 		}
-	case securityv1.ThreatLevel_THREAT_LOW:
+	case securityv1.ThreatLevel_THREAT_LEVEL_LOW:
 		return []string{
 			"log_incident",
 			"passive_monitoring",

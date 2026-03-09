@@ -74,7 +74,7 @@ func (c *Classifier) Classify(rawText string, contextTags []string) ClassifyResu
 	}
 
 	return ClassifyResult{
-		Intent:     nlpv1.Intent_INTENT_UNKNOWN,
+		Intent:     nlpv1.Intent_INTENT_UNSPECIFIED,
 		Confidence: 0.0,
 		Canonical:  text,
 	}

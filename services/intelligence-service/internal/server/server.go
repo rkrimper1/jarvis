@@ -24,7 +24,7 @@ func New(log *slog.Logger) *IntelligenceServer {
 	return &IntelligenceServer{kb: knowledge.New(), log: log}
 }
 
-func (s *IntelligenceServer) QueryIntel(ctx context.Context, req *intelligv1.IntelQueryRequest) (*intelligv1.IntelQueryResponse, error) {
+func (s *IntelligenceServer) QueryIntel(ctx context.Context, req *intelligv1.QueryIntelRequest) (*intelligv1.QueryIntelResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *IntelligenceServer) QueryIntel(ctx context.Context, req *intelligv1.Int
 		confidence = 0.3
 	}
 
-	return &intelligv1.IntelQueryResponse{
+	return &intelligv1.QueryIntelResponse{
 		Meta:            metaOK(req.Meta.RequestId),
 		SubjectId:       record.ID,
 		Summary:         record.Summary,
@@ -46,7 +46,7 @@ func (s *IntelligenceServer) QueryIntel(ctx context.Context, req *intelligv1.Int
 	}, nil
 }
 
-func (s *IntelligenceServer) AnalyzeArtifact(ctx context.Context, req *intelligv1.ArtifactAnalysisRequest) (*intelligv1.ArtifactAnalysisResponse, error) {
+func (s *IntelligenceServer) AnalyzeArtifact(ctx context.Context, req *intelligv1.AnalyzeArtifactRequest) (*intelligv1.AnalyzeArtifactResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (s *IntelligenceServer) AnalyzeArtifact(ctx context.Context, req *intelligv
 	composition, isKnown, isHostile, anomalies, elements :=
 		knowledge.AnalyzeArtifact(req.ArtifactId, req.ScanData, req.ArtifactDescription)
 
-	return &intelligv1.ArtifactAnalysisResponse{
+	return &intelligv1.AnalyzeArtifactResponse{
 		Meta:                metaOK(req.Meta.RequestId),
 		ArtifactId:          req.ArtifactId,
 		CompositionSummary:  composition,
@@ -83,7 +83,7 @@ func (s *IntelligenceServer) CrossReference(ctx context.Context, req *intelligv1
 }
 
 // StreamIntelUpdates periodically re-queries and pushes updates to the client.
-func (s *IntelligenceServer) StreamIntelUpdates(req *intelligv1.IntelQueryRequest, stream intelligv1.IntelligenceService_StreamIntelUpdatesServer) error {
+func (s *IntelligenceServer) StreamIntelUpdates(req *intelligv1.StreamIntelUpdatesRequest, stream intelligv1.IntelligenceService_StreamIntelUpdatesServer) error {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	for {
@@ -91,12 +91,14 @@ func (s *IntelligenceServer) StreamIntelUpdates(req *intelligv1.IntelQueryReques
 		case <-stream.Context().Done():
 			return nil
 		case <-ticker.C:
-			record := s.kb.Query(req.Query, req.Depth)
-			resp := &intelligv1.IntelQueryResponse{
-				Meta:      metaOK(req.Meta.GetRequestId()),
-				SubjectId: record.ID,
-				Summary:   record.Summary,
-				Facts:     record.Facts,
+			record := s.kb.Query("", intelligv1.AnalysisDepth_ANALYSIS_DEPTH_UNSPECIFIED)
+			resp := &intelligv1.StreamIntelUpdatesResponse{
+				Meta: metaOK(req.Meta.GetRequestId()),
+				Update: &intelligv1.QueryIntelResponse{
+					SubjectId: record.ID,
+					Summary:   record.Summary,
+					Facts:     record.Facts,
+				},
 			}
 			if err := stream.Send(resp); err != nil {
 				return status.Errorf(codes.Internal, "stream send: %v", err)

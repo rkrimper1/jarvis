@@ -108,8 +108,8 @@ func (s *CoordinatorServer) DispatchTask(
 
 func (s *CoordinatorServer) GetAgentStatus(
 	ctx context.Context,
-	req *agentv1.AgentStatusRequest,
-) (*agentv1.AgentStatusResponse, error) {
+	req *agentv1.GetAgentStatusRequest,
+) (*agentv1.GetAgentStatusResponse, error) {
 
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (s *CoordinatorServer) GetAgentStatus(
 
 	agents := s.registry.List(req.AgentIds)
 
-	return &agentv1.AgentStatusResponse{
+	return &agentv1.GetAgentStatusResponse{
 		Meta:   metaOK(req.Meta.RequestId),
 		Agents: agents,
 	}, nil
@@ -160,11 +160,11 @@ func (s *CoordinatorServer) Broadcast(
 // StreamCoordinationEvents opens a server-streaming RPC that fans out all
 // CoordinationEvents from the bus to the calling subscriber.
 func (s *CoordinatorServer) StreamCoordinationEvents(
-	meta *commonv1.RequestMeta,
+	req *agentv1.StreamCoordinationEventsRequest,
 	stream agentv1.AgentCoordinatorService_StreamCoordinationEventsServer,
 ) error {
 
-	subscriberID := meta.GetRequestId()
+	subscriberID := req.GetMeta().GetRequestId()
 	s.log.Info("StreamCoordinationEvents: subscriber connected",
 		slog.String("subscriber_id", subscriberID),
 	)
@@ -184,7 +184,7 @@ func (s *CoordinatorServer) StreamCoordinationEvents(
 			if !ok {
 				return nil
 			}
-			if err := stream.Send(event); err != nil {
+			if err := stream.Send(&agentv1.StreamCoordinationEventsResponse{Event: event}); err != nil {
 				return status.Errorf(codes.Internal, "stream send: %v", err)
 			}
 		}
@@ -210,7 +210,7 @@ func (s *CoordinatorServer) AgentHeartbeat(
 	s.log.Info("AgentHeartbeat: stream opened")
 
 	for {
-		event, err := stream.Recv()
+		req, err := stream.Recv()
 		if err == io.EOF {
 			s.log.Info("AgentHeartbeat: agent closed stream")
 			return nil
@@ -220,29 +220,31 @@ func (s *CoordinatorServer) AgentHeartbeat(
 			return status.Errorf(codes.Internal, "heartbeat recv: %v", err)
 		}
 
+		event := req.GetEvent()
+
 		s.log.InfoContext(ctx, "AgentHeartbeat: received",
-			slog.String("agent_id", event.AgentId),
-			slog.String("event_type", event.EventType),
-			slog.String("task_id", event.TaskId),
+			slog.String("agent_id", event.GetAgentId()),
+			slog.String("event_type", event.GetEventType()),
+			slog.String("task_id", event.GetTaskId()),
 		)
 
 		// Update the agent's last-seen timestamp in the registry
-		if agent, ok := s.registry.Get(event.AgentId); ok {
+		if agent, ok := s.registry.Get(event.GetAgentId()); ok {
 			s.registry.Upsert(agent)
 		}
 
 		// Handle task lifecycle transitions
-		switch event.EventType {
+		switch event.GetEventType() {
 		case "TASK_COMPLETED":
-			if event.TaskId != "" {
-				_ = s.scheduler.Complete(event.TaskId)
+			if event.GetTaskId() != "" {
+				_ = s.scheduler.Complete(event.GetTaskId())
 			}
 		case "TASK_FAILED", "AGENT_FAILED":
-			if event.TaskId != "" {
-				_ = s.scheduler.Fail(event.TaskId)
+			if event.GetTaskId() != "" {
+				_ = s.scheduler.Fail(event.GetTaskId())
 			}
 			// Mark agent as ERROR on failure
-			_ = s.registry.UpdateStatus(event.AgentId, agentv1.AgentStatus_STATUS_ERROR)
+			_ = s.registry.UpdateStatus(event.GetAgentId(), agentv1.AgentStatus_AGENT_STATUS_ERROR)
 		}
 
 		// Fan-out the event to all StreamCoordinationEvents subscribers
@@ -251,12 +253,12 @@ func (s *CoordinatorServer) AgentHeartbeat(
 		// Send acknowledgement back to the agent
 		ack := s.bus.NewEvent(
 			"jarvis",
-			event.TaskId,
+			event.GetTaskId(),
 			"ACK",
-			fmt.Sprintf(`{"acked_event":%q}`, event.EventId),
+			fmt.Sprintf(`{"acked_event":%q}`, event.GetEventId()),
 			commonv1.Severity_SEVERITY_INFO,
 		)
-		if err := stream.Send(ack); err != nil {
+		if err := stream.Send(&agentv1.AgentHeartbeatResponse{Event: ack}); err != nil {
 			s.log.ErrorContext(ctx, "AgentHeartbeat: send ack error", slog.Any("err", err))
 			return status.Errorf(codes.Internal, "heartbeat send: %v", err)
 		}

@@ -35,16 +35,16 @@ func (e *Executor) Execute(
 ) (ExecutionResult, error) {
 
 	switch p {
-	case securityv1.ProtocolType_PROTOCOL_LOCKDOWN:
+	case securityv1.ProtocolType_PROTOCOL_TYPE_LOCKDOWN:
 		return e.runLockdown(reason)
 
-	case securityv1.ProtocolType_PROTOCOL_EVACUATION:
+	case securityv1.ProtocolType_PROTOCOL_TYPE_EVACUATION:
 		return e.runEvacuation(reason)
 
-	case securityv1.ProtocolType_PROTOCOL_CLEAN_SLATE:
+	case securityv1.ProtocolType_PROTOCOL_TYPE_CLEAN_SLATE:
 		return e.runCleanSlate(reason)
 
-	case securityv1.ProtocolType_PROTOCOL_BLACKOUT:
+	case securityv1.ProtocolType_PROTOCOL_TYPE_BLACKOUT:
 		return e.runBlackout(reason)
 
 	default:
@@ -61,7 +61,7 @@ func (e *Executor) runLockdown(reason string) (ExecutionResult, error) {
 		"iron_legion_deployed_to_perimeter",
 		"facility_service_lockdown_rpc_called",
 	}
-	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_LOCKDOWN, ActionsTaken: actions}, nil
+	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_TYPE_LOCKDOWN, ActionsTaken: actions}, nil
 }
 
 func (e *Executor) runEvacuation(reason string) (ExecutionResult, error) {
@@ -73,7 +73,7 @@ func (e *Executor) runEvacuation(reason string) (ExecutionResult, error) {
 		"emergency_contacts_notified",
 		"headcount_roster_generated",
 	}
-	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_EVACUATION, ActionsTaken: actions}, nil
+	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_TYPE_EVACUATION, ActionsTaken: actions}, nil
 }
 
 func (e *Executor) runCleanSlate(reason string) (ExecutionResult, error) {
@@ -88,7 +88,7 @@ func (e *Executor) runCleanSlate(reason string) (ExecutionResult, error) {
 		"hardware_service_clean_slate_rpc_called",
 		"audit_log_encrypted_and_archived",
 	}
-	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_CLEAN_SLATE, ActionsTaken: actions}, nil
+	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_TYPE_CLEAN_SLATE, ActionsTaken: actions}, nil
 }
 
 func (e *Executor) runBlackout(reason string) (ExecutionResult, error) {
@@ -99,5 +99,5 @@ func (e *Executor) runBlackout(reason string) (ExecutionResult, error) {
 		"internal_comms_switched_to_air_gap_mode",
 		"facility_service_comms_blackout_called",
 	}
-	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_BLACKOUT, ActionsTaken: actions}, nil
+	return ExecutionResult{Protocol: securityv1.ProtocolType_PROTOCOL_TYPE_BLACKOUT, ActionsTaken: actions}, nil
 }

@@ -93,7 +93,7 @@ func (s *VoiceServer) Converse(stream voicev1.VoiceService_ConverseServer) error
 		return status.Errorf(codes.Internal, "recv config: %v", err)
 	}
 
-	cfg, ok := firstMsg.Payload.(*voicev1.VoiceRequest_Config)
+	cfg, ok := firstMsg.Payload.(*voicev1.ConverseRequest_Config)
 	if !ok {
 		return status.Error(codes.InvalidArgument, "first message must be StreamConfig")
 	}
@@ -116,7 +116,7 @@ func (s *VoiceServer) Converse(stream voicev1.VoiceService_ConverseServer) error
 	)
 
 	// Signal IDLE → client knows the stream is open and ready.
-	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED); err != nil {
+	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
 		return err
 	}
 
@@ -147,14 +147,14 @@ func (s *VoiceServer) Converse(stream voicev1.VoiceService_ConverseServer) error
 
 		switch payload := msg.Payload.(type) {
 
-		case *voicev1.VoiceRequest_Audio:
+		case *voicev1.ConverseRequest_Audio:
 			chunk := payload.Audio
 
 			// Wake-word frames skip VAD gating — begin listening immediately.
 			if chunk.IsWakeWordFrame {
 				s.sessions.SetState(sess.ID, session.StateListening)
 				vad.Reset()
-				if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_LISTENING, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED); err != nil {
+				if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_LISTENING, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
 					return err
 				}
 			}
@@ -167,36 +167,36 @@ func (s *VoiceServer) Converse(stream voicev1.VoiceService_ConverseServer) error
 			if eos {
 				seqNum++
 				if err := s.processUtterance(ctx, stream, sess, streamCfg, utteranceBuf, seqNum); err != nil {
-					_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_ERROR, err.Error(), voicev1.VoiceErrorCode_VOICE_ERROR_NLP_TIMEOUT)
+					_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_ERROR, err.Error(), voicev1.VoiceErrorCode_VOICE_ERROR_CODE_NLP_TIMEOUT)
 				}
 				utteranceBuf = nil
 				vad.Reset()
 				s.sessions.SetState(sess.ID, session.StateIdle)
-				if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED); err != nil {
+				if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
 					return err
 				}
 			}
 
-		case *voicev1.VoiceRequest_Event:
+		case *voicev1.ConverseRequest_Event:
 			switch payload.Event.Type {
 
 			case voicev1.ControlEvent_TYPE_END_OF_SPEECH:
 				if len(utteranceBuf) > 0 {
 					seqNum++
 					if err := s.processUtterance(ctx, stream, sess, streamCfg, utteranceBuf, seqNum); err != nil {
-						_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_ERROR, err.Error(), voicev1.VoiceErrorCode_VOICE_ERROR_NLP_TIMEOUT)
+						_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_ERROR, err.Error(), voicev1.VoiceErrorCode_VOICE_ERROR_CODE_NLP_TIMEOUT)
 					}
 					utteranceBuf = nil
 					vad.Reset()
 				}
 				s.sessions.SetState(sess.ID, session.StateIdle)
-				_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED)
+				_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED)
 
 			case voicev1.ControlEvent_TYPE_CANCEL:
 				utteranceBuf = nil
 				vad.Reset()
 				s.sessions.SetState(sess.ID, session.StateIdle)
-				_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "cancelled", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED)
+				_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_IDLE, "cancelled", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED)
 
 			case voicev1.ControlEvent_TYPE_NEW_TURN:
 				utteranceBuf = nil
@@ -214,7 +214,7 @@ func (s *VoiceServer) Converse(stream voicev1.VoiceService_ConverseServer) error
 	}
 
 	// Signal clean session end.
-	_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_ENDED, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED)
+	_ = s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_ENDED, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED)
 	s.log.InfoContext(ctx, "Converse ended", slog.String("session_id", sess.ID))
 	return nil
 }
@@ -231,7 +231,7 @@ func (s *VoiceServer) processUtterance(
 ) error {
 	// 1. PROCESSING state
 	s.sessions.SetState(sess.ID, session.StateProcessing)
-	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_PROCESSING, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED); err != nil {
+	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_PROCESSING, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
 		return err
 	}
 
@@ -247,16 +247,16 @@ func (s *VoiceServer) processUtterance(
 		IsFinal:    true,
 		Confidence: sttResult.Confidence,
 	}
-	if err := stream.Send(&voicev1.VoiceResponse{
+	if err := stream.Send(&voicev1.ConverseResponse{
 		SessionId:  sess.ID,
 		SequenceNum: seqNum,
-		Payload:    &voicev1.VoiceResponse_Transcript{Transcript: transcript},
+		Payload:    &voicev1.ConverseResponse_Transcript{Transcript: transcript},
 	}); err != nil {
 		return err
 	}
 
 	// 4. NLP — ProcessDialogueTurn (reuses nlp-service dialogue manager)
-	nlpResp, err := s.nlp.ProcessDialogueTurn(ctx, &nlpv1.DialogueTurnRequest{
+	nlpResp, err := s.nlp.ProcessDialogueTurn(ctx, &nlpv1.ProcessDialogueTurnRequest{
 		Meta: &commonv1.RequestMeta{
 			RequestId: fmt.Sprintf("voice-%s-%d", sess.ID, seqNum),
 			UserId:    sess.UserID,
@@ -279,25 +279,25 @@ func (s *VoiceServer) processUtterance(
 		Intent:               nlpResp.ResolvedIntent.String(),
 		RequiresConfirmation: nlpResp.RequiresConfirmation,
 	}
-	if err := stream.Send(&voicev1.VoiceResponse{
+	if err := stream.Send(&voicev1.ConverseResponse{
 		SessionId:  sess.ID,
 		SequenceNum: seqNum,
-		Payload:    &voicev1.VoiceResponse_Reply{Reply: reply},
+		Payload:    &voicev1.ConverseResponse_Reply{Reply: reply},
 	}); err != nil {
 		return err
 	}
 
 	// 6. SPEAKING state + TTS stub
 	s.sessions.SetState(sess.ID, session.StateSpeaking)
-	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_SPEAKING, "", voicev1.VoiceErrorCode_VOICE_ERROR_UNSPECIFIED); err != nil {
+	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_SPEAKING, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
 		return err
 	}
 
 	// TTS stub — replace with Cloud Text-to-Speech or ElevenLabs in prod.
-	if err := stream.Send(&voicev1.VoiceResponse{
+	if err := stream.Send(&voicev1.ConverseResponse{
 		SessionId:  sess.ID,
 		SequenceNum: seqNum,
-		Payload: &voicev1.VoiceResponse_AudioReply{
+		Payload: &voicev1.ConverseResponse_AudioReply{
 			AudioReply: &voicev1.AudioReply{
 				Data:          []byte("[TTS stub — wire Cloud TTS here]"),
 				Encoding:      voicev1.AudioEncoding_AUDIO_ENCODING_PCM_16BIT,
@@ -312,10 +312,10 @@ func (s *VoiceServer) processUtterance(
 
 	// 7. HUDAction — map NLP intent to a structured client action
 	if action := intentToHUDAction(nlpResp); action != nil {
-		if err := stream.Send(&voicev1.VoiceResponse{
+		if err := stream.Send(&voicev1.ConverseResponse{
 			SessionId:  sess.ID,
 			SequenceNum: seqNum,
-			Payload:    &voicev1.VoiceResponse_Action{Action: action},
+			Payload:    &voicev1.ConverseResponse_Action{Action: action},
 		}); err != nil {
 			return err
 		}
@@ -381,9 +381,9 @@ func (s *VoiceServer) sendStatus(
 	message string,
 	errCode voicev1.VoiceErrorCode,
 ) error {
-	return stream.Send(&voicev1.VoiceResponse{
+	return stream.Send(&voicev1.ConverseResponse{
 		SessionId: sessionID,
-		Payload: &voicev1.VoiceResponse_Status{
+		Payload: &voicev1.ConverseResponse_Status{
 			Status: &voicev1.StatusEvent{
 				State:     state,
 				Message:   message,
@@ -395,7 +395,7 @@ func (s *VoiceServer) sendStatus(
 
 // intentToHUDAction converts NLP resolved intent into a HUDAction.
 // Extend this mapping as new intents are added to nlp.proto.
-func intentToHUDAction(resp *nlpv1.DialogueTurnResponse) *voicev1.HUDAction {
+func intentToHUDAction(resp *nlpv1.ProcessDialogueTurnResponse) *voicev1.HUDAction {
 	switch resp.ResolvedIntent {
 	case nlpv1.Intent_INTENT_SYSTEM_CONTROL:
 		return &voicev1.HUDAction{

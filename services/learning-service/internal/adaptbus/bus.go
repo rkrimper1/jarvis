@@ -84,12 +84,12 @@ func (b *Bus) simulate(interval time.Duration) {
 		description string
 		delta       float32
 	}{
-		{learningv1.ModelDomain_DOMAIN_NLP, "Intent classifier updated with 1,200 new voice samples", +0.012},
-		{learningv1.ModelDomain_DOMAIN_THREAT, "Threat scoring recalibrated after Vanko incident data", +0.031},
-		{learningv1.ModelDomain_DOMAIN_BEHAVIOR, "Pepper Potts interaction model fine-tuned", +0.008},
-		{learningv1.ModelDomain_DOMAIN_HARDWARE, "Arc reactor thermal model retrained on new sensor data", +0.005},
-		{learningv1.ModelDomain_DOMAIN_NLP, "Sarcasm detection accuracy improved", +0.019},
-		{learningv1.ModelDomain_DOMAIN_THREAT, "False positive rate reduced after SHIELD intel integration", +0.024},
+		{learningv1.ModelDomain_MODEL_DOMAIN_NLP, "Intent classifier updated with 1,200 new voice samples", +0.012},
+		{learningv1.ModelDomain_MODEL_DOMAIN_THREAT, "Threat scoring recalibrated after Vanko incident data", +0.031},
+		{learningv1.ModelDomain_MODEL_DOMAIN_BEHAVIOR, "Pepper Potts interaction model fine-tuned", +0.008},
+		{learningv1.ModelDomain_MODEL_DOMAIN_HARDWARE, "Arc reactor thermal model retrained on new sensor data", +0.005},
+		{learningv1.ModelDomain_MODEL_DOMAIN_NLP, "Sarcasm detection accuracy improved", +0.019},
+		{learningv1.ModelDomain_MODEL_DOMAIN_THREAT, "False positive rate reduced after SHIELD intel integration", +0.024},
 	}
 
 	i := 0

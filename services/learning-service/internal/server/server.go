@@ -40,7 +40,7 @@ func New(log *slog.Logger) *LearningServer {
 
 // SubmitFeedback records an interaction rating or correction.
 // Corrections and low ratings (< 0.4) are automatically queued for retraining.
-func (s *LearningServer) SubmitFeedback(ctx context.Context, req *learningv1.FeedbackRequest) (*learningv1.FeedbackResponse, error) {
+func (s *LearningServer) SubmitFeedback(ctx context.Context, req *learningv1.SubmitFeedbackRequest) (*learningv1.SubmitFeedbackResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -65,14 +65,14 @@ func (s *LearningServer) SubmitFeedback(ctx context.Context, req *learningv1.Fee
 	if queued {
 		s.bus.Publish(&learningv1.AdaptationEvent{
 			EventId:       "adapt-fb-" + fbID,
-			Domain:        learningv1.ModelDomain_DOMAIN_NLP,
+			Domain:        learningv1.ModelDomain_MODEL_DOMAIN_NLP,
 			Description:   "Feedback correction queued for training pipeline: " + req.InteractionId,
 			DeltaAccuracy: 0,
 			Timestamp:     timestamppb.Now(),
 		})
 	}
 
-	return &learningv1.FeedbackResponse{
+	return &learningv1.SubmitFeedbackResponse{
 		Meta:               metaOK(req.Meta.RequestId),
 		QueuedForTraining:  queued,
 		FeedbackId:         fbID,
@@ -80,7 +80,7 @@ func (s *LearningServer) SubmitFeedback(ctx context.Context, req *learningv1.Fee
 }
 
 // GetBehaviorProfile returns the behavioral profile for a subject.
-func (s *LearningServer) GetBehaviorProfile(ctx context.Context, req *learningv1.BehaviorProfileRequest) (*learningv1.BehaviorProfileResponse, error) {
+func (s *LearningServer) GetBehaviorProfile(ctx context.Context, req *learningv1.GetBehaviorProfileRequest) (*learningv1.GetBehaviorProfileResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -95,14 +95,14 @@ func (s *LearningServer) GetBehaviorProfile(ctx context.Context, req *learningv1
 }
 
 // GetModelPerformance returns live accuracy/precision/recall for a model domain.
-func (s *LearningServer) GetModelPerformance(ctx context.Context, req *learningv1.ModelPerformanceRequest) (*learningv1.ModelPerformanceResponse, error) {
+func (s *LearningServer) GetModelPerformance(ctx context.Context, req *learningv1.GetModelPerformanceRequest) (*learningv1.GetModelPerformanceResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
 	s.log.InfoContext(ctx, "GetModelPerformance", slog.String("domain", req.Domain.String()))
 
 	snap := s.metrics.Get(req.Domain, req.GetFrom().AsTime(), req.GetTo().AsTime())
-	return &learningv1.ModelPerformanceResponse{
+	return &learningv1.GetModelPerformanceResponse{
 		Meta:                metaOK(req.Meta.RequestId),
 		Domain:              snap.Domain,
 		Accuracy:            snap.Accuracy,
@@ -114,8 +114,8 @@ func (s *LearningServer) GetModelPerformance(ctx context.Context, req *learningv
 }
 
 // StreamAdaptationEvents fans out model improvement events to the caller.
-func (s *LearningServer) StreamAdaptationEvents(meta *commonv1.RequestMeta, stream learningv1.LearningService_StreamAdaptationEventsServer) error {
-	subscriberID := meta.GetRequestId()
+func (s *LearningServer) StreamAdaptationEvents(req *learningv1.StreamAdaptationEventsRequest, stream learningv1.LearningService_StreamAdaptationEventsServer) error {
+	subscriberID := req.GetMeta().GetRequestId()
 	s.log.Info("StreamAdaptationEvents: subscriber connected", slog.String("id", subscriberID))
 
 	ch, unsub := s.bus.Subscribe(subscriberID)
@@ -129,7 +129,7 @@ func (s *LearningServer) StreamAdaptationEvents(meta *commonv1.RequestMeta, stre
 			if !ok {
 				return nil
 			}
-			if err := stream.Send(ev); err != nil {
+			if err := stream.Send(&learningv1.StreamAdaptationEventsResponse{Event: ev}); err != nil {
 				return status.Errorf(codes.Internal, "stream send: %v", err)
 			}
 		}

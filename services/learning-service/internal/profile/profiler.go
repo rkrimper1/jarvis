@@ -13,18 +13,18 @@ import (
 // Profiler manages subject behavioral profiles.
 type Profiler struct {
 	mu       sync.RWMutex
-	profiles map[string]*learningv1.BehaviorProfileResponse
+	profiles map[string]*learningv1.GetBehaviorProfileResponse
 }
 
 // New creates a Profiler seeded with known subjects.
 func New() *Profiler {
-	p := &Profiler{profiles: make(map[string]*learningv1.BehaviorProfileResponse)}
+	p := &Profiler{profiles: make(map[string]*learningv1.GetBehaviorProfileResponse)}
 	p.seed()
 	return p
 }
 
 // Get returns a subject's profile, generating a default if none exists.
-func (p *Profiler) Get(subjectID string) *learningv1.BehaviorProfileResponse {
+func (p *Profiler) Get(subjectID string) *learningv1.GetBehaviorProfileResponse {
 	p.mu.RLock()
 	prof, ok := p.profiles[subjectID]
 	p.mu.RUnlock()
@@ -34,7 +34,7 @@ func (p *Profiler) Get(subjectID string) *learningv1.BehaviorProfileResponse {
 	}
 
 	// Generate a default profile for unknown subjects
-	newProf := &learningv1.BehaviorProfileResponse{
+	newProf := &learningv1.GetBehaviorProfileResponse{
 		SubjectId: subjectID,
 		TraitScores: map[string]float32{
 			"curiosity":    0.5,
@@ -54,7 +54,7 @@ func (p *Profiler) Get(subjectID string) *learningv1.BehaviorProfileResponse {
 }
 
 func (p *Profiler) seed() {
-	p.profiles["tony-stark"] = &learningv1.BehaviorProfileResponse{
+	p.profiles["tony-stark"] = &learningv1.GetBehaviorProfileResponse{
 		SubjectId: "tony-stark",
 		TraitScores: map[string]float32{
 			"curiosity":    0.98,
@@ -72,7 +72,7 @@ func (p *Profiler) seed() {
 		ProfileUpdatedAt: timestamppb.New(time.Now().Add(-24 * time.Hour)),
 	}
 
-	p.profiles["pepper-potts"] = &learningv1.BehaviorProfileResponse{
+	p.profiles["pepper-potts"] = &learningv1.GetBehaviorProfileResponse{
 		SubjectId: "pepper-potts",
 		TraitScores: map[string]float32{
 			"curiosity":    0.72,
@@ -88,7 +88,7 @@ func (p *Profiler) seed() {
 		ProfileUpdatedAt: timestamppb.New(time.Now().Add(-12 * time.Hour)),
 	}
 
-	p.profiles["happy-hogan"] = &learningv1.BehaviorProfileResponse{
+	p.profiles["happy-hogan"] = &learningv1.GetBehaviorProfileResponse{
 		SubjectId: "happy-hogan",
 		TraitScores: map[string]float32{
 			"curiosity":    0.40,

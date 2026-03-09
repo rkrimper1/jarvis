@@ -45,8 +45,8 @@ func New(cfg *config.Config, log *slog.Logger) *NLPServer {
 // ParseIntent parses a raw utterance and returns an intent + entities.
 func (s *NLPServer) ParseIntent(
 	ctx context.Context,
-	req *nlpv1.ParseRequest,
-) (*nlpv1.ParseResponse, error) {
+	req *nlpv1.ParseIntentRequest,
+) (*nlpv1.ParseIntentResponse, error) {
 
 	if err := validateParseMeta(req.GetMeta()); err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s *NLPServer) ParseIntent(
 	entities := s.extractor.Extract(req.RawText)
 	suggestions := intent.SuggestActions(result.Intent, entityValues(entities))
 
-	return &nlpv1.ParseResponse{
+	return &nlpv1.ParseIntentResponse{
 		Meta: &commonv1.ResponseMeta{
 			RequestId: req.Meta.RequestId,
 			Success:   true,
@@ -80,8 +80,8 @@ func (s *NLPServer) ParseIntent(
 // ProcessDialogueTurn handles one turn of a multi-turn conversation.
 func (s *NLPServer) ProcessDialogueTurn(
 	ctx context.Context,
-	req *nlpv1.DialogueTurnRequest,
-) (*nlpv1.DialogueTurnResponse, error) {
+	req *nlpv1.ProcessDialogueTurnRequest,
+) (*nlpv1.ProcessDialogueTurnResponse, error) {
 
 	if req.GetMeta() == nil {
 		return nil, status.Error(codes.InvalidArgument, "meta is required")
@@ -115,7 +115,7 @@ func (s *NLPServer) ProcessDialogueTurn(
 	// Persist the turn
 	s.dialogue.AppendTurn(sessionID, req.Utterance, reply)
 
-	return &nlpv1.DialogueTurnResponse{
+	return &nlpv1.ProcessDialogueTurnResponse{
 		Meta:                dialogue.MetaSuccess(req.Meta.RequestId),
 		ReplyText:           reply,
 		ResolvedIntent:      result.Intent,
@@ -155,7 +155,7 @@ func (s *NLPServer) StreamVoiceInput(
 		result := s.classifier.Classify(req.RawText, req.ContextTags)
 		entities := s.extractor.Extract(req.RawText)
 
-		resp := &nlpv1.ParseResponse{
+		resp := &nlpv1.StreamVoiceInputResponse{
 			Meta: &commonv1.ResponseMeta{
 				RequestId: req.GetMeta().GetRequestId(),
 				Success:   true,

@@ -38,8 +38,8 @@ func (r *Registry) Upsert(agent *agentv1.Agent) {
 	defer r.mu.Unlock()
 
 	agent.LastSeen = timestamppb.Now()
-	if agent.Status == agentv1.AgentStatus_STATUS_UNSPECIFIED {
-		agent.Status = agentv1.AgentStatus_STATUS_ACTIVE
+	if agent.Status == agentv1.AgentStatus_AGENT_STATUS_UNSPECIFIED {
+		agent.Status = agentv1.AgentStatus_AGENT_STATUS_ACTIVE
 	}
 	r.agents[agent.AgentId] = agent
 }
@@ -97,7 +97,7 @@ func (r *Registry) Available(capability string) []*agentv1.Agent {
 
 	var result []*agentv1.Agent
 	for _, a := range r.agents {
-		if a.Status != agentv1.AgentStatus_STATUS_IDLE {
+		if a.Status != agentv1.AgentStatus_AGENT_STATUS_IDLE {
 			continue
 		}
 		if capability == "" {
@@ -129,11 +129,11 @@ func (r *Registry) runGC(interval time.Duration) {
 		r.mu.Lock()
 		cutoff := time.Now().Add(-r.heartbeatTimeout)
 		for _, a := range r.agents {
-			if a.Status == agentv1.AgentStatus_STATUS_OFFLINE {
+			if a.Status == agentv1.AgentStatus_AGENT_STATUS_OFFLINE {
 				continue
 			}
 			if a.LastSeen.AsTime().Before(cutoff) {
-				a.Status = agentv1.AgentStatus_STATUS_OFFLINE
+				a.Status = agentv1.AgentStatus_AGENT_STATUS_OFFLINE
 			}
 		}
 		r.mu.Unlock()
@@ -150,19 +150,19 @@ func (r *Registry) seed() {
 		location string
 		caps     []string
 	}{
-		{"mark-ii", "Mark II", agentv1.AgentType_AGENT_IRON_SUIT, "hangar-a",
+		{"mark-ii", "Mark II", agentv1.AgentType_AGENT_TYPE_IRON_SUIT, "hangar-a",
 			[]string{"flight", "repulsor", "combat", "recon"}},
-		{"mark-iii", "Mark III", agentv1.AgentType_AGENT_IRON_SUIT, "hangar-a",
+		{"mark-iii", "Mark III", agentv1.AgentType_AGENT_TYPE_IRON_SUIT, "hangar-a",
 			[]string{"flight", "repulsor", "combat", "weapons"}},
-		{"mark-vii", "Mark VII", agentv1.AgentType_AGENT_IRON_SUIT, "hangar-b",
+		{"mark-vii", "Mark VII", agentv1.AgentType_AGENT_TYPE_IRON_SUIT, "hangar-b",
 			[]string{"flight", "repulsor", "combat", "weapons", "stealth"}},
-		{"drone-01", "Recon Drone Alpha", agentv1.AgentType_AGENT_DRONE, "perimeter",
+		{"drone-01", "Recon Drone Alpha", agentv1.AgentType_AGENT_TYPE_DRONE, "perimeter",
 			[]string{"recon", "surveillance", "flight"}},
-		{"drone-02", "Recon Drone Beta", agentv1.AgentType_AGENT_DRONE, "perimeter",
+		{"drone-02", "Recon Drone Beta", agentv1.AgentType_AGENT_TYPE_DRONE, "perimeter",
 			[]string{"recon", "surveillance", "flight"}},
-		{"turret-01", "Perimeter Turret North", agentv1.AgentType_AGENT_TURRET, "gate-north",
+		{"turret-01", "Perimeter Turret North", agentv1.AgentType_AGENT_TYPE_TURRET, "gate-north",
 			[]string{"defense", "target-lock"}},
-		{"turret-02", "Perimeter Turret South", agentv1.AgentType_AGENT_TURRET, "gate-south",
+		{"turret-02", "Perimeter Turret South", agentv1.AgentType_AGENT_TYPE_TURRET, "gate-south",
 			[]string{"defense", "target-lock"}},
 	}
 
@@ -171,7 +171,7 @@ func (r *Registry) seed() {
 			AgentId:      s.id,
 			Name:         s.name,
 			Type:         s.agType,
-			Status:       agentv1.AgentStatus_STATUS_IDLE,
+			Status:       agentv1.AgentStatus_AGENT_STATUS_IDLE,
 			Location:     s.location,
 			Capabilities: s.caps,
 			LastSeen:     timestamppb.Now(),

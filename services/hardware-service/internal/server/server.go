@@ -27,7 +27,7 @@ func New(cfg *config.Config, log *slog.Logger) *HardwareServer {
 	return &HardwareServer{cfg: cfg, registry: device.New(), log: log}
 }
 
-func (s *HardwareServer) SendCommand(ctx context.Context, req *hardwarev1.DeviceCommandRequest) (*hardwarev1.DeviceCommandResponse, error) {
+func (s *HardwareServer) SendCommand(ctx context.Context, req *hardwarev1.SendCommandRequest) (*hardwarev1.SendCommandResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (s *HardwareServer) SendCommand(ctx context.Context, req *hardwarev1.Device
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "%v", err)
 	}
-	return &hardwarev1.DeviceCommandResponse{
+	return &hardwarev1.SendCommandResponse{
 		Meta:            metaOK(req.Meta.RequestId),
 		DeviceId:        req.DeviceId,
 		CommandExecuted: req.Command,
@@ -48,14 +48,14 @@ func (s *HardwareServer) SendCommand(ctx context.Context, req *hardwarev1.Device
 	}, nil
 }
 
-func (s *HardwareServer) RunDiagnostics(ctx context.Context, req *hardwarev1.DiagnosticsRequest) (*hardwarev1.DiagnosticsResponse, error) {
+func (s *HardwareServer) RunDiagnostics(ctx context.Context, req *hardwarev1.RunDiagnosticsRequest) (*hardwarev1.RunDiagnosticsResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
 	s.log.InfoContext(ctx, "RunDiagnostics", slog.String("device_id", req.DeviceId), slog.Bool("deep", req.DeepScan))
 
 	warnings, errors, score, stats := s.registry.RunDiagnostics(req.DeviceId, req.DeepScan)
-	return &hardwarev1.DiagnosticsResponse{
+	return &hardwarev1.RunDiagnosticsResponse{
 		Meta:               metaOK(req.Meta.RequestId),
 		DeviceId:           req.DeviceId,
 		Warnings:           warnings,
@@ -65,16 +65,16 @@ func (s *HardwareServer) RunDiagnostics(ctx context.Context, req *hardwarev1.Dia
 	}, nil
 }
 
-func (s *HardwareServer) ScanEnergySources(ctx context.Context, req *hardwarev1.EnergySourceRequest) (*hardwarev1.EnergySourceResponse, error) {
+func (s *HardwareServer) ScanEnergySources(ctx context.Context, req *hardwarev1.ScanEnergySourcesRequest) (*hardwarev1.ScanEnergySourcesResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
 	s.log.InfoContext(ctx, "ScanEnergySources", slog.String("location", req.Location), slog.Float64("radius_km", float64(req.ScanRadiusKm)))
 	sources := telemetry.EnergySourceScan(req.Location, req.ScanRadiusKm)
-	return &hardwarev1.EnergySourceResponse{Meta: metaOK(req.Meta.RequestId), Sources: sources}, nil
+	return &hardwarev1.ScanEnergySourcesResponse{Meta: metaOK(req.Meta.RequestId), Sources: sources}, nil
 }
 
-func (s *HardwareServer) StreamTelemetry(req *hardwarev1.DiagnosticsRequest, stream hardwarev1.HardwareService_StreamTelemetryServer) error {
+func (s *HardwareServer) StreamTelemetry(req *hardwarev1.StreamTelemetryRequest, stream hardwarev1.HardwareService_StreamTelemetryServer) error {
 	if _, ok := s.registry.Get(req.DeviceId); !ok {
 		return status.Errorf(codes.NotFound, "device %q not found", req.DeviceId)
 	}
@@ -86,7 +86,7 @@ func (s *HardwareServer) StreamTelemetry(req *hardwarev1.DiagnosticsRequest, str
 		case <-stream.Context().Done():
 			return nil
 		case reading := <-ch:
-			if err := stream.Send(reading); err != nil {
+			if err := stream.Send(&hardwarev1.StreamTelemetryResponse{Reading: reading}); err != nil {
 				return status.Errorf(codes.Internal, "stream send: %v", err)
 			}
 		}
@@ -110,7 +110,7 @@ func (s *HardwareServer) SuitControlStream(stream hardwarev1.HardwareService_Sui
 		// Execute command and stream back a telemetry snapshot
 		_, _ = s.registry.ExecuteCommand(req.DeviceId, req.Command, req.Params)
 		reading := telemetry.Reading(req.DeviceId, "POWER")
-		if err := stream.Send(reading); err != nil {
+		if err := stream.Send(&hardwarev1.SuitControlStreamResponse{Reading: reading}); err != nil {
 			return status.Errorf(codes.Internal, "send: %v", err)
 		}
 	}

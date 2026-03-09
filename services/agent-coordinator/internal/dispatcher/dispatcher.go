@@ -40,8 +40,8 @@ func (d *Dispatcher) Broadcast(
 	var unresponsive []string
 
 	for _, agent := range targets {
-		if agent.Status == agentv1.AgentStatus_STATUS_OFFLINE ||
-			agent.Status == agentv1.AgentStatus_STATUS_ERROR {
+		if agent.Status == agentv1.AgentStatus_AGENT_STATUS_OFFLINE ||
+			agent.Status == agentv1.AgentStatus_AGENT_STATUS_ERROR {
 			unresponsive = append(unresponsive, agent.AgentId)
 			d.log.Warn("broadcast: agent unresponsive",
 				slog.String("agent_id", agent.AgentId),

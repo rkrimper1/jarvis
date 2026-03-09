@@ -137,7 +137,7 @@ func (b *Base) seed() {
 
 	records := []*SubjectRecord{
 		{
-			ID: "ivan-vanko", Type: intelligv1.SubjectType_SUBJECT_PERSON,
+			ID: "ivan-vanko", Type: intelligv1.SubjectType_SUBJECT_TYPE_PERSON,
 			Summary: "Ivan Vanko — Soviet physicist, son of Anton Vanko. Convicted of weapons trafficking. Extreme grudge against Stark family.",
 			Facts: []*intelligv1.IntelFact{
 				{Source: "SHIELD", Fact: "Defected from Soviet program in 1989. Served 15 years in Kopeisk prison.", Reliability: 0.95, RecordedAt: now(200)},
@@ -146,7 +146,7 @@ func (b *Base) seed() {
 			Related: []string{"whiplash-tech", "hammer-industries"},
 		},
 		{
-			ID: "hammer-industries", Type: intelligv1.SubjectType_SUBJECT_ORGANIZATION,
+			ID: "hammer-industries", Type: intelligv1.SubjectType_SUBJECT_TYPE_ORGANIZATION,
 			Summary: "Justin Hammer's defense contractor. Known for reverse-engineering Stark technology.",
 			Facts: []*intelligv1.IntelFact{
 				{Source: "SEC_FILING", Fact: "Revenue $4.2B. Primary DoD contractor.", Reliability: 0.9, RecordedAt: now(30)},
@@ -155,7 +155,7 @@ func (b *Base) seed() {
 			Related: []string{"ivan-vanko", "justin-hammer"},
 		},
 		{
-			ID: "vibranium", Type: intelligv1.SubjectType_SUBJECT_TECHNOLOGY,
+			ID: "vibranium", Type: intelligv1.SubjectType_SUBJECT_TYPE_TECHNOLOGY,
 			Summary: "Wakandan meta-stable element. Unique vibration-dampening and energy-storage properties. Only natural deposit: Wakanda.",
 			Facts: []*intelligv1.IntelFact{
 				{Source: "STARK_DB", Fact: "Used in Captain America's shield. Tensile strength exceeds all known alloys.", Reliability: 0.99, RecordedAt: now(500)},

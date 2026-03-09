@@ -91,7 +91,7 @@ func (s *Scheduler) Dispatch(
 			if !ok {
 				return nil, time.Time{}, fmt.Errorf("agent %q not found", id)
 			}
-			if a.Status == agentv1.AgentStatus_STATUS_OFFLINE {
+			if a.Status == agentv1.AgentStatus_AGENT_STATUS_OFFLINE {
 				return nil, time.Time{}, fmt.Errorf("agent %q is offline", id)
 			}
 		}
@@ -105,7 +105,7 @@ func (s *Scheduler) Dispatch(
 
 		// For critical tasks, assign up to 3 agents; otherwise just 1
 		limit := 1
-		if priority == agentv1.TaskPriority_PRIORITY_CRITICAL {
+		if priority == agentv1.TaskPriority_TASK_PRIORITY_CRITICAL {
 			limit = 3
 		}
 		for i, c := range candidates {
@@ -118,7 +118,7 @@ func (s *Scheduler) Dispatch(
 
 	// Mark agents as BUSY
 	for _, id := range assignedAgents {
-		_ = s.registry.UpdateStatus(id, agentv1.AgentStatus_STATUS_BUSY)
+		_ = s.registry.UpdateStatus(id, agentv1.AgentStatus_AGENT_STATUS_BUSY)
 	}
 
 	now := time.Now()
@@ -184,7 +184,7 @@ func (s *Scheduler) transition(taskID string, next TaskState) error {
 
 	// Release agents back to IDLE
 	for _, id := range task.AssignedAgents {
-		_ = s.registry.UpdateStatus(id, agentv1.AgentStatus_STATUS_IDLE)
+		_ = s.registry.UpdateStatus(id, agentv1.AgentStatus_AGENT_STATUS_IDLE)
 	}
 	return nil
 }
@@ -211,7 +211,7 @@ func (s *Scheduler) runTimeoutWatcher() {
 				t.State = TaskTimeout
 				t.UpdatedAt = now
 				for _, id := range t.AssignedAgents {
-					_ = s.registry.UpdateStatus(id, agentv1.AgentStatus_STATUS_IDLE)
+					_ = s.registry.UpdateStatus(id, agentv1.AgentStatus_AGENT_STATUS_IDLE)
 				}
 			}
 		}
@@ -222,11 +222,11 @@ func (s *Scheduler) runTimeoutWatcher() {
 // estimateDuration returns a rough ETA based on task priority.
 func estimateDuration(p agentv1.TaskPriority) time.Duration {
 	switch p {
-	case agentv1.TaskPriority_PRIORITY_CRITICAL:
+	case agentv1.TaskPriority_TASK_PRIORITY_CRITICAL:
 		return 30 * time.Second
-	case agentv1.TaskPriority_PRIORITY_HIGH:
+	case agentv1.TaskPriority_TASK_PRIORITY_HIGH:
 		return 2 * time.Minute
-	case agentv1.TaskPriority_PRIORITY_NORMAL:
+	case agentv1.TaskPriority_TASK_PRIORITY_NORMAL:
 		return 5 * time.Minute
 	default:
 		return 10 * time.Minute

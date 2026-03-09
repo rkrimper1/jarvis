@@ -75,7 +75,7 @@ func (s *BusinessOpsServer) GetSchedule(ctx context.Context, req *businessv1.Get
 	return &businessv1.GetScheduleResponse{Meta: metaOK(req.Meta.RequestId), Events: events}, nil
 }
 
-func (s *BusinessOpsServer) CreateTask(ctx context.Context, req *businessv1.CreateTaskRequest) (*businessv1.TaskResponse, error) {
+func (s *BusinessOpsServer) CreateTask(ctx context.Context, req *businessv1.CreateTaskRequest) (*businessv1.CreateTaskResponse, error) {
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
@@ -85,10 +85,10 @@ func (s *BusinessOpsServer) CreateTask(ctx context.Context, req *businessv1.Crea
 	s.log.InfoContext(ctx, "CreateTask", slog.String("title", req.Title), slog.String("assignee", req.AssigneeId))
 
 	id := s.tasks.Create(req.Title, req.Description, req.AssigneeId, req.GetDue().AsTime(), req.Priority)
-	return &businessv1.TaskResponse{
+	return &businessv1.CreateTaskResponse{
 		Meta:   metaOK(req.Meta.RequestId),
 		TaskId: id,
-		Status: businessv1.TaskStatus_TASK_PENDING,
+		Status: businessv1.TaskStatus_TASK_STATUS_PENDING,
 	}, nil
 }
 

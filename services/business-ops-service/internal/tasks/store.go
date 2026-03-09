@@ -48,7 +48,7 @@ func (s *Store) Create(title, description, assigneeID string, due time.Time, pri
 		AssigneeID:  assigneeID,
 		Due:         due,
 		Priority:    priority,
-		Status:      businessv1.TaskStatus_TASK_PENDING,
+		Status:      businessv1.TaskStatus_TASK_STATUS_PENDING,
 		CreatedAt:   time.Now(),
 	}
 	return id
@@ -80,11 +80,11 @@ func (s *Store) seed() {
 		ID: "task-0001", Title: "Review Palladium Toxicity Research",
 		Description: "Cross-reference latest research papers with JARVIS biochem database.",
 		AssigneeID:  "tony-stark", Priority: 5, Due: time.Now().Add(24 * time.Hour),
-		Status: businessv1.TaskStatus_TASK_IN_PROGRESS, CreatedAt: time.Now().Add(-2 * time.Hour),
+		Status: businessv1.TaskStatus_TASK_STATUS_IN_PROGRESS, CreatedAt: time.Now().Add(-2 * time.Hour),
 	}
 	s.tasks["task-0002"] = &Task{
 		ID: "task-0002", Title: "Approve Stark Expo Security Plan",
 		AssigneeID: "pepper-potts", Priority: 4, Due: time.Now().Add(48 * time.Hour),
-		Status: businessv1.TaskStatus_TASK_PENDING, CreatedAt: time.Now().Add(-1 * time.Hour),
+		Status: businessv1.TaskStatus_TASK_STATUS_PENDING, CreatedAt: time.Now().Add(-1 * time.Hour),
 	}
 }
