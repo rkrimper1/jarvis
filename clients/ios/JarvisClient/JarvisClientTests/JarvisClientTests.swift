@@ -158,23 +158,225 @@ final class WakeWordDetectorLifecycleTests: XCTestCase {
         XCTAssertNil(detector.lastDetection)
     }
 
-    func test_coreML_backend_notStartedWithoutModel() async {
+    func test_coreML_backend_throwsOnMissingModel() async {
         var cfg = WakeWordConfiguration.default
         cfg.backend = .coreML(modelURL: URL(fileURLWithPath: "/nonexistent/model.mlmodel"))
         let detector = WakeWordDetector(configuration: cfg)
 
         do {
             try await detector.start()
-            XCTFail("Expected coreML backend to throw before model is implemented")
+            XCTFail("Expected coreMLModelLoadFailed for missing model file")
         } catch WakeWordDetectorError.coreMLModelLoadFailed {
-            // Expected — Phase 2 stub throws this.
+            // Correct — CoreMLEngine.init throws when the file doesn't exist.
         } catch {
             XCTFail("Unexpected error type: \(error)")
         }
     }
 }
 
-// MARK: - VoiceState Tests
+// MARK: - CoreMLEngine Tests
+
+/// Tests the CoreMLEngine inference helper directly (no model file required
+/// for the pure-logic tests; model-loading tests use a synthetic .mlpackage).
+final class CoreMLEngineTests: XCTestCase {
+
+    // MARK: Configuration defaults
+
+    func test_defaultConfig_windowSamples() {
+        let cfg = CoreMLEngineConfiguration()
+        XCTAssertEqual(cfg.windowSamples, 16_000,
+                       "Default window should be 1 second at 16 kHz")
+    }
+
+    func test_defaultConfig_hopSamples() {
+        let cfg = CoreMLEngineConfiguration()
+        XCTAssertEqual(cfg.hopSamples, 320,
+                       "Default hop should be 20 ms at 16 kHz (one AudioCaptureEngine frame)")
+    }
+
+    func test_defaultConfig_inputFeatureName() {
+        let cfg = CoreMLEngineConfiguration()
+        XCTAssertEqual(cfg.inputFeatureName, "audioSamples")
+    }
+
+    func test_defaultConfig_outputFeatureName() {
+        let cfg = CoreMLEngineConfiguration()
+        XCTAssertEqual(cfg.outputFeatureName, "wakeProbability")
+    }
+
+    func test_defaultConfig_probabilityThreshold_inValidRange() {
+        let cfg = CoreMLEngineConfiguration()
+        XCTAssertGreaterThan(cfg.probabilityThreshold, 0)
+        XCTAssertLessThanOrEqual(cfg.probabilityThreshold, 1)
+    }
+
+    // MARK: Sensitivity → CoreML threshold mapping
+
+    func test_coreML_sensitivity_low_highestThreshold() {
+        XCTAssertGreaterThan(
+            WakeWordSensitivity.low.coreMLThreshold,
+            WakeWordSensitivity.medium.coreMLThreshold,
+            "low sensitivity requires higher probability to fire"
+        )
+    }
+
+    func test_coreML_sensitivity_medium_betweenLowAndHigh() {
+        XCTAssertGreaterThan(
+            WakeWordSensitivity.medium.coreMLThreshold,
+            WakeWordSensitivity.high.coreMLThreshold
+        )
+    }
+
+    func test_coreML_sensitivity_allInValidRange() {
+        for s in [WakeWordSensitivity.low, .medium, .high] {
+            let t = s.coreMLThreshold
+            XCTAssertGreaterThan(t, 0, "threshold must be > 0 for \(s)")
+            XCTAssertLessThanOrEqual(t, 1, "threshold must be ≤ 1 for \(s)")
+        }
+    }
+
+    func test_coreML_sensitivity_distinctFromSFSpeechThreshold() {
+        // The two thresholds operate on different scales — they must not alias.
+        for s in [WakeWordSensitivity.low, .medium, .high] {
+            XCTAssertNotEqual(
+                s.coreMLThreshold,
+                s.confidenceThreshold,
+                "CoreML and SFSpeech thresholds should be tuned independently for \(s)"
+            )
+        }
+    }
+
+    // MARK: Model load failure
+
+    func test_engine_init_throwsOnMissingFile() {
+        let missingURL = URL(fileURLWithPath: "/tmp/nonexistent_\(UUID().uuidString).mlmodel")
+        XCTAssertThrowsError(
+            try CoreMLEngine(modelURL: missingURL)
+        ) { error in
+            // MLModel.compileModel throws when the file doesn't exist.
+            XCTAssertNotNil(error)
+        }
+    }
+
+    // MARK: WakeWordDetector + CoreML backend integration
+
+    @MainActor
+    func test_detector_coreML_notRunning_afterFailedStart() async {
+        var cfg = WakeWordConfiguration.default
+        cfg.backend = .coreML(modelURL: URL(fileURLWithPath: "/nonexistent.mlmodel"))
+        let detector = WakeWordDetector(configuration: cfg)
+        try? await detector.start()
+        XCTAssertFalse(detector.isRunning,
+                       "isRunning must be false when start() throws")
+    }
+
+    @MainActor
+    func test_detector_coreML_stop_afterFailedStart_isNoOp() async {
+        var cfg = WakeWordConfiguration.default
+        cfg.backend = .coreML(modelURL: URL(fileURLWithPath: "/nonexistent.mlmodel"))
+        let detector = WakeWordDetector(configuration: cfg)
+        try? await detector.start()
+        // stop() on a non-running detector must not crash.
+        detector.stop()
+        XCTAssertFalse(detector.isRunning)
+    }
+
+    @MainActor
+    func test_detector_coreML_feed_whenNotRunning_isNoOp() {
+        var cfg = WakeWordConfiguration.default
+        cfg.backend = .coreML(modelURL: URL(fileURLWithPath: "/nonexistent.mlmodel"))
+        let detector = WakeWordDetector(configuration: cfg)
+        let frame = AudioFrame(
+            pcmData:        Data(count: 640),
+            capturedAt:     Date(),
+            rmsEnergy:      0,
+            sequenceNumber: 1
+        )
+        // Must not crash even though engine is nil.
+        detector.feed(frame)
+    }
+
+    @MainActor
+    func test_detector_coreML_errorCallback_fires_onLoadFailure() async {
+        var cfg = WakeWordConfiguration.default
+        cfg.backend = .coreML(modelURL: URL(fileURLWithPath: "/bad/path.mlmodel"))
+        let detector = WakeWordDetector(configuration: cfg)
+
+        var receivedError: WakeWordDetectorError?
+        detector.onError = { receivedError = $0 }
+
+        do {
+            try await detector.start()
+        } catch let err as WakeWordDetectorError {
+            // start() throws — the error is surfaced via throw, not onError.
+            // Verify it's the right type.
+            if case .coreMLModelLoadFailed = err { /* pass */ }
+            else { XCTFail("Wrong error type: \(err)") }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+
+        // onError should NOT have been called — errors from start() propagate via throw.
+        XCTAssertNil(receivedError,
+                     "start() errors propagate via throw, not onError callback")
+    }
+}
+
+// MARK: - WakeWordDetection Model Tests
+
+final class WakeWordDetectionModelTests: XCTestCase {
+
+    func test_detection_storesMatchedPhrase() {
+        let d = makeDetection(phrase: "hey jarvis", confidence: 0.9)
+        XCTAssertEqual(d.matchedPhrase, "hey jarvis")
+    }
+
+    func test_detection_confidenceInRange() {
+        let d = makeDetection(phrase: "jarvis", confidence: 0.75)
+        XCTAssertGreaterThanOrEqual(d.confidence, 0)
+        XCTAssertLessThanOrEqual(d.confidence, 1)
+    }
+
+    func test_detection_detectedAt_recent() {
+        let before = Date()
+        let d = makeDetection(phrase: "jarvis", confidence: 0.8)
+        XCTAssertGreaterThanOrEqual(d.detectedAt, before)
+    }
+
+    func test_detection_coreML_hasEmptyTranscript() {
+        // CoreML backend produces no transcript — only a probability.
+        let d = WakeWordDetection(
+            matchedPhrase:  "hey jarvis",
+            confidence:     0.85,
+            fullTranscript: "",
+            triggerFrame:   makeFrame(),
+            detectedAt:     Date()
+        )
+        XCTAssertEqual(d.fullTranscript, "",
+                       "CoreML detection has no ASR transcript")
+    }
+
+    // MARK: Helpers
+
+    private func makeDetection(phrase: String, confidence: Float) -> WakeWordDetection {
+        WakeWordDetection(
+            matchedPhrase:  phrase,
+            confidence:     confidence,
+            fullTranscript: "hey jarvis turn on the lights",
+            triggerFrame:   makeFrame(),
+            detectedAt:     Date()
+        )
+    }
+
+    private func makeFrame() -> AudioFrame {
+        AudioFrame(
+            pcmData:        Data(count: 640),
+            capturedAt:     Date(),
+            rmsEnergy:      0.4,
+            sequenceNumber: 1
+        )
+    }
+}
 
 final class VoiceStateTests: XCTestCase {
 

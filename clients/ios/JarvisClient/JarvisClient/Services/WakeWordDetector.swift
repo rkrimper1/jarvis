@@ -27,6 +27,7 @@
 import Foundation
 import Speech
 import AVFoundation
+import CoreML
 import os.log
 
 // MARK: - Public Types
@@ -189,6 +190,11 @@ public final class WakeWordDetector: ObservableObject {
     /// Rolling AVAudioPCMBuffer fed into the recognition request.
     private var audioFormat: AVAudioFormat?
 
+    // MARK: - Private: CoreML
+
+    /// Loaded on start() when backend == .coreML. Nil otherwise.
+    private var coreMLEngine: CoreMLEngine?
+
     // MARK: - Private: State
 
     private var lastDetectionTime: Date = .distantPast
@@ -229,6 +235,7 @@ extension WakeWordDetector {
     public func stop() {
         guard isRunning else { return }
         teardownSpeechRecognizer()
+        coreMLEngine = nil
         isRunning = false
         log.info("WakeWordDetector stopped")
     }
@@ -392,36 +399,77 @@ private extension WakeWordDetector {
     }
 }
 
-// MARK: - Private: CoreML path (Phase 2 stub)
+// MARK: - Private: CoreML path (Phase 2)
 
 private extension WakeWordDetector {
 
-    /// Loads and validates a CoreML .mlmodel.
-    /// Replace the stub body with MLModel inference when the model is available.
+    /// Compiles and loads the CoreML model, then sets coreMLEngine.
+    /// Compilation is async and CPU-bound — runs on a background thread inside
+    /// CoreMLEngine.init, which is called via Task.detached.
     func startCoreML(modelURL: URL) async throws {
-        // Phase 2 implementation:
-        //
-        //   let compiled = try await MLModel.compileModel(at: modelURL)
-        //   let model    = try MLModel(contentsOf: compiled)
-        //   self.coreMLModel = model
-        //
-        // For now throw a clear error so the call-site knows Phase 2 isn't wired.
-        log.warning("CoreML backend selected but not yet implemented — falling back not possible")
-        throw WakeWordDetectorError.coreMLModelLoadFailed(
-            url: modelURL,
-            underlying: NSError(
-                domain: "WakeWord",
-                code: -2,
-                userInfo: [NSLocalizedDescriptionKey: "CoreML backend is Phase 2 — not yet implemented"]
-            )
-        )
+        log.info("CoreML backend: loading model from \(modelURL.lastPathComponent)")
+
+        // Build engine config from our WakeWordConfiguration.
+        var engineCfg = CoreMLEngineConfiguration()
+        engineCfg.probabilityThreshold = configuration.sensitivity.coreMLThreshold
+
+        do {
+            // CoreMLEngine.init() calls MLModel.compileModel — must be off MainActor.
+            let engine = try await Task.detached(priority: .userInitiated) {
+                try CoreMLEngine(modelURL: modelURL, configuration: engineCfg)
+            }.value
+            self.coreMLEngine = engine
+            log.info("CoreML model ready — threshold \(engineCfg.probabilityThreshold)")
+        } catch {
+            log.error("CoreML model load failed: \(error.localizedDescription)")
+            throw WakeWordDetectorError.coreMLModelLoadFailed(url: modelURL, underlying: error)
+        }
     }
 
     /// Feed a frame into the CoreML inference pipeline.
+    /// Results arrive asynchronously on inferenceQueue and are hopped back to MainActor.
     func feedCoreML(frame: AudioFrame) {
-        // Phase 2: run MLFeatureProvider with frame.pcmData as input,
-        // read the wake-word probability output, apply threshold.
-        _ = frame   // suppress unused warning
+        guard let engine = coreMLEngine else { return }
+
+        engine.feed(pcmData: frame.pcmData) { [weak self] result in
+            Task { @MainActor [weak self] in
+                self?.handleCoreMLResult(result, frame: frame)
+            }
+        }
+    }
+
+    /// Evaluate the inference result and fire onDetection if the threshold is met.
+    func handleCoreMLResult(_ result: Result<Float, Error>, frame: AudioFrame) {
+        switch result {
+        case .failure(let error):
+            log.warning("CoreML inference error: \(error.localizedDescription)")
+            onError?(.recognizerStartFailed(underlying: error))
+
+        case .success(let probability):
+            let threshold = configuration.sensitivity.coreMLThreshold
+            guard probability >= threshold else { return }
+
+            // Debounce — same logic as SFSpeech path.
+            let now = Date()
+            guard now.timeIntervalSince(lastDetectionTime) >= configuration.debounceSec else {
+                log.debug("CoreML wake phrase debounced (p=\(String(format: "%.3f", probability)))")
+                return
+            }
+            lastDetectionTime = now
+
+            log.info("CoreML wake word detected — p=\(String(format: "%.3f", probability))")
+
+            let detection = WakeWordDetection(
+                matchedPhrase:  configuration.wakePhrase,
+                confidence:     probability,
+                fullTranscript: "",   // CoreML has no transcript — probability only
+                triggerFrame:   frame,
+                detectedAt:     now
+            )
+
+            lastDetection = detection
+            Task { await onDetection?(detection) }
+        }
     }
 }
 
