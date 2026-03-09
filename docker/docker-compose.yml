@@ -177,6 +177,23 @@ services:
       - AUDIO_MAX_UTTERANCE_SEC=30
       - SESSION_TTL=30m
       - SESSION_MAX=1000
+      # ── STT ────────────────────────────────────────────────────────
+      - STT_PROVIDER=${STT_PROVIDER:-stub}
+      - STT_MODEL=${STT_MODEL:-latest_long}
+      - STT_AUTO_PUNCTUATION=${STT_AUTO_PUNCTUATION:-true}
+      - STT_WORD_TIME_OFFSETS=${STT_WORD_TIME_OFFSETS:-false}
+      - STT_MAX_SYNC_DURATION_SEC=${STT_MAX_SYNC_DURATION_SEC:-55}
+      # ── TTS ────────────────────────────────────────────────────────
+      - TTS_PROVIDER=${TTS_PROVIDER:-stub}
+      - TTS_VOICE_ID=${TTS_VOICE_ID:-en-US-Journey-D}
+      - TTS_LANGUAGE_CODE=${TTS_LANGUAGE_CODE:-en-US}
+      - TTS_SPEAKING_RATE=${TTS_SPEAKING_RATE:-1.0}
+      - TTS_PITCH=${TTS_PITCH:-0.0}
+      - TTS_AUDIO_ENCODING=${TTS_AUDIO_ENCODING:-pcm}
+      - TTS_CHUNK_SIZE_BYTES=${TTS_CHUNK_SIZE_BYTES:-8192}
+      # ── GCP (shared by STT + TTS when provider != stub) ────────────
+      - GCP_PROJECT=${GCP_PROJECT:-}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
     ports:
       - "50059:50059"
     depends_on:
