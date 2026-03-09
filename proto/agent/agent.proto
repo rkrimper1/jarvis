@@ -7,28 +7,28 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum AgentType {
-  AGENT_UNSPECIFIED  = 0;
-  AGENT_IRON_SUIT    = 1;
-  AGENT_DRONE        = 2;
-  AGENT_TURRET       = 3;
-  AGENT_AI_ASSISTANT = 4;
-  AGENT_EXTERNAL     = 5;
+  AGENT_TYPE_UNSPECIFIED  = 0;
+  AGENT_TYPE_IRON_SUIT    = 1;
+  AGENT_TYPE_DRONE        = 2;
+  AGENT_TYPE_TURRET       = 3;
+  AGENT_TYPE_AI_ASSISTANT = 4;
+  AGENT_TYPE_EXTERNAL     = 5;
 }
 
 enum AgentStatus {
-  STATUS_UNSPECIFIED = 0;
-  STATUS_IDLE        = 1;
-  STATUS_ACTIVE      = 2;
-  STATUS_BUSY        = 3;
-  STATUS_ERROR       = 4;
-  STATUS_OFFLINE     = 5;
+  AGENT_STATUS_UNSPECIFIED = 0;
+  AGENT_STATUS_IDLE        = 1;
+  AGENT_STATUS_ACTIVE      = 2;
+  AGENT_STATUS_BUSY        = 3;
+  AGENT_STATUS_ERROR       = 4;
+  AGENT_STATUS_OFFLINE     = 5;
 }
 
 enum TaskPriority {
-  PRIORITY_LOW      = 0;
-  PRIORITY_NORMAL   = 1;
-  PRIORITY_HIGH     = 2;
-  PRIORITY_CRITICAL = 3;
+  TASK_PRIORITY_UNSPECIFIED = 0;
+  TASK_PRIORITY_NORMAL      = 1;
+  TASK_PRIORITY_HIGH        = 2;
+  TASK_PRIORITY_CRITICAL    = 3;
 }
 
 message Agent {
@@ -57,12 +57,12 @@ message DispatchTaskResponse {
   google.protobuf.Timestamp estimated_completion = 4;
 }
 
-message AgentStatusRequest {
+message GetAgentStatusRequest {
   jarvis.common.RequestMeta meta   = 1;
   repeated string agent_ids        = 2;
 }
 
-message AgentStatusResponse {
+message GetAgentStatusResponse {
   jarvis.common.ResponseMeta meta = 1;
   repeated Agent agents           = 2;
 }
@@ -90,16 +90,33 @@ message BroadcastResponse {
   repeated string unresponsive_agents  = 3;
 }
 
+message StreamCoordinationEventsRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message StreamCoordinationEventsResponse {
+  CoordinationEvent event         = 1;
+  jarvis.common.ResponseMeta meta = 2;
+}
+
+message AgentHeartbeatRequest {
+  CoordinationEvent event = 1;
+}
+
+message AgentHeartbeatResponse {
+  CoordinationEvent event = 1;
+}
+
 service AgentCoordinatorService {
   rpc DispatchTask(DispatchTaskRequest) returns (DispatchTaskResponse) {
     option (google.api.http) = { post: "/v1/agents/dispatch" body: "*" };
   }
-  rpc GetAgentStatus(AgentStatusRequest) returns (AgentStatusResponse) {
+  rpc GetAgentStatus(GetAgentStatusRequest) returns (GetAgentStatusResponse) {
     option (google.api.http) = { get: "/v1/agents/status" };
   }
   rpc Broadcast(BroadcastRequest) returns (BroadcastResponse) {
     option (google.api.http) = { post: "/v1/agents/broadcast" body: "*" };
   }
-  rpc StreamCoordinationEvents(jarvis.common.RequestMeta) returns (stream CoordinationEvent);
-  rpc AgentHeartbeat(stream CoordinationEvent) returns (stream CoordinationEvent);
+  rpc StreamCoordinationEvents(StreamCoordinationEventsRequest) returns (stream StreamCoordinationEventsResponse);
+  rpc AgentHeartbeat(stream AgentHeartbeatRequest) returns (stream AgentHeartbeatResponse);
 }

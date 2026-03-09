@@ -22,7 +22,7 @@ service VoiceService {
   // First message must be a StreamConfig. Subsequent messages are AudioChunks
   // and ControlEvents. Server streams back StatusEvents, Transcripts, Replies,
   // AudioReplies, and HUD Actions.
-  rpc Converse(stream VoiceRequest) returns (stream VoiceResponse);
+  rpc Converse(stream ConverseRequest) returns (stream ConverseResponse);
 
   // GetSession retrieves metadata for a session — used after reconnect.
   rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
@@ -43,7 +43,7 @@ service VoiceService {
 // Upstream envelope — client → server
 // ─────────────────────────────────────────────────────────────────────────────
 
-message VoiceRequest {
+message ConverseRequest {
   oneof payload {
     // Sent exactly once as the very first message to configure the stream.
     StreamConfig config = 1;
@@ -150,7 +150,7 @@ message ControlEvent {
 // Downstream envelope — server → client
 // ─────────────────────────────────────────────────────────────────────────────
 
-message VoiceResponse {
+message ConverseResponse {
   // Mirrors StreamConfig.meta.session_id for client-side correlation.
   string session_id  = 1;
   // Server-assigned monotonic index for ordering concurrent messages.
@@ -203,13 +203,13 @@ message StatusEvent {
 
 // Mirrors ErrorCode style from other Jarvis services.
 enum VoiceErrorCode {
-  VOICE_ERROR_UNSPECIFIED   = 0;
-  VOICE_ERROR_STT_FAILURE   = 1;
-  VOICE_ERROR_NLP_TIMEOUT   = 2;
-  VOICE_ERROR_TTS_FAILURE   = 3;
-  VOICE_ERROR_AUTH_EXPIRED  = 4;
-  VOICE_ERROR_RATE_LIMITED  = 5;
-  VOICE_ERROR_WAKE_WORD_NOT_DETECTED = 6;
+  VOICE_ERROR_CODE_UNSPECIFIED          = 0;
+  VOICE_ERROR_CODE_STT_FAILURE          = 1;
+  VOICE_ERROR_CODE_NLP_TIMEOUT          = 2;
+  VOICE_ERROR_CODE_TTS_FAILURE          = 3;
+  VOICE_ERROR_CODE_AUTH_EXPIRED         = 4;
+  VOICE_ERROR_CODE_RATE_LIMITED         = 5;
+  VOICE_ERROR_CODE_WAKE_WORD_NOT_DETECTED = 6;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

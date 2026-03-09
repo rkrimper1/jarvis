@@ -11,6 +11,7 @@ lint:
     - DEFAULT
   except:
     - PACKAGE_VERSION_SUFFIX
+    - PACKAGE_DIRECTORY_MATCH  # packages use jarvis.<domain> but dirs use <domain>/
 
 breaking:
   use:

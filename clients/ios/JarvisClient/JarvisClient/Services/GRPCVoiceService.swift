@@ -158,7 +158,7 @@ public final class GRPCVoiceService: ObservableObject {
     private var channel: GRPCChannel?
 
     /// The active bidirectional call handle.
-    private var call: BidirectionalStreamingCall<JarvisVoiceRequest, JarvisVoiceResponse>?
+    private var call: BidirectionalStreamingCall<JarvisConverseRequest, JarvisConverseResponse>?
 
     /// Active session metadata set on connect.
     private var sessionID: String = ""
@@ -298,7 +298,7 @@ private extension GRPCVoiceService {
         self.call = call
 
         // ── 5. Send StreamConfig as first message ────────────────────────
-        let configMsg = JarvisVoiceRequest.with {
+        let configMsg = JarvisConverseRequest.with {
             $0.config = makeStreamConfig()
         }
         try await call.sendMessage(configMsg).get()
@@ -361,7 +361,7 @@ private extension GRPCVoiceService {
 
     /// Dispatches a VoiceResponse to the appropriate VoiceEvent.
     /// Always called on the MainActor.
-    func handleResponse(_ response: JarvisVoiceResponse) {
+    func handleResponse(_ response: JarvisConverseResponse) {
         switch response.payload {
 
         case .status(let s):
@@ -402,7 +402,7 @@ private extension GRPCVoiceService {
 
 private extension GRPCVoiceService {
 
-    func send(_ request: JarvisVoiceRequest) async {
+    func send(_ request: JarvisConverseRequest) async {
         guard let call else {
             onEvent(.streamError(.notConnected))
             return
@@ -416,7 +416,7 @@ private extension GRPCVoiceService {
     }
 
     func sendControlEvent(_ type: JarvisControlEvent.TypeEnum) async {
-        let event = JarvisVoiceRequest.with {
+        let event = JarvisConverseRequest.with {
             $0.event = JarvisControlEvent.with { $0.type = type }
         }
         await send(event)

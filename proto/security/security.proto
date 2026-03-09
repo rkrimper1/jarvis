@@ -7,38 +7,38 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 enum AuthMethod {
-  AUTH_UNSPECIFIED  = 0;
-  AUTH_VOICE_PRINT  = 1;
-  AUTH_RETINAL_SCAN = 2;
-  AUTH_TOKEN        = 3;
-  AUTH_BIOMETRIC    = 4;
-  AUTH_PASSCODE     = 5;
+  AUTH_METHOD_UNSPECIFIED  = 0;
+  AUTH_METHOD_VOICE_PRINT  = 1;
+  AUTH_METHOD_RETINAL_SCAN = 2;
+  AUTH_METHOD_TOKEN        = 3;
+  AUTH_METHOD_BIOMETRIC    = 4;
+  AUTH_METHOD_PASSCODE     = 5;
 }
 
 enum ThreatLevel {
-  THREAT_NONE     = 0;
-  THREAT_LOW      = 1;
-  THREAT_MODERATE = 2;
-  THREAT_HIGH     = 3;
-  THREAT_CRITICAL = 4;
+  THREAT_LEVEL_UNSPECIFIED = 0;
+  THREAT_LEVEL_LOW         = 1;
+  THREAT_LEVEL_MODERATE    = 2;
+  THREAT_LEVEL_HIGH        = 3;
+  THREAT_LEVEL_CRITICAL    = 4;
 }
 
 enum ProtocolType {
-  PROTOCOL_UNSPECIFIED = 0;
-  PROTOCOL_LOCKDOWN    = 1;
-  PROTOCOL_EVACUATION  = 2;
-  PROTOCOL_CLEAN_SLATE = 3;
-  PROTOCOL_BLACKOUT    = 4;
+  PROTOCOL_TYPE_UNSPECIFIED = 0;
+  PROTOCOL_TYPE_LOCKDOWN    = 1;
+  PROTOCOL_TYPE_EVACUATION  = 2;
+  PROTOCOL_TYPE_CLEAN_SLATE = 3;
+  PROTOCOL_TYPE_BLACKOUT    = 4;
 }
 
-message AuthRequest {
+message AuthenticateRequest {
   jarvis.common.RequestMeta meta = 1;
   string     subject_id         = 2;
   AuthMethod method             = 3;
   bytes      credential_payload = 4;
 }
 
-message AuthResponse {
+message AuthenticateResponse {
   jarvis.common.ResponseMeta meta = 1;
   bool     authenticated          = 2;
   string   access_token           = 3;
@@ -46,14 +46,14 @@ message AuthResponse {
   google.protobuf.Timestamp expires_at = 5;
 }
 
-message ThreatAssessmentRequest {
+message AssessThreatRequest {
   jarvis.common.RequestMeta meta    = 1;
   string   subject_id               = 2;
   string   location                 = 3;
   repeated string observed_signals  = 4;
 }
 
-message ThreatAssessmentResponse {
+message AssessThreatResponse {
   jarvis.common.ResponseMeta meta       = 1;
   ThreatLevel level                     = 2;
   float       confidence                = 3;
@@ -61,20 +61,20 @@ message ThreatAssessmentResponse {
   repeated string recommended_actions   = 5;
 }
 
-message ProtocolRequest {
+message ExecuteProtocolRequest {
   jarvis.common.RequestMeta meta = 1;
   ProtocolType protocol          = 2;
   string       reason            = 3;
   bool         requires_confirmation = 4;
 }
 
-message ProtocolResponse {
+message ExecuteProtocolResponse {
   jarvis.common.ResponseMeta meta = 1;
   ProtocolType protocol_executed  = 2;
   repeated string actions_taken   = 3;
 }
 
-message AuditLogRequest {
+message GetAuditLogRequest {
   jarvis.common.RequestMeta meta  = 1;
   string subject_id               = 2;
   google.protobuf.Timestamp from  = 3;
@@ -92,7 +92,7 @@ message AuditEntry {
   google.protobuf.Timestamp timestamp = 6;
 }
 
-message AuditLogResponse {
+message GetAuditLogResponse {
   jarvis.common.ResponseMeta meta = 1;
   repeated AuditEntry entries     = 2;
   string next_page_token          = 3;
@@ -106,18 +106,27 @@ message SecurityAlert {
   google.protobuf.Timestamp timestamp = 5;
 }
 
+message StreamSecurityAlertsRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message StreamSecurityAlertsResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  SecurityAlert alert             = 2;
+}
+
 service SecurityService {
-  rpc Authenticate(AuthRequest) returns (AuthResponse) {
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
     option (google.api.http) = { post: "/v1/security/authenticate" body: "*" };
   }
-  rpc AssessThreat(ThreatAssessmentRequest) returns (ThreatAssessmentResponse) {
+  rpc AssessThreat(AssessThreatRequest) returns (AssessThreatResponse) {
     option (google.api.http) = { post: "/v1/security/threat" body: "*" };
   }
-  rpc ExecuteProtocol(ProtocolRequest) returns (ProtocolResponse) {
+  rpc ExecuteProtocol(ExecuteProtocolRequest) returns (ExecuteProtocolResponse) {
     option (google.api.http) = { post: "/v1/security/protocol" body: "*" };
   }
-  rpc GetAuditLog(AuditLogRequest) returns (AuditLogResponse) {
+  rpc GetAuditLog(GetAuditLogRequest) returns (GetAuditLogResponse) {
     option (google.api.http) = { get: "/v1/security/audit" };
   }
-  rpc StreamSecurityAlerts(jarvis.common.RequestMeta) returns (stream ThreatAssessmentResponse);
+  rpc StreamSecurityAlerts(StreamSecurityAlertsRequest) returns (stream StreamSecurityAlertsResponse);
 }
