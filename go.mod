@@ -1,11 +1,6 @@
 module github.com/rkrimper1/jarvis
 
-go 1.23
-
-// toolchain allows developers running Go 1.25+ locally to build without
-// rewriting this file. Docker builds use golang:1.23-alpine which satisfies
-// the minimum declared above.
-toolchain go1.23.0
+go 1.25.0
 
 require (
 	github.com/google/uuid v1.6.0
