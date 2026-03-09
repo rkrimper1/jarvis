@@ -17,7 +17,7 @@ import (
 
 func TestFeedback_SubmitPositive(t *testing.T) {
 	s := feedback.New()
-	id, queued := s.Submit("interaction-001", learningv1.FeedbackType_FEEDBACK_POSITIVE, "", 0.9, "")
+	id, queued := s.Submit("interaction-001", learningv1.FeedbackType_FEEDBACK_TYPE_POSITIVE, "", 0.9, "")
 	if id == "" {
 		t.Error("expected non-empty feedback ID")
 	}
@@ -28,7 +28,7 @@ func TestFeedback_SubmitPositive(t *testing.T) {
 
 func TestFeedback_SubmitCorrection_Queued(t *testing.T) {
 	s := feedback.New()
-	_, queued := s.Submit("interaction-002", learningv1.FeedbackType_FEEDBACK_CORRECTION, "The correct answer is 42", 0.5, "")
+	_, queued := s.Submit("interaction-002", learningv1.FeedbackType_FEEDBACK_TYPE_CORRECTION, "The correct answer is 42", 0.5, "")
 	if !queued {
 		t.Error("corrections should always be queued for training")
 	}
@@ -36,7 +36,7 @@ func TestFeedback_SubmitCorrection_Queued(t *testing.T) {
 
 func TestFeedback_LowRating_Queued(t *testing.T) {
 	s := feedback.New()
-	_, queued := s.Submit("interaction-003", learningv1.FeedbackType_FEEDBACK_NEGATIVE, "", 0.2, "poor response")
+	_, queued := s.Submit("interaction-003", learningv1.FeedbackType_FEEDBACK_TYPE_NEGATIVE, "", 0.2, "poor response")
 	if !queued {
 		t.Error("low rating (< 0.4) should be queued for training")
 	}
@@ -46,7 +46,7 @@ func TestFeedback_UniqueIDs(t *testing.T) {
 	s := feedback.New()
 	ids := make(map[string]bool)
 	for i := 0; i < 20; i++ {
-		id, _ := s.Submit("ia", learningv1.FeedbackType_FEEDBACK_POSITIVE, "", 0.8, "")
+		id, _ := s.Submit("ia", learningv1.FeedbackType_FEEDBACK_TYPE_POSITIVE, "", 0.8, "")
 		if ids[id] {
 			t.Errorf("duplicate feedback ID: %s", id)
 		}
@@ -56,13 +56,13 @@ func TestFeedback_UniqueIDs(t *testing.T) {
 
 func TestFeedback_Count(t *testing.T) {
 	s := feedback.New()
-	s.Submit("i1", learningv1.FeedbackType_FEEDBACK_POSITIVE, "", 0.9, "")
-	s.Submit("i2", learningv1.FeedbackType_FEEDBACK_POSITIVE, "", 0.8, "")
-	s.Submit("i3", learningv1.FeedbackType_FEEDBACK_NEGATIVE, "", 0.2, "")
+	s.Submit("i1", learningv1.FeedbackType_FEEDBACK_TYPE_POSITIVE, "", 0.9, "")
+	s.Submit("i2", learningv1.FeedbackType_FEEDBACK_TYPE_POSITIVE, "", 0.8, "")
+	s.Submit("i3", learningv1.FeedbackType_FEEDBACK_TYPE_NEGATIVE, "", 0.2, "")
 
 	counts := s.Count()
-	if counts[learningv1.FeedbackType_FEEDBACK_POSITIVE] != 2 {
-		t.Errorf("positive count = %d, want 2", counts[learningv1.FeedbackType_FEEDBACK_POSITIVE])
+	if counts[learningv1.FeedbackType_FEEDBACK_TYPE_POSITIVE] != 2 {
+		t.Errorf("positive count = %d, want 2", counts[learningv1.FeedbackType_FEEDBACK_TYPE_POSITIVE])
 	}
 }
 
@@ -115,7 +115,7 @@ func TestProfile_InteractionPatterns(t *testing.T) {
 
 func TestMetrics_GetSeededDomain(t *testing.T) {
 	tracker := metrics.New()
-	snap := tracker.Get(learningv1.ModelDomain_DOMAIN_NLP, time.Time{}, time.Time{})
+	snap := tracker.Get(learningv1.ModelDomain_MODEL_DOMAIN_NLP, time.Time{}, time.Time{})
 	if snap.Accuracy <= 0 {
 		t.Errorf("NLP accuracy should be > 0, got %.4f", snap.Accuracy)
 	}
@@ -126,7 +126,7 @@ func TestMetrics_GetSeededDomain(t *testing.T) {
 
 func TestMetrics_UnknownDomain_Baseline(t *testing.T) {
 	tracker := metrics.New()
-	snap := tracker.Get(learningv1.ModelDomain_DOMAIN_UNSPECIFIED, time.Time{}, time.Time{})
+	snap := tracker.Get(learningv1.ModelDomain_MODEL_DOMAIN_UNSPECIFIED, time.Time{}, time.Time{})
 	if snap.Accuracy <= 0 {
 		t.Error("unknown domain should return a non-zero baseline")
 	}
@@ -134,8 +134,8 @@ func TestMetrics_UnknownDomain_Baseline(t *testing.T) {
 
 func TestMetrics_DriftIsApplied(t *testing.T) {
 	tracker := metrics.New()
-	snap1 := tracker.Get(learningv1.ModelDomain_DOMAIN_THREAT, time.Time{}, time.Time{})
-	snap2 := tracker.Get(learningv1.ModelDomain_DOMAIN_THREAT, time.Time{}, time.Time{})
+	snap1 := tracker.Get(learningv1.ModelDomain_MODEL_DOMAIN_THREAT, time.Time{}, time.Time{})
+	snap2 := tracker.Get(learningv1.ModelDomain_MODEL_DOMAIN_THREAT, time.Time{}, time.Time{})
 	// At least one metric should differ due to drift simulation
 	// (very low probability they're all equal)
 	allSame := snap1.Accuracy == snap2.Accuracy &&
@@ -161,7 +161,7 @@ func TestAdaptBus_SubscribeAndReceive(t *testing.T) {
 		if ev.EventId == "" {
 			t.Error("expected non-empty event ID")
 		}
-		if ev.Domain == learningv1.ModelDomain_DOMAIN_UNSPECIFIED {
+		if ev.Domain == learningv1.ModelDomain_MODEL_DOMAIN_UNSPECIFIED {
 			t.Error("expected a specific domain in adaptation event")
 		}
 	case <-time.After(500 * time.Millisecond):
@@ -193,7 +193,7 @@ func TestAdaptBus_MultipleSubscribers(t *testing.T) {
 
 	b.Publish(&learningv1.AdaptationEvent{
 		EventId:     "test-event",
-		Domain:      learningv1.ModelDomain_DOMAIN_NLP,
+		Domain:      learningv1.ModelDomain_MODEL_DOMAIN_NLP,
 		Description: "test",
 	})
 

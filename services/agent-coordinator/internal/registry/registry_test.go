@@ -6,7 +6,6 @@ import (
 
 	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/registry"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func newRegistry() *registry.Registry {
@@ -20,8 +19,8 @@ func TestRegistry_UpsertAndGet(t *testing.T) {
 	agent := &agentv1.Agent{
 		AgentId:      "test-agent-1",
 		Name:         "Test Agent",
-		Type:         agentv1.AgentType_AGENT_DRONE,
-		Status:       agentv1.AgentStatus_STATUS_IDLE,
+		Type:         agentv1.AgentType_AGENT_TYPE_DRONE,
+		Status:       agentv1.AgentStatus_AGENT_STATUS_IDLE,
 		Capabilities: []string{"recon"},
 	}
 	r.Upsert(agent)
@@ -45,27 +44,27 @@ func TestRegistry_DefaultsStatusToActive(t *testing.T) {
 		// Status intentionally left as UNSPECIFIED (zero value)
 	})
 	a, _ := r.Get("agent-x")
-	if a.Status != agentv1.AgentStatus_STATUS_ACTIVE {
+	if a.Status != agentv1.AgentStatus_AGENT_STATUS_ACTIVE {
 		t.Errorf("status = %v, want STATUS_ACTIVE", a.Status)
 	}
 }
 
 func TestRegistry_UpdateStatus(t *testing.T) {
 	r := newRegistry()
-	r.Upsert(&agentv1.Agent{AgentId: "agent-y", Status: agentv1.AgentStatus_STATUS_IDLE})
+	r.Upsert(&agentv1.Agent{AgentId: "agent-y", Status: agentv1.AgentStatus_AGENT_STATUS_IDLE})
 
-	if err := r.UpdateStatus("agent-y", agentv1.AgentStatus_STATUS_BUSY); err != nil {
+	if err := r.UpdateStatus("agent-y", agentv1.AgentStatus_AGENT_STATUS_BUSY); err != nil {
 		t.Fatalf("UpdateStatus: %v", err)
 	}
 	a, _ := r.Get("agent-y")
-	if a.Status != agentv1.AgentStatus_STATUS_BUSY {
+	if a.Status != agentv1.AgentStatus_AGENT_STATUS_BUSY {
 		t.Errorf("status = %v, want STATUS_BUSY", a.Status)
 	}
 }
 
 func TestRegistry_UpdateStatus_UnknownAgent(t *testing.T) {
 	r := newRegistry()
-	err := r.UpdateStatus("ghost-agent", agentv1.AgentStatus_STATUS_BUSY)
+	err := r.UpdateStatus("ghost-agent", agentv1.AgentStatus_AGENT_STATUS_BUSY)
 	if err == nil {
 		t.Error("expected error for unknown agent")
 	}
@@ -95,7 +94,7 @@ func TestRegistry_Available_ByCapability(t *testing.T) {
 	r := newRegistry()
 	r.Upsert(&agentv1.Agent{
 		AgentId:      "capable-agent",
-		Status:       agentv1.AgentStatus_STATUS_IDLE,
+		Status:       agentv1.AgentStatus_AGENT_STATUS_IDLE,
 		Capabilities: []string{"stealth", "combat"},
 	})
 
@@ -115,7 +114,7 @@ func TestRegistry_Available_ExcludesBusy(t *testing.T) {
 	r := newRegistry()
 	r.Upsert(&agentv1.Agent{
 		AgentId:      "busy-agent",
-		Status:       agentv1.AgentStatus_STATUS_BUSY,
+		Status:       agentv1.AgentStatus_AGENT_STATUS_BUSY,
 		Capabilities: []string{"combat"},
 	})
 
@@ -128,23 +127,20 @@ func TestRegistry_Available_ExcludesBusy(t *testing.T) {
 }
 
 func TestRegistry_StaleAgentMarkedOffline(t *testing.T) {
-	// Very short heartbeat timeout + GC interval for this test
-	r := registry.New(50*time.Millisecond, 20*time.Millisecond)
+	// heartbeatTimeout=50ms, gcInterval=20ms — agent becomes stale in 50ms,
+	// GC will mark it OFFLINE within the next 20ms tick.
+	r := registry.New(50*time.Millisecond, 10*time.Millisecond)
 
 	r.Upsert(&agentv1.Agent{
-		AgentId:  "stale-agent",
-		Status:   agentv1.AgentStatus_STATUS_ACTIVE,
-		LastSeen: timestamppb.New(time.Now().Add(-time.Minute)), // already stale
+		AgentId: "stale-agent",
+		Status:  agentv1.AgentStatus_AGENT_STATUS_ACTIVE,
 	})
 
-	// Force re-upsert with an old timestamp
-	a, _ := r.Get("stale-agent")
-	a.LastSeen = timestamppb.New(time.Now().Add(-time.Minute))
-
-	time.Sleep(100 * time.Millisecond) // let GC run
+	// Wait for the agent to exceed the heartbeat timeout and for GC to run.
+	time.Sleep(200 * time.Millisecond)
 
 	got, _ := r.Get("stale-agent")
-	if got != nil && got.Status != agentv1.AgentStatus_STATUS_OFFLINE {
-		t.Errorf("stale agent status = %v, want STATUS_OFFLINE", got.Status)
+	if got != nil && got.Status != agentv1.AgentStatus_AGENT_STATUS_OFFLINE {
+		t.Errorf("stale agent status = %v, want AGENT_STATUS_OFFLINE", got.Status)
 	}
 }

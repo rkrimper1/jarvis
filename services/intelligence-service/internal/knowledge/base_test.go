@@ -9,7 +9,7 @@ import (
 
 func TestBase_QueryExactID(t *testing.T) {
 	b := knowledge.New()
-	r := b.Query("ivan-vanko", intelligv1.AnalysisDepth_DEPTH_STANDARD)
+	r := b.Query("ivan-vanko", intelligv1.AnalysisDepth_ANALYSIS_DEPTH_STANDARD)
 	if r.ID != "ivan-vanko" {
 		t.Errorf("ID = %q, want ivan-vanko", r.ID)
 	}
@@ -20,7 +20,7 @@ func TestBase_QueryExactID(t *testing.T) {
 
 func TestBase_QueryFuzzy(t *testing.T) {
 	b := knowledge.New()
-	r := b.Query("hammer", intelligv1.AnalysisDepth_DEPTH_SURFACE)
+	r := b.Query("hammer", intelligv1.AnalysisDepth_ANALYSIS_DEPTH_UNSPECIFIED)
 	if r.ID == "" {
 		t.Error("expected a result for fuzzy query 'hammer'")
 	}
@@ -28,7 +28,7 @@ func TestBase_QueryFuzzy(t *testing.T) {
 
 func TestBase_QueryUnknownSubject(t *testing.T) {
 	b := knowledge.New()
-	r := b.Query("xyz-unknown-entity-9999", intelligv1.AnalysisDepth_DEPTH_SURFACE)
+	r := b.Query("xyz-unknown-entity-9999", intelligv1.AnalysisDepth_ANALYSIS_DEPTH_UNSPECIFIED)
 	if r.Summary == "" {
 		t.Error("expected a fallback summary for unknown subject")
 	}

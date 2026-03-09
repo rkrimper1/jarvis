@@ -55,7 +55,7 @@ func TestClassifier_Classify(t *testing.T) {
 		{
 			name:          "unknown input returns unknown intent",
 			input:         "xyzzy blorp flibble",
-			wantIntent:    nlpv1.Intent_INTENT_UNKNOWN,
+			wantIntent:    nlpv1.Intent_INTENT_UNSPECIFIED,
 			minConfidence: 0.0,
 		},
 		{
@@ -94,7 +94,7 @@ func TestSuggestActions(t *testing.T) {
 		{nlpv1.Intent_INTENT_ANALYSIS_REQUEST, true},
 		{nlpv1.Intent_INTENT_EMERGENCY, true},
 		{nlpv1.Intent_INTENT_SMALL_TALK, true},
-		{nlpv1.Intent_INTENT_UNKNOWN, true},
+		{nlpv1.Intent_INTENT_UNSPECIFIED, true},
 	}
 
 	for _, tt := range tests {

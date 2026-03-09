@@ -18,27 +18,27 @@ func TestAssessor_ThreatLevels(t *testing.T) {
 		{
 			name:      "no signals → no threat",
 			signals:   []string{},
-			wantLevel: securityv1.ThreatLevel_THREAT_NONE,
+			wantLevel: securityv1.ThreatLevel_THREAT_LEVEL_UNSPECIFIED,
 		},
 		{
 			name:      "minor anomaly → low threat",
 			signals:   []string{"unscheduled visitor after hours"},
-			wantLevel: securityv1.ThreatLevel_THREAT_LOW,
+			wantLevel: securityv1.ThreatLevel_THREAT_LEVEL_LOW,
 		},
 		{
 			name:      "suspicious + perimeter → moderate",
 			signals:   []string{"suspicious anomaly elevated perimeter"},
-			wantLevel: securityv1.ThreatLevel_THREAT_MODERATE,
+			wantLevel: securityv1.ThreatLevel_THREAT_LEVEL_MODERATE,
 		},
 		{
 			name:      "armed intruder → high threat",
 			signals:   []string{"armed intruder detected in hangar"},
-			wantLevel: securityv1.ThreatLevel_THREAT_HIGH,
+			wantLevel: securityv1.ThreatLevel_THREAT_LEVEL_HIGH,
 		},
 		{
 			name:      "weapon + hostile + breach → critical",
 			signals:   []string{"weapon detected", "hostile entity", "perimeter breach"},
-			wantLevel: securityv1.ThreatLevel_THREAT_CRITICAL,
+			wantLevel: securityv1.ThreatLevel_THREAT_LEVEL_CRITICAL,
 		},
 	}
 

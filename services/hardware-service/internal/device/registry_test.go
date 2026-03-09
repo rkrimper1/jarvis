@@ -13,7 +13,7 @@ func TestRegistry_GetSeededDevice(t *testing.T) {
 	if !ok {
 		t.Fatal("expected arc-reactor-primary to be seeded")
 	}
-	if d.Type != hardwarev1.DeviceType_DEVICE_ARC_REACTOR {
+	if d.Type != hardwarev1.DeviceType_DEVICE_TYPE_ARC_REACTOR {
 		t.Errorf("type = %v, want DEVICE_ARC_REACTOR", d.Type)
 	}
 }
@@ -28,7 +28,7 @@ func TestRegistry_ExecuteCommand_PowerOn(t *testing.T) {
 		t.Error("expected non-empty result detail")
 	}
 	d, _ := r.Get("mark-ii-suit")
-	if d.PowerState != hardwarev1.PowerState_POWER_ON {
+	if d.PowerState != hardwarev1.PowerState_POWER_STATE_ON {
 		t.Errorf("power_state = %v, want POWER_ON", d.PowerState)
 	}
 }
@@ -93,11 +93,11 @@ func TestRegistry_List(t *testing.T) {
 
 func TestRegistry_SetPowerState(t *testing.T) {
 	r := device.New()
-	if err := r.SetPowerState("hud-mk7", hardwarev1.PowerState_POWER_OFF); err != nil {
+	if err := r.SetPowerState("hud-mk7", hardwarev1.PowerState_POWER_STATE_OFF); err != nil {
 		t.Fatalf("SetPowerState: %v", err)
 	}
 	d, _ := r.Get("hud-mk7")
-	if d.PowerState != hardwarev1.PowerState_POWER_OFF {
+	if d.PowerState != hardwarev1.PowerState_POWER_STATE_OFF {
 		t.Errorf("power_state = %v, want POWER_OFF", d.PowerState)
 	}
 }

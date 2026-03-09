@@ -22,7 +22,7 @@ func hashHex(s string) string {
 
 func TestVerify_VoicePrint_Success(t *testing.T) {
 	e := auth.New()
-	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_VOICE_PRINT, []byte("tony-stark-voiceprint"))
+	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_METHOD_VOICE_PRINT, []byte("tony-stark-voiceprint"))
 	if !result.Valid {
 		t.Errorf("expected valid=true, got reason: %s", result.Reason)
 	}
@@ -33,7 +33,7 @@ func TestVerify_VoicePrint_Success(t *testing.T) {
 
 func TestVerify_VoicePrint_Mismatch(t *testing.T) {
 	e := auth.New()
-	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_VOICE_PRINT, []byte("wrong-voice"))
+	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_METHOD_VOICE_PRINT, []byte("wrong-voice"))
 	if result.Valid {
 		t.Error("expected valid=false for wrong voiceprint")
 	}
@@ -41,7 +41,7 @@ func TestVerify_VoicePrint_Mismatch(t *testing.T) {
 
 func TestVerify_Passcode_Success(t *testing.T) {
 	e := auth.New()
-	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_PASSCODE, []byte("ironman3000"))
+	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_METHOD_PASSCODE, []byte("ironman3000"))
 	if !result.Valid {
 		t.Errorf("expected valid=true, got: %s", result.Reason)
 	}
@@ -49,7 +49,7 @@ func TestVerify_Passcode_Success(t *testing.T) {
 
 func TestVerify_Passcode_Wrong(t *testing.T) {
 	e := auth.New()
-	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_PASSCODE, []byte("wrongpassword"))
+	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_METHOD_PASSCODE, []byte("wrongpassword"))
 	if result.Valid {
 		t.Error("expected valid=false for wrong passcode")
 	}
@@ -57,7 +57,7 @@ func TestVerify_Passcode_Wrong(t *testing.T) {
 
 func TestVerify_UnknownSubject(t *testing.T) {
 	e := auth.New()
-	result := e.Verify("thanos", securityv1.AuthMethod_AUTH_PASSCODE, []byte("anything"))
+	result := e.Verify("thanos", securityv1.AuthMethod_AUTH_METHOD_PASSCODE, []byte("anything"))
 	if result.Valid {
 		t.Error("expected valid=false for unknown subject")
 	}
@@ -69,7 +69,7 @@ func TestVerify_UnknownSubject(t *testing.T) {
 func TestVerify_UnenrolledMethod(t *testing.T) {
 	e := auth.New()
 	// pepper-potts has no voiceprint enrolled
-	result := e.Verify("pepper-potts", securityv1.AuthMethod_AUTH_VOICE_PRINT, []byte("any"))
+	result := e.Verify("pepper-potts", securityv1.AuthMethod_AUTH_METHOD_VOICE_PRINT, []byte("any"))
 	if result.Valid {
 		t.Error("expected valid=false for unenrolled method")
 	}
@@ -78,7 +78,7 @@ func TestVerify_UnenrolledMethod(t *testing.T) {
 func TestVerify_TokenMethod(t *testing.T) {
 	e := auth.New()
 	// AUTH_TOKEN bypasses payload check — assumes upstream validation
-	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_TOKEN, nil)
+	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_METHOD_TOKEN, nil)
 	if !result.Valid {
 		t.Errorf("expected valid=true for AUTH_TOKEN, got: %s", result.Reason)
 	}
@@ -86,7 +86,7 @@ func TestVerify_TokenMethod(t *testing.T) {
 
 func TestVerify_AdminHasFullScopes(t *testing.T) {
 	e := auth.New()
-	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_PASSCODE, []byte("ironman3000"))
+	result := e.Verify("tony-stark", securityv1.AuthMethod_AUTH_METHOD_PASSCODE, []byte("ironman3000"))
 	hasAdmin := false
 	for _, s := range result.GrantedScopes {
 		if s == "admin" {

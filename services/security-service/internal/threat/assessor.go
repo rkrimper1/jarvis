@@ -35,7 +35,6 @@ func (a *Assessor) Assess(subjectID, location string, signals []string) Assessme
 			if strings.Contains(low, keyword) {
 				score += weight
 				matched = append(matched, keyword)
-				break
 			}
 		}
 	}
@@ -80,11 +79,11 @@ var signalWeights = map[string]int{
 
 func scoreToLevel(score int) (securityv1.ThreatLevel, float32) {
 	switch {
-	case score >= 50:
+	case score >= 80:
 		return securityv1.ThreatLevel_THREAT_LEVEL_CRITICAL, 0.95
-	case score >= 30:
+	case score >= 50:
 		return securityv1.ThreatLevel_THREAT_LEVEL_HIGH, 0.85
-	case score >= 15:
+	case score >= 25:
 		return securityv1.ThreatLevel_THREAT_LEVEL_MODERATE, 0.75
 	case score >= 5:
 		return securityv1.ThreatLevel_THREAT_LEVEL_LOW, 0.65

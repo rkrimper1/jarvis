@@ -33,9 +33,9 @@ type fakeNLPServer struct {
 
 func (f *fakeNLPServer) ProcessDialogueTurn(
 	_ context.Context,
-	req *nlpv1.DialogueTurnRequest,
-) (*nlpv1.DialogueTurnResponse, error) {
-	return &nlpv1.DialogueTurnResponse{
+	req *nlpv1.ProcessDialogueTurnRequest,
+) (*nlpv1.ProcessDialogueTurnResponse, error) {
+	return &nlpv1.ProcessDialogueTurnResponse{
 		Meta: &commonv1.ResponseMeta{
 			RequestId: req.GetMeta().GetRequestId(),
 			Success:   true,
@@ -139,9 +139,9 @@ func newHarness(t *testing.T) *harness {
 
 // ── proto helpers ─────────────────────────────────────────────────────────────
 
-func makeStreamConfig(sessionID, userID string) *voicev1.VoiceRequest {
-	return &voicev1.VoiceRequest{
-		Payload: &voicev1.VoiceRequest_Config{
+func makeStreamConfig(sessionID, userID string) *voicev1.ConverseRequest {
+	return &voicev1.ConverseRequest{
+		Payload: &voicev1.ConverseRequest_Config{
 			Config: &voicev1.StreamConfig{
 				Meta: &commonv1.RequestMeta{
 					RequestId: "req-" + sessionID,
@@ -162,15 +162,15 @@ func makeStreamConfig(sessionID, userID string) *voicev1.VoiceRequest {
 	}
 }
 
-func makeToneChunk(seq int64, amplitude float64, isWakeWord bool) *voicev1.VoiceRequest {
+func makeToneChunk(seq int64, amplitude float64, isWakeWord bool) *voicev1.ConverseRequest {
 	samples := 320
 	buf := make([]byte, samples*2)
 	for i := 0; i < samples; i++ {
 		v := int16(amplitude * float64(math.MaxInt16) * math.Sin(2*math.Pi*float64(i)/float64(samples)))
 		binary.LittleEndian.PutUint16(buf[i*2:], uint16(v))
 	}
-	return &voicev1.VoiceRequest{
-		Payload: &voicev1.VoiceRequest_Audio{
+	return &voicev1.ConverseRequest{
+		Payload: &voicev1.ConverseRequest_Audio{
 			Audio: &voicev1.AudioChunk{
 				Data:            buf,
 				SequenceNum:     seq,
@@ -181,9 +181,9 @@ func makeToneChunk(seq int64, amplitude float64, isWakeWord bool) *voicev1.Voice
 	}
 }
 
-func makeSilentChunk(seq int64) *voicev1.VoiceRequest {
-	return &voicev1.VoiceRequest{
-		Payload: &voicev1.VoiceRequest_Audio{
+func makeSilentChunk(seq int64) *voicev1.ConverseRequest {
+	return &voicev1.ConverseRequest{
+		Payload: &voicev1.ConverseRequest_Audio{
 			Audio: &voicev1.AudioChunk{
 				Data:         make([]byte, 640),
 				SequenceNum:  seq,
@@ -193,18 +193,18 @@ func makeSilentChunk(seq int64) *voicev1.VoiceRequest {
 	}
 }
 
-func makeControl(t voicev1.ControlEvent_Type) *voicev1.VoiceRequest {
-	return &voicev1.VoiceRequest{
-		Payload: &voicev1.VoiceRequest_Event{
+func makeControl(t voicev1.ControlEvent_Type) *voicev1.ConverseRequest {
+	return &voicev1.ConverseRequest{
+		Payload: &voicev1.ConverseRequest_Event{
 			Event: &voicev1.ControlEvent{Type: t},
 		},
 	}
 }
 
 // collectResponses drains a Converse stream until EOF or timeout.
-func collectResponses(t *testing.T, stream voicev1.VoiceService_ConverseClient, timeout time.Duration) []*voicev1.VoiceResponse {
+func collectResponses(t *testing.T, stream voicev1.VoiceService_ConverseClient, timeout time.Duration) []*voicev1.ConverseResponse {
 	t.Helper()
-	ch := make(chan *voicev1.VoiceResponse, 64)
+	ch := make(chan *voicev1.ConverseResponse, 64)
 	go func() {
 		defer close(ch)
 		for {
@@ -215,7 +215,7 @@ func collectResponses(t *testing.T, stream voicev1.VoiceService_ConverseClient, 
 			ch <- msg
 		}
 	}()
-	var out []*voicev1.VoiceResponse
+	var out []*voicev1.ConverseResponse
 	deadline := time.NewTimer(timeout)
 	defer deadline.Stop()
 	for {
@@ -232,9 +232,9 @@ func collectResponses(t *testing.T, stream voicev1.VoiceService_ConverseClient, 
 }
 
 // hasState returns true if any response in the slice carries the given state.
-func hasState(responses []*voicev1.VoiceResponse, want voicev1.StatusEvent_State) bool {
+func hasState(responses []*voicev1.ConverseResponse, want voicev1.StatusEvent_State) bool {
 	for _, r := range responses {
-		if s, ok := r.Payload.(*voicev1.VoiceResponse_Status); ok {
+		if s, ok := r.Payload.(*voicev1.ConverseResponse_Status); ok {
 			if s.Status.State == want {
 				return true
 			}
@@ -244,9 +244,9 @@ func hasState(responses []*voicev1.VoiceResponse, want voicev1.StatusEvent_State
 }
 
 // lastState returns the state from the last StatusEvent in the slice.
-func lastState(responses []*voicev1.VoiceResponse) (voicev1.StatusEvent_State, bool) {
+func lastState(responses []*voicev1.ConverseResponse) (voicev1.StatusEvent_State, bool) {
 	for i := len(responses) - 1; i >= 0; i-- {
-		if s, ok := responses[i].Payload.(*voicev1.VoiceResponse_Status); ok {
+		if s, ok := responses[i].Payload.(*voicev1.ConverseResponse_Status); ok {
 			return s.Status.State, true
 		}
 	}
@@ -280,8 +280,8 @@ func TestConverse_Config_MissingMeta_Rejected(t *testing.T) {
 	defer cancel()
 
 	stream, _ := h.voiceClient.Converse(ctx)
-	_ = stream.Send(&voicev1.VoiceRequest{
-		Payload: &voicev1.VoiceRequest_Config{
+	_ = stream.Send(&voicev1.ConverseRequest{
+		Payload: &voicev1.ConverseRequest_Config{
 			Config: &voicev1.StreamConfig{}, // nil meta
 		},
 	})
@@ -308,7 +308,7 @@ func TestConverse_OpenSession_ReceivesIdleStatus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Recv: %v", err)
 	}
-	s, ok := msg.Payload.(*voicev1.VoiceResponse_Status)
+	s, ok := msg.Payload.(*voicev1.ConverseResponse_Status)
 	if !ok {
 		t.Fatalf("first response is %T, want *VoiceResponse_Status", msg.Payload)
 	}
@@ -402,19 +402,19 @@ func TestConverse_EndOfSpeech_RunsFullPipeline(t *testing.T) {
 
 	for _, r := range responses {
 		switch p := r.Payload.(type) {
-		case *voicev1.VoiceResponse_Status:
+		case *voicev1.ConverseResponse_Status:
 			if p.Status.State == voicev1.StatusEvent_STATE_PROCESSING {
 				checks["STATE_PROCESSING"] = true
 			}
-		case *voicev1.VoiceResponse_Transcript:
+		case *voicev1.ConverseResponse_Transcript:
 			if p.Transcript.IsFinal && p.Transcript.Text != "" {
 				checks["final Transcript"] = true
 			}
-		case *voicev1.VoiceResponse_Reply:
+		case *voicev1.ConverseResponse_Reply:
 			if p.Reply.ReplyText != "" {
 				checks["Reply"] = true
 			}
-		case *voicev1.VoiceResponse_AudioReply:
+		case *voicev1.ConverseResponse_AudioReply:
 			if p.AudioReply.IsFinalChunk {
 				checks["final AudioReply"] = true
 			}
@@ -448,8 +448,8 @@ func TestConverse_VAD_TriggersUtteranceWithoutExplicitEOS(t *testing.T) {
 			SequenceNum:  i,
 			CapturedAtMs: now.Add(time.Duration(i-5) * 20 * time.Millisecond).UnixMilli(),
 		}
-		_ = stream.Send(&voicev1.VoiceRequest{
-			Payload: &voicev1.VoiceRequest_Audio{Audio: chunk},
+		_ = stream.Send(&voicev1.ConverseRequest{
+			Payload: &voicev1.ConverseRequest_Audio{Audio: chunk},
 		})
 	}
 	_ = stream.CloseSend()
@@ -476,7 +476,7 @@ func TestConverse_NLPReply_ContainsUtteranceEcho(t *testing.T) {
 	responses := collectResponses(t, stream, 8*time.Second)
 
 	for _, r := range responses {
-		if p, ok := r.Payload.(*voicev1.VoiceResponse_Reply); ok {
+		if p, ok := r.Payload.(*voicev1.ConverseResponse_Reply); ok {
 			if p.Reply.ReplyText == "" {
 				t.Error("Reply.reply_text is empty")
 			}
@@ -508,7 +508,7 @@ func TestConverse_Cancel_ReturnsToIdle(t *testing.T) {
 	// After cancel the last observed state before ENDED should be IDLE.
 	// Filter out the final ENDED to find the cancel-induced IDLE.
 	for i := len(responses) - 1; i >= 0; i-- {
-		if s, ok2 := responses[i].Payload.(*voicev1.VoiceResponse_Status); ok2 {
+		if s, ok2 := responses[i].Payload.(*voicev1.ConverseResponse_Status); ok2 {
 			if s.Status.State != voicev1.StatusEvent_STATE_ENDED {
 				state = s.Status.State
 				ok = true
@@ -542,7 +542,7 @@ func TestConverse_KeepAlive_NoStateTransition(t *testing.T) {
 
 	responses := collectResponses(t, stream, 2*time.Second)
 	for _, r := range responses {
-		if s, ok := r.Payload.(*voicev1.VoiceResponse_Status); ok {
+		if s, ok := r.Payload.(*voicev1.ConverseResponse_Status); ok {
 			if s.Status.State == voicev1.StatusEvent_STATE_ERROR {
 				t.Errorf("unexpected ERROR state after KEEP_ALIVE: %s", s.Status.Message)
 			}
@@ -568,7 +568,7 @@ func TestConverse_NewTurn_ClearsBuffer(t *testing.T) {
 	responses := collectResponses(t, stream, 3*time.Second)
 	// No Transcript or Reply should appear because NEW_TURN cleared the buffer.
 	for _, r := range responses {
-		if _, ok := r.Payload.(*voicev1.VoiceResponse_Transcript); ok {
+		if _, ok := r.Payload.(*voicev1.ConverseResponse_Transcript); ok {
 			t.Error("Transcript should not appear after NEW_TURN cleared the buffer")
 		}
 	}
@@ -627,7 +627,7 @@ func TestConverse_SessionCapacity_Enforced(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first session Recv: %v", err)
 	}
-	st, _ := msg.Payload.(*voicev1.VoiceResponse_Status)
+	st, _ := msg.Payload.(*voicev1.ConverseResponse_Status)
 	if st.Status.State != voicev1.StatusEvent_STATE_IDLE {
 		t.Fatalf("first session did not get IDLE, got %v", st.Status.State)
 	}
