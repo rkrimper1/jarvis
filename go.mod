@@ -1,11 +1,12 @@
 module github.com/rkrimper1/jarvis
 
-go 1.25.0
+go 1.23
 
-// Pin all deps to versions that are compatible with Go 1.22.
-// Do NOT run go mod tidy without go.sum present — it will resolve to
-// latest versions which may require Go 1.25+. Use setup.sh which pins
-// exact versions via go get before tidying.
+// toolchain allows developers running Go 1.25+ locally to build without
+// rewriting this file. Docker builds use golang:1.23-alpine which satisfies
+// the minimum declared above.
+toolchain go1.23.0
+
 require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
