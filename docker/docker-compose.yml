@@ -175,8 +175,15 @@ services:
       - AUDIO_CHUNK_DURATION_MS=20
       - AUDIO_VAD_SILENCE_MS=800
       - AUDIO_MAX_UTTERANCE_SEC=30
-      - SESSION_TTL=30m
-      - SESSION_MAX=1000
+      # ── Session store ──────────────────────────────────────────────
+      # SESSION_PROVIDER=memory  → zero-dep in-process store (default, dev)
+      # SESSION_PROVIDER=redis   → Redis-backed, survives restarts
+      - SESSION_PROVIDER=${SESSION_PROVIDER:-memory}
+      - SESSION_TTL=${SESSION_TTL:-30m}
+      - SESSION_MAX=${SESSION_MAX:-1000}
+      - REDIS_ADDR=${REDIS_ADDR:-redis:6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${REDIS_DB:-0}
       # ── STT ────────────────────────────────────────────────────────
       - STT_PROVIDER=${STT_PROVIDER:-stub}
       - STT_MODEL=${STT_MODEL:-latest_long}
@@ -198,4 +205,18 @@ services:
       - "50059:50059"
     depends_on:
       - nlp-service
+      - redis
+    restart: unless-stopped
+
+  # ── Redis — shared session store (opt-in via SESSION_PROVIDER=redis) ──────
+
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+    ports:
+      - "6379:6379"
     restart: unless-stopped

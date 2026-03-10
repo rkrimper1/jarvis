@@ -12,13 +12,13 @@ import (
 
 // Config is the root configuration for the voice service.
 type Config struct {
-	Server   ServerConfig
-	Audio    AudioConfig
-	STT      STTConfig
-	TTS      TTSConfig
-	NLP      NLPUpstreamConfig
-	Session  SessionConfig
-	Log      LogConfig
+	Server  ServerConfig
+	Audio   AudioConfig
+	STT     STTConfig
+	TTS     TTSConfig
+	NLP     NLPUpstreamConfig
+	Session SessionConfig
+	Log     LogConfig
 }
 
 // ServerConfig controls the gRPC listener.
@@ -98,12 +98,24 @@ type NLPUpstreamConfig struct {
 	DialTimeout time.Duration
 }
 
-// SessionConfig controls in-memory session store behaviour.
+// SessionConfig controls session store behaviour.
+// When Provider == "memory" (default) an in-process map is used.
+// When Provider == "redis" sessions are stored in Redis so they survive
+// restarts and are shared across horizontal replicas.
 type SessionConfig struct {
+	// Provider selects the backend: "memory" (default) or "redis".
+	Provider string
 	// TTL after which an idle session is evicted.
 	TTL time.Duration
-	// MaxSessions caps total concurrent sessions (memory guard).
+	// MaxSessions caps total concurrent sessions in the MemoryStore.
 	MaxSessions int
+	// RedisAddr is the "host:port" of the Redis instance.
+	// Required when Provider == "redis".
+	RedisAddr string
+	// RedisPassword is the Redis AUTH password. Leave empty for no auth.
+	RedisPassword string
+	// RedisDB selects the Redis logical database (0–15). Default 0.
+	RedisDB int
 }
 
 // LogConfig controls structured logging — identical to other services.
@@ -152,8 +164,12 @@ func Load() (*Config, error) {
 			DialTimeout: envDuration("NLP_DIAL_TIMEOUT", 5*time.Second),
 		},
 		Session: SessionConfig{
-			TTL:         envDuration("SESSION_TTL", 30*time.Minute),
-			MaxSessions: envInt("SESSION_MAX", 1000),
+			Provider:      envString("SESSION_PROVIDER", "memory"),
+			TTL:           envDuration("SESSION_TTL", 30*time.Minute),
+			MaxSessions:   envInt("SESSION_MAX", 1000),
+			RedisAddr:     envString("REDIS_ADDR", "redis:6379"),
+			RedisPassword: envString("REDIS_PASSWORD", ""),
+			RedisDB:       envInt("REDIS_DB", 0),
 		},
 		Log: LogConfig{
 			Level:  envString("LOG_LEVEL", "info"),

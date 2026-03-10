@@ -29,6 +29,9 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
                                                ┌──────────▼──────┐
                                                │    Learning      │
                                                └─────────────────┘
+                         ┌─────────────────────┐
+                         │    Voice Service     │  ← bidi gRPC stream
+                         └─────────────────────┘
 ```
 
 ## Services
@@ -43,6 +46,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `intelligence-service` | 50056 | Research, artifact analysis, cross-referencing |
 | `business-ops-service` | 50057 | Scheduling, tasks, messaging, reports |
 | `learning-service` | 50058 | Feedback loops, behavior profiling, model metrics |
+| `voice-service` | 50059 | Wake word, STT, bidi voice streaming, TTS |
 
 ## Quick Start
 
@@ -54,18 +58,16 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 bash setup.sh
 
 # 2. Start everything with Docker
-cd docker
-docker-compose build
-docker-compose up -d
+make docker-up
 
 # 3. Check it's running
 curl http://localhost:8080/healthz
 # {"status":"ok","service":"jarvis-gateway"}
 
-# 4. Call an endpoint (no auth required for dialogue)
+# 4. Call an endpoint
 curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -H "Content-Type: application/json" \
-  -d '{"meta":{"request_id":"r1"},"session_id":"s1","user_input":"Hello JARVIS"}'
+  -d '{"meta":{"request_id":"r1"},"session_id":"s1","utterance":"Hello JARVIS"}'
 ```
 
 ### Manual setup (if you prefer step-by-step)
@@ -90,7 +92,7 @@ buf generate
 go mod tidy
 
 # Build and run
-cd docker && docker-compose build && docker-compose up -d
+make docker-up
 ```
 
 ### Docker-only (no local Go/buf required)
@@ -99,17 +101,16 @@ The Dockerfiles handle everything internally — proto generation, `go mod downl
 and compilation all happen inside multi-stage Docker builds. You only need Docker.
 
 ```bash
-cd docker
-docker-compose build   # slow first time (downloads buf plugins + Go deps)
-docker-compose up -d
-```
+make docker-up      # build images and start all services
+make docker-logs    # tail logs from all containers
+make docker-down    # stop everything
 ```
 
 ## Project Structure
 
 ```
 jarvis/
-├── proto/                  # Protobuf definitions
+├── proto/                  # Protobuf definitions (source of truth)
 │   ├── common/             # Shared types (RequestMeta, ResponseMeta, etc.)
 │   ├── nlp/
 │   ├── security/
@@ -118,24 +119,36 @@ jarvis/
 │   ├── facility/
 │   ├── intelligence/
 │   ├── business/
-│   └── learning/
-├── gen/                    # Generated Go code (gitignored)
+│   ├── learning/
+│   └── voice/
+├── gen/                    # Generated Go + Swift stubs (gitignored)
+│   └── swift/              # Swift stubs for the iOS client
 ├── services/               # Service implementations
 │   ├── nlp-service/
 │   ├── security-service/
-│   └── ...
-├── gateway/                # API Gateway (gRPC-Gateway)
-├── docker/                 # Dockerfiles + compose
+│   ├── agent-coordinator/
+│   ├── hardware-service/
+│   ├── facility-service/
+│   ├── intelligence-service/
+│   ├── business-ops-service/
+│   ├── learning-service/
+│   └── voice-service/
+├── gateway/                # API Gateway (gRPC-Gateway + REST transcoding)
+│   └── docs/api-reference.md
+├── clients/
+│   └── ios/JarvisClient/   # SwiftUI iOS HUD client
+├── docker/                 # Dockerfiles + docker-compose.yml
 ├── buf.yaml                # Buf lint/breaking config
-├── buf.gen.yaml            # Code generation config
-└── Makefile
+├── buf.gen.yaml            # Code generation config (Go + Swift)
+├── Makefile
+└── setup.sh                # First-time bootstrap script
 ```
 
 ## Proto Conventions
 
 - All RPCs accept a `RequestMeta` and return a `ResponseMeta` for tracing
 - Streaming RPCs are defined where real-time data flow is needed
-- Bidirectional streaming used for suit control and agent heartbeat
+- Bidirectional streaming used for suit control, agent heartbeat, and voice conversation
 - All services share `common.proto` types to avoid duplication
 
 ## gRPC Stream Patterns Used
@@ -143,6 +156,21 @@ jarvis/
 | Pattern | Example |
 |---|---|
 | Unary | `Authenticate`, `QueryIntel`, `ScheduleEvent` |
-| Server streaming | `StreamTelemetry`, `StreamSecurityAlerts` |
+| Server streaming | `StreamTelemetry`, `StreamSecurityAlerts`, `StreamCoordinationEvents`, `StreamAdaptationEvents`, `StreamIntelUpdates`, `StreamEnvironment` |
 | Client streaming | `StreamVoiceInput` |
-| Bidirectional | `SuitControlStream`, `AgentHeartbeat` |
+| Bidirectional | `Converse` (voice), `SuitControlStream`, `AgentHeartbeat` |
+
+## Make Targets
+
+```bash
+make build          # compile all service binaries
+make test           # run all tests with race detector
+make proto          # regenerate Go stubs from proto files
+make proto-lint     # lint proto files
+make docker-up      # build images and start all services
+make docker-down    # stop all services
+make docker-logs    # tail all container logs
+make logs-<svc>     # tail a single service, e.g. make logs-gateway
+make ios-open       # generate protos and open the Xcode project
+make help           # list all available targets
+```
