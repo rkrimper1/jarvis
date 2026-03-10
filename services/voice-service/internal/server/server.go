@@ -32,16 +32,16 @@ import (
 type VoiceServer struct {
 	voicev1.UnimplementedVoiceServiceServer
 
-	cfg      *config.Config
-	sessions *session.Store
-	nlp      nlpv1.NLPServiceClient
+	cfg         *config.Config
+	sessions    session.Store
+	nlp         nlpv1.NLPServiceClient
 	transcriber audio.Transcriber
 	synthesizer audio.Synthesizer
-	log      *slog.Logger
+	log         *slog.Logger
 }
 
 // New creates a VoiceServer, dials the NLP upstream, builds the STT
-// transcriber and TTS synthesizer  from config, and initialises the session store.
+// transcriber and TTS synthesizer from config, and initialises the session store.
 func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 	dialCtx, cancel := context.WithTimeout(context.Background(), cfg.NLP.DialTimeout)
 	defer cancel()
@@ -66,13 +66,25 @@ func New(cfg *config.Config, log *slog.Logger) (*VoiceServer, error) {
 		return nil, fmt.Errorf("init TTS synthesizer: %w", err)
 	}
 
+	store, err := session.NewStore(session.StoreConfig{
+		Provider:      cfg.Session.Provider,
+		TTL:           cfg.Session.TTL,
+		MaxSize:       cfg.Session.MaxSessions,
+		RedisAddr:     cfg.Session.RedisAddr,
+		RedisPassword: cfg.Session.RedisPassword,
+		RedisDB:       cfg.Session.RedisDB,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("init session store (%s): %w", cfg.Session.Provider, err)
+	}
+
 	return &VoiceServer{
-		cfg:      cfg,
-		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
-		nlp:      nlpv1.NewNLPServiceClient(nlpConn),
+		cfg:         cfg,
+		sessions:    store,
+		nlp:         nlpv1.NewNLPServiceClient(nlpConn),
 		transcriber: transcriber,
 		synthesizer: synthesizer,
-		log:      log,
+		log:         log,
 	}, nil
 }
 
@@ -101,16 +113,16 @@ func newSynthesizer(cfg *config.Config, log *slog.Logger) (audio.Synthesizer, er
 }
 
 // NewWithClient creates a VoiceServer with a pre-wired NLP client.
-// Intended for tests and integration harnesses. Uses stub STT and TTS.
+// Intended for tests and integration harnesses. Uses MemoryStore, stub STT and TTS.
 // Signature is stable — tests do not need to supply backends.
 func NewWithClient(cfg *config.Config, nlpClient nlpv1.NLPServiceClient, log *slog.Logger) *VoiceServer {
 	return &VoiceServer{
-		cfg:      cfg,
-		sessions: session.NewStore(cfg.Session.TTL, cfg.Session.MaxSessions),
-		nlp:      nlpClient,
+		cfg:         cfg,
+		sessions:    session.NewMemoryStore(cfg.Session.TTL, cfg.Session.MaxSessions),
+		nlp:         nlpClient,
 		transcriber: audio.NewStubTranscriber(),
 		synthesizer: audio.NewStubSynthesizer(),
-		log:      log,
+		log:         log,
 	}
 }
 
@@ -327,7 +339,7 @@ func (s *VoiceServer) processUtterance(
 		return err
 	}
 
-	// 6. SPEAKING state + TTS stub
+	// 6. SPEAKING state + TTS — stream audio chunks back to the client.
 	s.sessions.SetState(sess.ID, session.StateSpeaking)
 	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_SPEAKING, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
 		return err
