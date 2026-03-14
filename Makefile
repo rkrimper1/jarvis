@@ -136,17 +136,22 @@ proto-android:  ## Generate Kotlin/gRPC stubs via Gradle (output: app/build/gene
 
 android-open:   ## Generate Android proto stubs then open in Android Studio
 	@$(MAKE) proto-android
-	@if command -v android-studio >/dev/null 2>&1; then \
+	@if [ -z "$$DISPLAY" ] && [ "$(UNAME)" != "Darwin" ]; then \
+		echo ""; \
+		echo "  Proto stubs generated successfully."; \
+		echo ""; \
+		echo "  No display detected (headless VM). To open Android Studio:"; \
+		echo "    • SSH with X11 forwarding:  ssh -X vagrant@<host>  then  make android-open"; \
+		echo "    • Or open the project directly on your host machine:  $(ANDROID_PROJECT)"; \
+		echo ""; \
+	elif command -v android-studio >/dev/null 2>&1; then \
 		android-studio $(ANDROID_PROJECT); \
 	elif command -v studio >/dev/null 2>&1; then \
 		studio $(ANDROID_PROJECT); \
 	elif [ "$(UNAME)" = "Darwin" ]; then \
 		open $(ANDROID_PROJECT); \
 	else \
-		echo ""; \
-		echo "  Proto stubs generated. Open the project in Android Studio:"; \
-		echo "    $(ANDROID_PROJECT)"; \
-		echo ""; \
+		echo "Android Studio not found. Install it with: sudo snap install android-studio --classic"; \
 	fi
 
 

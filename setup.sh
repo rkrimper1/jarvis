@@ -32,6 +32,40 @@ else
   warn "snap not available — skipping Android Studio install (install manually from https://developer.android.com/studio)"
 fi
 
+ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+if [ -d "$ANDROID_HOME/platforms" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
+  success "Android SDK already installed at $ANDROID_HOME"
+else
+  info "Installing Android SDK (API 35, build-tools 35.0.0)..."
+  CMDLINE_TOOLS_ZIP="/tmp/cmdline-tools.zip"
+  CMDLINE_TOOLS_VERSION="14742923"
+  mkdir -p "$ANDROID_HOME/cmdline-tools"
+  curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip" \
+    -o "$CMDLINE_TOOLS_ZIP"
+  unzip -q "$CMDLINE_TOOLS_ZIP" -d /tmp/cmdline-tools-extract
+  mv /tmp/cmdline-tools-extract/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"
+  rm -rf "$CMDLINE_TOOLS_ZIP" /tmp/cmdline-tools-extract
+
+  export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+  yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+  # Write local.properties for Gradle
+  echo "sdk.dir=$ANDROID_HOME" > clients/android/local.properties
+
+  # Persist ANDROID_HOME in ~/.bashrc if not already set
+  if ! grep -q "ANDROID_HOME" "$HOME/.bashrc"; then
+    cat >> "$HOME/.bashrc" << BASHRC
+
+# Android SDK
+export ANDROID_HOME="$ANDROID_HOME"
+export PATH="\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools:\$PATH"
+BASHRC
+  fi
+
+  success "Android SDK installed at $ANDROID_HOME"
+fi
+
 command -v go >/dev/null 2>&1 || die "Go is not installed. Install from https://go.dev/dl/"
 info "Go version: $(go version | awk '{print $3}' | sed 's/go//')"
 
