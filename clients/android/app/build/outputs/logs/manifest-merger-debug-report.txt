@@ -1,0 +1,329 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:2:1-39:12
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:2:1-39:12
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:2:1-39:12
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:2:1-39:12
+MERGED from [androidx.compose.material3:material3-android:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/f0dda64010e37ea8ca4bfe657a005740/transformed/jetified-material3-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.material:material-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/a572db283adf955db2da7c0829aa70bb/transformed/jetified-material-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-core-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/de0b9e7839b032a40edb04be7ee07548/transformed/jetified-animation-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-ripple-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/d890e47bd2ed36fe544e2b27b61db9c3/transformed/jetified-material-ripple-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.animation:animation-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/7098e18f543a5895a2e884b3868d4dd2/transformed/jetified-animation-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/8fff55b5466e18a808c2d553e8f20afe/transformed/jetified-foundation-layout-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.foundation:foundation-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/289b13e4f3605f991ecd3ccfd1c5141f/transformed/jetified-foundation-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/e1da80e09b72e5f2eaee9b74464d3915/transformed/jetified-ui-tooling-data-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/4c6ac7bf03942b230651148487ebd0b6/transformed/jetified-ui-unit-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/edfa56cc17f6ac4be2e52554223903f7/transformed/jetified-ui-geometry-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-util-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/1c271e66efdb12ba48bbd27b63bcbd3e/transformed/jetified-ui-util-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/d75f3317d28683420f4fdb6ffa112448/transformed/jetified-ui-tooling-preview-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/016947abf083c588c148c169967c9b21/transformed/jetified-ui-graphics-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-text-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/fe9e5b41af430b866e1d45c072dd0b6c/transformed/jetified-ui-text-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/1682cf77b9ed8a1c8e515bcc12380fac/transformed/jetified-lifecycle-runtime-compose-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/035277687c4c50ddf961c14930417e83/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/vagrant/.gradle/caches/8.9/transforms/7c73076188557498ee71f0cadde52711/transformed/jetified-savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/vagrant/.gradle/caches/8.9/transforms/65cb39468ba4f87979a3e55fe2df8775/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/3388a848002898b7a1dd063085cb6390/transformed/jetified-lifecycle-viewmodel-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/18dfabb4529ac3b5ff3aa586323d4ef9/transformed/jetified-lifecycle-runtime-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/db7e1605c75883f4b5723f067cacf946/transformed/jetified-lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/73aca3851a58d78e5f1096d1e89b375b/transformed/jetified-lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/c5a4ee6afd8c603e3bad731760b976a8/transformed/jetified-lifecycle-runtime-ktx-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/dbace832a4d5148e35b7dfcf118db288/transformed/jetified-lifecycle-viewmodel-compose-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/1cd8ab70ac5d5fa0ae8fb77554594e1e/transformed/jetified-material-icons-core-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/16a013b5f1081bffbac3053171867815/transformed/jetified-ui-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:17:1-28:12
+MERGED from [androidx.activity:activity-compose:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/09b5a9331e913756120dd8463f4235cd/transformed/jetified-activity-compose-1.9.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity-ktx:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/83d60974fc153c0ea764c3abd3d675aa/transformed/jetified-activity-ktx-1.9.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/7a96ee68bda79dc117b3377c298e803c/transformed/jetified-activity-1.9.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.autofill:autofill:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/af0957d7a68c4d66a11935ce02c2f0be/transformed/jetified-autofill-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.graphics:graphics-path:1.0.1] /home/vagrant/.gradle/caches/8.9/transforms/15e152a3cf22b8ec0cdc9c691929dd80/transformed/jetified-graphics-path-1.0.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/89593543282112e3f5c07bc9ffd6bd10/transformed/jetified-customview-poolingcontainer-1.0.0/AndroidManifest.xml:17:1-23:12
+MERGED from [androidx.core:core-ktx:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/aa95dee9b0ae72eec5da33fc764d9a0a/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/75509c1954266d63f63a3fde960abfe5/transformed/jetified-runtime-saveable-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.compose.runtime:runtime-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/ce0db168924540ab7e8591aa14df37dd/transformed/jetified-runtime-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/d72ad3c62c0105e6a0e886cdda069536/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /home/vagrant/.gradle/caches/8.9/transforms/19179dac34da6156a76d07ae8eaa3495/transformed/jetified-annotation-experimental-1.4.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/4d4a618549ac4fe18b0eb400918d5ad5/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/73270594e16236de57d9972b2aa5c55b/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/vagrant/.gradle/caches/8.9/transforms/f5dfdbc889723e59c35007073da113a1/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
+	package
+		INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.RECORD_AUDIO
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:5:5-71
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:5:22-68
+uses-permission#android.permission.INTERNET
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:8:5-67
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:8:22-64
+uses-permission#android.permission.WAKE_LOCK
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:11:5-68
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:11:22-65
+uses-feature#android.hardware.microphone
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:14:5-16:36
+	android:required
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:16:9-33
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:15:9-51
+application
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:18:5-37:19
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:18:5-37:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:22:5-26:19
+MERGED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/d72ad3c62c0105e6a0e886cdda069536/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/d72ad3c62c0105e6a0e886cdda069536/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+	android:extractNativeLibs
+		INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:24:9-35
+	android:label
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:22:9-41
+	android:roundIcon
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:23:9-54
+	android:icon
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:21:9-43
+	android:allowBackup
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:20:9-35
+	android:theme
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:25:9-50
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:19:9-42
+activity#com.jarvis.client.MainActivity
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:27:9-36:20
+	android:screenOrientation
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:30:13-49
+	android:windowSoftInputMode
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:31:13-55
+	android:exported
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:29:13-36
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:28:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:32:13-35:29
+action#android.intent.action.MAIN
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:33:17-69
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:33:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:34:17-77
+	android:name
+		ADDED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml:34:27-74
+uses-sdk
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+MERGED from [androidx.compose.material3:material3-android:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/f0dda64010e37ea8ca4bfe657a005740/transformed/jetified-material3-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material3:material3-android:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/f0dda64010e37ea8ca4bfe657a005740/transformed/jetified-material3-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.material:material-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/a572db283adf955db2da7c0829aa70bb/transformed/jetified-material-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/a572db283adf955db2da7c0829aa70bb/transformed/jetified-material-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/de0b9e7839b032a40edb04be7ee07548/transformed/jetified-animation-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-core-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/de0b9e7839b032a40edb04be7ee07548/transformed/jetified-animation-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/d890e47bd2ed36fe544e2b27b61db9c3/transformed/jetified-material-ripple-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-ripple-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/d890e47bd2ed36fe544e2b27b61db9c3/transformed/jetified-material-ripple-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/7098e18f543a5895a2e884b3868d4dd2/transformed/jetified-animation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.animation:animation-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/7098e18f543a5895a2e884b3868d4dd2/transformed/jetified-animation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/8fff55b5466e18a808c2d553e8f20afe/transformed/jetified-foundation-layout-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-layout-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/8fff55b5466e18a808c2d553e8f20afe/transformed/jetified-foundation-layout-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/289b13e4f3605f991ecd3ccfd1c5141f/transformed/jetified-foundation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.foundation:foundation-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/289b13e4f3605f991ecd3ccfd1c5141f/transformed/jetified-foundation-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/e1da80e09b72e5f2eaee9b74464d3915/transformed/jetified-ui-tooling-data-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-data-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/e1da80e09b72e5f2eaee9b74464d3915/transformed/jetified-ui-tooling-data-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/4c6ac7bf03942b230651148487ebd0b6/transformed/jetified-ui-unit-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-unit-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/4c6ac7bf03942b230651148487ebd0b6/transformed/jetified-ui-unit-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/edfa56cc17f6ac4be2e52554223903f7/transformed/jetified-ui-geometry-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-geometry-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/edfa56cc17f6ac4be2e52554223903f7/transformed/jetified-ui-geometry-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/1c271e66efdb12ba48bbd27b63bcbd3e/transformed/jetified-ui-util-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-util-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/1c271e66efdb12ba48bbd27b63bcbd3e/transformed/jetified-ui-util-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/d75f3317d28683420f4fdb6ffa112448/transformed/jetified-ui-tooling-preview-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/d75f3317d28683420f4fdb6ffa112448/transformed/jetified-ui-tooling-preview-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/016947abf083c588c148c169967c9b21/transformed/jetified-ui-graphics-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-graphics-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/016947abf083c588c148c169967c9b21/transformed/jetified-ui-graphics-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/fe9e5b41af430b866e1d45c072dd0b6c/transformed/jetified-ui-text-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-text-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/fe9e5b41af430b866e1d45c072dd0b6c/transformed/jetified-ui-text-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/1682cf77b9ed8a1c8e515bcc12380fac/transformed/jetified-lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/1682cf77b9ed8a1c8e515bcc12380fac/transformed/jetified-lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/035277687c4c50ddf961c14930417e83/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/035277687c4c50ddf961c14930417e83/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/vagrant/.gradle/caches/8.9/transforms/7c73076188557498ee71f0cadde52711/transformed/jetified-savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /home/vagrant/.gradle/caches/8.9/transforms/7c73076188557498ee71f0cadde52711/transformed/jetified-savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/vagrant/.gradle/caches/8.9/transforms/65cb39468ba4f87979a3e55fe2df8775/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/vagrant/.gradle/caches/8.9/transforms/65cb39468ba4f87979a3e55fe2df8775/transformed/jetified-savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/3388a848002898b7a1dd063085cb6390/transformed/jetified-lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/3388a848002898b7a1dd063085cb6390/transformed/jetified-lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/18dfabb4529ac3b5ff3aa586323d4ef9/transformed/jetified-lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/18dfabb4529ac3b5ff3aa586323d4ef9/transformed/jetified-lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/db7e1605c75883f4b5723f067cacf946/transformed/jetified-lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/db7e1605c75883f4b5723f067cacf946/transformed/jetified-lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/73aca3851a58d78e5f1096d1e89b375b/transformed/jetified-lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/73aca3851a58d78e5f1096d1e89b375b/transformed/jetified-lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/c5a4ee6afd8c603e3bad731760b976a8/transformed/jetified-lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/c5a4ee6afd8c603e3bad731760b976a8/transformed/jetified-lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/dbace832a4d5148e35b7dfcf118db288/transformed/jetified-lifecycle-viewmodel-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/dbace832a4d5148e35b7dfcf118db288/transformed/jetified-lifecycle-viewmodel-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/1cd8ab70ac5d5fa0ae8fb77554594e1e/transformed/jetified-material-icons-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.material:material-icons-core-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/1cd8ab70ac5d5fa0ae8fb77554594e1e/transformed/jetified-material-icons-core-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/16a013b5f1081bffbac3053171867815/transformed/jetified-ui-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/16a013b5f1081bffbac3053171867815/transformed/jetified-ui-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity-compose:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/09b5a9331e913756120dd8463f4235cd/transformed/jetified-activity-compose-1.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-compose:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/09b5a9331e913756120dd8463f4235cd/transformed/jetified-activity-compose-1.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/83d60974fc153c0ea764c3abd3d675aa/transformed/jetified-activity-ktx-1.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/83d60974fc153c0ea764c3abd3d675aa/transformed/jetified-activity-ktx-1.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/7a96ee68bda79dc117b3377c298e803c/transformed/jetified-activity-1.9.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.9.2] /home/vagrant/.gradle/caches/8.9/transforms/7a96ee68bda79dc117b3377c298e803c/transformed/jetified-activity-1.9.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.autofill:autofill:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/af0957d7a68c4d66a11935ce02c2f0be/transformed/jetified-autofill-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.autofill:autofill:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/af0957d7a68c4d66a11935ce02c2f0be/transformed/jetified-autofill-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.graphics:graphics-path:1.0.1] /home/vagrant/.gradle/caches/8.9/transforms/15e152a3cf22b8ec0cdc9c691929dd80/transformed/jetified-graphics-path-1.0.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.graphics:graphics-path:1.0.1] /home/vagrant/.gradle/caches/8.9/transforms/15e152a3cf22b8ec0cdc9c691929dd80/transformed/jetified-graphics-path-1.0.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/89593543282112e3f5c07bc9ffd6bd10/transformed/jetified-customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/89593543282112e3f5c07bc9ffd6bd10/transformed/jetified-customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
+MERGED from [androidx.core:core-ktx:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/aa95dee9b0ae72eec5da33fc764d9a0a/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/aa95dee9b0ae72eec5da33fc764d9a0a/transformed/jetified-core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/75509c1954266d63f63a3fde960abfe5/transformed/jetified-runtime-saveable-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/75509c1954266d63f63a3fde960abfe5/transformed/jetified-runtime-saveable-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/ce0db168924540ab7e8591aa14df37dd/transformed/jetified-runtime-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.compose.runtime:runtime-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/ce0db168924540ab7e8591aa14df37dd/transformed/jetified-runtime-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/d72ad3c62c0105e6a0e886cdda069536/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/d72ad3c62c0105e6a0e886cdda069536/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /home/vagrant/.gradle/caches/8.9/transforms/19179dac34da6156a76d07ae8eaa3495/transformed/jetified-annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /home/vagrant/.gradle/caches/8.9/transforms/19179dac34da6156a76d07ae8eaa3495/transformed/jetified-annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/4d4a618549ac4fe18b0eb400918d5ad5/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/4d4a618549ac4fe18b0eb400918d5ad5/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/73270594e16236de57d9972b2aa5c55b/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] /home/vagrant/.gradle/caches/8.9/transforms/73270594e16236de57d9972b2aa5c55b/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/vagrant/.gradle/caches/8.9/transforms/f5dfdbc889723e59c35007073da113a1/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/vagrant/.gradle/caches/8.9/transforms/f5dfdbc889723e59c35007073da113a1/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+	android:targetSdkVersion
+		INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/vagrant/jarvis/clients/android/app/src/main/AndroidManifest.xml
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/vagrant/.gradle/caches/8.9/transforms/454da05cc138c3c0c4419a33c4ca134d/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/vagrant/.gradle/caches/8.9/transforms/46ef5349bf5606e98f048c008bd8f14c/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:30:17-75
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /home/vagrant/.gradle/caches/8.9/transforms/2521a4255540b267fafc5f45141aaedd/transformed/jetified-lifecycle-process-2.8.6/AndroidManifest.xml:30:17-78
+activity#androidx.compose.ui.tooling.PreviewActivity
+ADDED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:23:9-25:39
+	android:exported
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:25:13-36
+	android:name
+		ADDED from [androidx.compose.ui:ui-tooling-android:1.7.3] /home/vagrant/.gradle/caches/8.9/transforms/dd271e7e38024367dc6dfec52bff903c/transformed/jetified-ui-tooling-release/AndroidManifest.xml:24:13-71
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+permission#com.jarvis.client.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+uses-permission#com.jarvis.client.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/vagrant/.gradle/caches/8.9/transforms/b6bb275b1ab3b4f622d37ddcadfc1284/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/vagrant/.gradle/caches/8.9/transforms/c7a78e849317f3b2044746a4dae1f568/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92

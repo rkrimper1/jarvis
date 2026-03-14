@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Microphone — required for AudioCaptureEngine -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Internet — required for gRPC stream -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Keeps the CPU awake during active voice sessions -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Declares microphone as a hardware feature (non-required for tablet compat) -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
+    <application
+        android:name=".JarvisApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.JarvisClient">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

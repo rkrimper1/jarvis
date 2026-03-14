@@ -13,6 +13,59 @@ success() { echo -e "${GREEN}✔ $*${NC}"; }
 warn()    { echo -e "${YELLOW}⚠ $*${NC}"; }
 die()     { echo -e "${RED}✘ $*${NC}"; exit 1; }
 
+# ── 0. System packages ────────────────────────────────────────────────
+if ! command -v xdg-open >/dev/null 2>&1; then
+  info "Installing xdg-utils (provides xdg-open)..."
+  sudo apt-get install -y xdg-utils 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "xdg-utils installed"
+else
+  success "xdg-open already installed"
+fi
+
+if command -v android-studio >/dev/null 2>&1 || command -v studio >/dev/null 2>&1; then
+  success "Android Studio already installed"
+elif command -v snap >/dev/null 2>&1; then
+  info "Installing Android Studio via snap..."
+  sudo snap install android-studio --classic 2>&1 | grep -E "^(android-studio|error)" || true
+  success "Android Studio installed"
+else
+  warn "snap not available — skipping Android Studio install (install manually from https://developer.android.com/studio)"
+fi
+
+ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+if [ -d "$ANDROID_HOME/platforms" ] && [ -d "$ANDROID_HOME/build-tools" ]; then
+  success "Android SDK already installed at $ANDROID_HOME"
+else
+  info "Installing Android SDK (API 35, build-tools 35.0.0)..."
+  CMDLINE_TOOLS_ZIP="/tmp/cmdline-tools.zip"
+  CMDLINE_TOOLS_VERSION="14742923"
+  mkdir -p "$ANDROID_HOME/cmdline-tools"
+  curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip" \
+    -o "$CMDLINE_TOOLS_ZIP"
+  unzip -q "$CMDLINE_TOOLS_ZIP" -d /tmp/cmdline-tools-extract
+  mv /tmp/cmdline-tools-extract/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"
+  rm -rf "$CMDLINE_TOOLS_ZIP" /tmp/cmdline-tools-extract
+
+  export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+  yes | sdkmanager --licenses > /dev/null 2>&1 || true
+  sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+  # Write local.properties for Gradle
+  echo "sdk.dir=$ANDROID_HOME" > clients/android/local.properties
+
+  # Persist ANDROID_HOME in ~/.bashrc if not already set
+  if ! grep -q "ANDROID_HOME" "$HOME/.bashrc"; then
+    cat >> "$HOME/.bashrc" << BASHRC
+
+# Android SDK
+export ANDROID_HOME="$ANDROID_HOME"
+export PATH="\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools:\$PATH"
+BASHRC
+  fi
+
+  success "Android SDK installed at $ANDROID_HOME"
+fi
+
 command -v go >/dev/null 2>&1 || die "Go is not installed. Install from https://go.dev/dl/"
 info "Go version: $(go version | awk '{print $3}' | sed 's/go//')"
 
@@ -81,7 +134,45 @@ info "Running go mod tidy..."
 go mod tidy 2>&1 | grep -v "^warning:" || true
 success "go.sum created"
 
-# ── 5. Done ───────────────────────────────────────────────────────────
+# ── 5. Android Gradle wrapper ─────────────────────────────────────────
+ANDROID_DIR="clients/android"
+WRAPPER_JAR="$ANDROID_DIR/gradle/wrapper/gradle-wrapper.jar"
+WRAPPER_PROPS="$ANDROID_DIR/gradle/wrapper/gradle-wrapper.properties"
+GRADLEW="$ANDROID_DIR/gradlew"
+
+if [ -f "$WRAPPER_JAR" ] && [ -x "$GRADLEW" ]; then
+  success "Android Gradle wrapper already present"
+else
+  info "Installing Android Gradle wrapper (Gradle 8.9)..."
+  mkdir -p "$ANDROID_DIR/gradle/wrapper"
+
+  # wrapper shell script
+  curl -fsSL "https://raw.githubusercontent.com/gradle/gradle/v8.9.0/gradlew" \
+    -o "$GRADLEW" && chmod +x "$GRADLEW"
+
+  # wrapper bat (Windows)
+  curl -fsSL "https://raw.githubusercontent.com/gradle/gradle/v8.9.0/gradlew.bat" \
+    -o "$ANDROID_DIR/gradlew.bat"
+
+  # wrapper jar
+  curl -fsSL "https://github.com/gradle/gradle/raw/v8.9.0/gradle/wrapper/gradle-wrapper.jar" \
+    -o "$WRAPPER_JAR"
+
+  # wrapper properties
+  cat > "$WRAPPER_PROPS" <<'PROPS'
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+PROPS
+
+  success "Android Gradle wrapper installed"
+fi
+
+# ── 6. Done ───────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"
@@ -90,4 +181,5 @@ echo ""
 echo "  Run tests:    go test ./..."
 echo "  Docker:       cd docker && sudo docker-compose build && sudo docker-compose up -d"
 echo "  With make:    sudo make docker-up"
+echo "  Android:      make proto-android  (requires Android SDK)"
 echo ""

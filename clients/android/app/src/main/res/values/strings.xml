@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Jarvis</string>
+    <string name="mic_permission_rationale">Jarvis needs microphone access to hear your voice commands.</string>
+    <string name="status_idle">Standby</string>
+    <string name="status_listening">Listening…</string>
+    <string name="status_processing">Processing…</string>
+    <string name="status_speaking">Speaking…</string>
+    <string name="status_error">Error</string>
+</resources>

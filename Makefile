@@ -3,9 +3,9 @@
 #  Just A Rather Very Intelligent System
 # ═══════════════════════════════════════════════════════════════════
 
-.PHONY: all proto proto-lint proto-breaking build test \
+.PHONY: all proto proto-lint proto-breaking proto-android build test \
         docker-build docker-up docker-down docker-logs docker-ps \
-        gateway tidy clean ios-open ios-clean help
+        gateway tidy clean ios-open ios-clean android-open help
 
 SERVICES := nlp-service security-service agent-coordinator \
             hardware-service facility-service intelligence-service \
@@ -106,16 +106,53 @@ tidy: proto     ## Generate protos then tidy Go modules (gen/ must exist first)
 clean:          ## Remove compiled binaries and generated code
 	rm -rf bin/ gen/ docs/openapi/
 
+# ── Open helper (macOS: open, Linux: xdg-open / studio) ──────────────
+
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+  OPEN := open
+else
+  # Prefer Android Studio CLI on Linux; fall back to xdg-open
+  OPEN := $(shell command -v android-studio 2>/dev/null || command -v studio 2>/dev/null || command -v xdg-open 2>/dev/null || echo open)
+endif
+
 # ── iOS Client ────────────────────────────────────────────────────────
 
 IOS_PROJECT := clients/ios/JarvisClient/JarvisClient.xcodeproj
 
 ios-open:       ## Generate protos then open the Xcode project
 	@$(MAKE) proto
-	open $(IOS_PROJECT)
+	$(OPEN) $(IOS_PROJECT)
 
 ios-clean:      ## Remove Swift generated stubs
 	rm -rf gen/swift/
+
+# ── Android Client ────────────────────────────────────────────────
+
+ANDROID_PROJECT := clients/android
+
+proto-android:  ## Generate Kotlin/gRPC stubs via Gradle (output: app/build/generated/source/proto/)
+	cd $(ANDROID_PROJECT) && ./gradlew generateDebugProto
+
+android-open:   ## Generate Android proto stubs then open in Android Studio
+	@$(MAKE) proto-android
+	@if [ -z "$$DISPLAY" ] && [ "$(UNAME)" != "Darwin" ]; then \
+		echo ""; \
+		echo "  Proto stubs generated successfully."; \
+		echo ""; \
+		echo "  No display detected (headless VM). To open Android Studio:"; \
+		echo "    • SSH with X11 forwarding:  ssh -X vagrant@<host>  then  make android-open"; \
+		echo "    • Or open the project directly on your host machine:  $(ANDROID_PROJECT)"; \
+		echo ""; \
+	elif command -v android-studio >/dev/null 2>&1; then \
+		android-studio $(ANDROID_PROJECT); \
+	elif command -v studio >/dev/null 2>&1; then \
+		studio $(ANDROID_PROJECT); \
+	elif [ "$(UNAME)" = "Darwin" ]; then \
+		open $(ANDROID_PROJECT); \
+	else \
+		echo "Android Studio not found. Install it with: sudo snap install android-studio --classic"; \
+	fi
 
 
 test-voice:     ## Run voice-service unit + integration tests only
