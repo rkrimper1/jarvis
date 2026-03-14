@@ -1,6 +1,6 @@
 syntax = "proto3";
 package jarvis.security;
-option go_package = "github.com/rkrimper1/jarvis/gen/security";
+option go_package = "github.com/rkrimper1/jarvis/api/pb/security";
 
 import "common/common.proto";
 import "google/protobuf/timestamp.proto";

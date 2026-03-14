@@ -1031,9 +1031,9 @@ const file_agent_agent_proto_rawDesc = "" +
 	"\x0eGetAgentStatus\x12#.jarvis.agent.GetAgentStatusRequest\x1a$.jarvis.agent.GetAgentStatusResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/agents/status\x12m\n" +
 	"\tBroadcast\x12\x1e.jarvis.agent.BroadcastRequest\x1a\x1f.jarvis.agent.BroadcastResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/agents/broadcast\x12{\n" +
 	"\x18StreamCoordinationEvents\x12-.jarvis.agent.StreamCoordinationEventsRequest\x1a..jarvis.agent.StreamCoordinationEventsResponse0\x01\x12_\n" +
-	"\x0eAgentHeartbeat\x12#.jarvis.agent.AgentHeartbeatRequest\x1a$.jarvis.agent.AgentHeartbeatResponse(\x010\x01B\x96\x01\n" +
+	"\x0eAgentHeartbeat\x12#.jarvis.agent.AgentHeartbeatRequest\x1a$.jarvis.agent.AgentHeartbeatResponse(\x010\x01B\x99\x01\n" +
 	"\x10com.jarvis.agentB\n" +
-	"AgentProtoP\x01Z%github.com/rkrimper1/jarvis/api/pb/agent\xa2\x02\x03JAX\xaa\x02\fJarvis.Agent\xca\x02\fJarvis\\Agent\xe2\x02\x18Jarvis\\Agent\\GPBMetadata\xea\x02\rJarvis::Agentb\x06proto3"
+	"AgentProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/agent\xa2\x02\x03JAX\xaa\x02\fJarvis.Agent\xca\x02\fJarvis\\Agent\xe2\x02\x18Jarvis\\Agent\\GPBMetadata\xea\x02\rJarvis::Agentb\x06proto3"
 
 var (
 	file_agent_agent_proto_rawDescOnce sync.Once

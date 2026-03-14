@@ -1854,9 +1854,9 @@ const file_voice_voice_proto_rawDesc = "" +
 	"\bConverse\x12\x1d.jarvis.voice.ConverseRequest\x1a\x1e.jarvis.voice.ConverseResponse(\x010\x01\x12x\n" +
 	"\n" +
 	"GetSession\x12\x1f.jarvis.voice.GetSessionRequest\x1a .jarvis.voice.GetSessionResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/voice/sessions/{session_id}\x12q\n" +
-	"\fListSessions\x12!.jarvis.voice.ListSessionsRequest\x1a\".jarvis.voice.ListSessionsResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/voice/sessionsB\x96\x01\n" +
+	"\fListSessions\x12!.jarvis.voice.ListSessionsRequest\x1a\".jarvis.voice.ListSessionsResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/voice/sessionsB\x99\x01\n" +
 	"\x10com.jarvis.voiceB\n" +
-	"VoiceProtoP\x01Z%github.com/rkrimper1/jarvis/api/pb/voice\xa2\x02\x03JVX\xaa\x02\fJarvis.Voice\xca\x02\fJarvis\\Voice\xe2\x02\x18Jarvis\\Voice\\GPBMetadata\xea\x02\rJarvis::Voiceb\x06proto3"
+	"VoiceProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/voice\xa2\x02\x03JVX\xaa\x02\fJarvis.Voice\xca\x02\fJarvis\\Voice\xe2\x02\x18Jarvis\\Voice\\GPBMetadata\xea\x02\rJarvis::Voiceb\x06proto3"
 
 var (
 	file_voice_voice_proto_rawDescOnce sync.Once

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package jarvis.facility;
-option go_package = "github.com/rkrimper1/jarvis/gen/facility";
+option go_package = "github.com/rkrimper1/jarvis/api/pb/facility";
 
 import "common/common.proto";
 import "google/protobuf/timestamp.proto";

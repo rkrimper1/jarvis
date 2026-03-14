@@ -883,8 +883,8 @@ const file_intelligence_intelligence_proto_rawDesc = "" +
 	"QueryIntel\x12&.jarvis.intelligence.QueryIntelRequest\x1a'.jarvis.intelligence.QueryIntelResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/intel/query\x12\x8b\x01\n" +
 	"\x0fAnalyzeArtifact\x12+.jarvis.intelligence.AnalyzeArtifactRequest\x1a,.jarvis.intelligence.AnalyzeArtifactResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/intel/artifact\x12\x88\x01\n" +
 	"\x0eCrossReference\x12*.jarvis.intelligence.CrossReferenceRequest\x1a+.jarvis.intelligence.CrossReferenceResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/intel/crossref\x12w\n" +
-	"\x12StreamIntelUpdates\x12..jarvis.intelligence.StreamIntelUpdatesRequest\x1a/.jarvis.intelligence.StreamIntelUpdatesResponse0\x01B\xc7\x01\n" +
-	"\x17com.jarvis.intelligenceB\x11IntelligenceProtoP\x01Z,github.com/rkrimper1/jarvis/api/pb/intelligence\xa2\x02\x03JIX\xaa\x02\x13Jarvis.Intelligence\xca\x02\x13Jarvis\\Intelligence\xe2\x02\x1fJarvis\\Intelligence\\GPBMetadata\xea\x02\x14Jarvis::Intelligenceb\x06proto3"
+	"\x12StreamIntelUpdates\x12..jarvis.intelligence.StreamIntelUpdatesRequest\x1a/.jarvis.intelligence.StreamIntelUpdatesResponse0\x01B\xca\x01\n" +
+	"\x17com.jarvis.intelligenceB\x11IntelligenceProtoP\x01Z/github.com/rkrimper1/jarvis/api/pb/intelligence\xa2\x02\x03JIX\xaa\x02\x13Jarvis.Intelligence\xca\x02\x13Jarvis\\Intelligence\xe2\x02\x1fJarvis\\Intelligence\\GPBMetadata\xea\x02\x14Jarvis::Intelligenceb\x06proto3"
 
 var (
 	file_intelligence_intelligence_proto_rawDescOnce sync.Once

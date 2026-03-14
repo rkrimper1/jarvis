@@ -762,8 +762,8 @@ const file_nlp_nlp_proto_rawDesc = "" +
 	"NLPService\x12h\n" +
 	"\vParseIntent\x12\x1e.jarvis.nlp.ParseIntentRequest\x1a\x1f.jarvis.nlp.ParseIntentResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/v1/nlp/parse\x12\x83\x01\n" +
 	"\x13ProcessDialogueTurn\x12&.jarvis.nlp.ProcessDialogueTurnRequest\x1a'.jarvis.nlp.ProcessDialogueTurnResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/nlp/dialogue\x12a\n" +
-	"\x10StreamVoiceInput\x12#.jarvis.nlp.StreamVoiceInputRequest\x1a$.jarvis.nlp.StreamVoiceInputResponse(\x010\x01B\x88\x01\n" +
-	"\x0ecom.jarvis.nlpB\bNlpProtoP\x01Z#github.com/rkrimper1/jarvis/api/pb/nlp\xa2\x02\x03JNX\xaa\x02\n" +
+	"\x10StreamVoiceInput\x12#.jarvis.nlp.StreamVoiceInputRequest\x1a$.jarvis.nlp.StreamVoiceInputResponse(\x010\x01B\x8b\x01\n" +
+	"\x0ecom.jarvis.nlpB\bNlpProtoP\x01Z&github.com/rkrimper1/jarvis/api/pb/nlp\xa2\x02\x03JNX\xaa\x02\n" +
 	"Jarvis.Nlp\xca\x02\n" +
 	"Jarvis\\Nlp\xe2\x02\x16Jarvis\\Nlp\\GPBMetadata\xea\x02\vJarvis::Nlpb\x06proto3"
 

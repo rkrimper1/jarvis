@@ -3,7 +3,7 @@
 #  Just A Rather Very Intelligent System
 # ═══════════════════════════════════════════════════════════════════
 
-.PHONY: all proto proto-lint proto-breaking proto-android build test \
+.PHONY: all proto proto-lint proto-breaking proto-android build run test \
         docker-build docker-up docker-down docker-logs docker-ps \
         tidy clean ios-open ios-clean android-open help
 
@@ -36,6 +36,10 @@ build:          ## Build the single Jarvis binary
 	@mkdir -p bin
 	@echo "▶ Building jarvis..."
 	@go build -o bin/jarvis ./api/cmd/grpc-server
+
+run:            ## Build then run the binary directly (no Docker)
+	@$(MAKE) build
+	./bin/jarvis
 
 # ── Test ─────────────────────────────────────────────────────────────
 

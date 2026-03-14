@@ -807,8 +807,8 @@ const file_learning_learning_proto_rawDesc = "" +
 	"\x0eSubmitFeedback\x12&.jarvis.learning.SubmitFeedbackRequest\x1a'.jarvis.learning.SubmitFeedbackResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/learning/feedback\x12\x98\x01\n" +
 	"\x12GetBehaviorProfile\x12*.jarvis.learning.GetBehaviorProfileRequest\x1a+.jarvis.learning.GetBehaviorProfileResponse\")\x82\xd3\xe4\x93\x02#\x12!/v1/learning/profile/{subject_id}\x12\x92\x01\n" +
 	"\x13GetModelPerformance\x12+.jarvis.learning.GetModelPerformanceRequest\x1a,.jarvis.learning.GetModelPerformanceResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/learning/performance\x12{\n" +
-	"\x16StreamAdaptationEvents\x12..jarvis.learning.StreamAdaptationEventsRequest\x1a/.jarvis.learning.StreamAdaptationEventsResponse0\x01B\xab\x01\n" +
-	"\x13com.jarvis.learningB\rLearningProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/learning\xa2\x02\x03JLX\xaa\x02\x0fJarvis.Learning\xca\x02\x0fJarvis\\Learning\xe2\x02\x1bJarvis\\Learning\\GPBMetadata\xea\x02\x10Jarvis::Learningb\x06proto3"
+	"\x16StreamAdaptationEvents\x12..jarvis.learning.StreamAdaptationEventsRequest\x1a/.jarvis.learning.StreamAdaptationEventsResponse0\x01B\xae\x01\n" +
+	"\x13com.jarvis.learningB\rLearningProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/learning\xa2\x02\x03JLX\xaa\x02\x0fJarvis.Learning\xca\x02\x0fJarvis\\Learning\xe2\x02\x1bJarvis\\Learning\\GPBMetadata\xea\x02\x10Jarvis::Learningb\x06proto3"
 
 var (
 	file_learning_learning_proto_rawDescOnce sync.Once

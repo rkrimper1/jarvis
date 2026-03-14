@@ -314,8 +314,8 @@ const file_common_common_proto_rawDesc = "" +
 	"\rSEVERITY_INFO\x10\x01\x12\x14\n" +
 	"\x10SEVERITY_WARNING\x10\x02\x12\x15\n" +
 	"\x11SEVERITY_CRITICAL\x10\x03\x12\x16\n" +
-	"\x12SEVERITY_EMERGENCY\x10\x04B\x9d\x01\n" +
-	"\x11com.jarvis.commonB\vCommonProtoP\x01Z&github.com/rkrimper1/jarvis/api/pb/common\xa2\x02\x03JCX\xaa\x02\rJarvis.Common\xca\x02\rJarvis\\Common\xe2\x02\x19Jarvis\\Common\\GPBMetadata\xea\x02\x0eJarvis::Commonb\x06proto3"
+	"\x12SEVERITY_EMERGENCY\x10\x04B\xa0\x01\n" +
+	"\x11com.jarvis.commonB\vCommonProtoP\x01Z)github.com/rkrimper1/jarvis/api/pb/common\xa2\x02\x03JCX\xaa\x02\rJarvis.Common\xca\x02\rJarvis\\Common\xe2\x02\x19Jarvis\\Common\\GPBMetadata\xea\x02\x0eJarvis::Commonb\x06proto3"
 
 var (
 	file_common_common_proto_rawDescOnce sync.Once

@@ -900,8 +900,8 @@ const file_facility_facility_proto_rawDesc = "" +
 	"\rControlSystem\x12%.jarvis.facility.ControlSystemRequest\x1a&.jarvis.facility.ControlSystemResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/facility/zones/{zone_id}/system\x12\x8b\x01\n" +
 	"\fManageAccess\x12$.jarvis.facility.ManageAccessRequest\x1a%.jarvis.facility.ManageAccessResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/facility/zones/{zone_id}/access\x12\xa8\x01\n" +
 	"\x15GetEnvironmentReading\x12-.jarvis.facility.GetEnvironmentReadingRequest\x1a..jarvis.facility.GetEnvironmentReadingResponse\"0\x82\xd3\xe4\x93\x02*\x12(/v1/facility/zones/{zone_id}/environment\x12l\n" +
-	"\x11StreamEnvironment\x12).jarvis.facility.StreamEnvironmentRequest\x1a*.jarvis.facility.StreamEnvironmentResponse0\x01B\xab\x01\n" +
-	"\x13com.jarvis.facilityB\rFacilityProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/facility\xa2\x02\x03JFX\xaa\x02\x0fJarvis.Facility\xca\x02\x0fJarvis\\Facility\xe2\x02\x1bJarvis\\Facility\\GPBMetadata\xea\x02\x10Jarvis::Facilityb\x06proto3"
+	"\x11StreamEnvironment\x12).jarvis.facility.StreamEnvironmentRequest\x1a*.jarvis.facility.StreamEnvironmentResponse0\x01B\xae\x01\n" +
+	"\x13com.jarvis.facilityB\rFacilityProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/facility\xa2\x02\x03JFX\xaa\x02\x0fJarvis.Facility\xca\x02\x0fJarvis\\Facility\xe2\x02\x1bJarvis\\Facility\\GPBMetadata\xea\x02\x10Jarvis::Facilityb\x06proto3"
 
 var (
 	file_facility_facility_proto_rawDescOnce sync.Once

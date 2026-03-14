@@ -1058,8 +1058,8 @@ const file_business_business_proto_rawDesc = "" +
 	"\n" +
 	"CreateTask\x12\".jarvis.business.CreateTaskRequest\x1a#.jarvis.business.CreateTaskResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/business/tasks\x12z\n" +
 	"\vSendMessage\x12#.jarvis.business.SendMessageRequest\x1a$.jarvis.business.SendMessageResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/business/messages\x12\x82\x01\n" +
-	"\x0eGenerateReport\x12&.jarvis.business.GenerateReportRequest\x1a'.jarvis.business.GenerateReportResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/business/reportsB\xab\x01\n" +
-	"\x13com.jarvis.businessB\rBusinessProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/business\xa2\x02\x03JBX\xaa\x02\x0fJarvis.Business\xca\x02\x0fJarvis\\Business\xe2\x02\x1bJarvis\\Business\\GPBMetadata\xea\x02\x10Jarvis::Businessb\x06proto3"
+	"\x0eGenerateReport\x12&.jarvis.business.GenerateReportRequest\x1a'.jarvis.business.GenerateReportResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/business/reportsB\xae\x01\n" +
+	"\x13com.jarvis.businessB\rBusinessProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/business\xa2\x02\x03JBX\xaa\x02\x0fJarvis.Business\xca\x02\x0fJarvis\\Business\xe2\x02\x1bJarvis\\Business\\GPBMetadata\xea\x02\x10Jarvis::Businessb\x06proto3"
 
 var (
 	file_business_business_proto_rawDescOnce sync.Once

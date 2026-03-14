@@ -1117,8 +1117,8 @@ const file_hardware_hardware_proto_rawDesc = "" +
 	"\x0eRunDiagnostics\x12&.jarvis.hardware.RunDiagnosticsRequest\x1a'.jarvis.hardware.RunDiagnosticsResponse\",\x82\xd3\xe4\x93\x02&\x12$/v1/hardware/{device_id}/diagnostics\x12\x8c\x01\n" +
 	"\x11ScanEnergySources\x12).jarvis.hardware.ScanEnergySourcesRequest\x1a*.jarvis.hardware.ScanEnergySourcesResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/hardware/energy/scan\x12f\n" +
 	"\x0fStreamTelemetry\x12'.jarvis.hardware.StreamTelemetryRequest\x1a(.jarvis.hardware.StreamTelemetryResponse0\x01\x12n\n" +
-	"\x11SuitControlStream\x12).jarvis.hardware.SuitControlStreamRequest\x1a*.jarvis.hardware.SuitControlStreamResponse(\x010\x01B\xab\x01\n" +
-	"\x13com.jarvis.hardwareB\rHardwareProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/hardware\xa2\x02\x03JHX\xaa\x02\x0fJarvis.Hardware\xca\x02\x0fJarvis\\Hardware\xe2\x02\x1bJarvis\\Hardware\\GPBMetadata\xea\x02\x10Jarvis::Hardwareb\x06proto3"
+	"\x11SuitControlStream\x12).jarvis.hardware.SuitControlStreamRequest\x1a*.jarvis.hardware.SuitControlStreamResponse(\x010\x01B\xae\x01\n" +
+	"\x13com.jarvis.hardwareB\rHardwareProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/hardware\xa2\x02\x03JHX\xaa\x02\x0fJarvis.Hardware\xca\x02\x0fJarvis\\Hardware\xe2\x02\x1bJarvis\\Hardware\\GPBMetadata\xea\x02\x10Jarvis::Hardwareb\x06proto3"
 
 var (
 	file_hardware_hardware_proto_rawDescOnce sync.Once

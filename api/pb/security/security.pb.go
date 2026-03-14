@@ -1107,8 +1107,8 @@ const file_security_security_proto_rawDesc = "" +
 	"\fAssessThreat\x12$.jarvis.security.AssessThreatRequest\x1a%.jarvis.security.AssessThreatResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/security/threat\x12\x86\x01\n" +
 	"\x0fExecuteProtocol\x12'.jarvis.security.ExecuteProtocolRequest\x1a(.jarvis.security.ExecuteProtocolResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/security/protocol\x12t\n" +
 	"\vGetAuditLog\x12#.jarvis.security.GetAuditLogRequest\x1a$.jarvis.security.GetAuditLogResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/security/audit\x12u\n" +
-	"\x14StreamSecurityAlerts\x12,.jarvis.security.StreamSecurityAlertsRequest\x1a-.jarvis.security.StreamSecurityAlertsResponse0\x01B\xab\x01\n" +
-	"\x13com.jarvis.securityB\rSecurityProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/security\xa2\x02\x03JSX\xaa\x02\x0fJarvis.Security\xca\x02\x0fJarvis\\Security\xe2\x02\x1bJarvis\\Security\\GPBMetadata\xea\x02\x10Jarvis::Securityb\x06proto3"
+	"\x14StreamSecurityAlerts\x12,.jarvis.security.StreamSecurityAlertsRequest\x1a-.jarvis.security.StreamSecurityAlertsResponse0\x01B\xae\x01\n" +
+	"\x13com.jarvis.securityB\rSecurityProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/security\xa2\x02\x03JSX\xaa\x02\x0fJarvis.Security\xca\x02\x0fJarvis\\Security\xe2\x02\x1bJarvis\\Security\\GPBMetadata\xea\x02\x10Jarvis::Securityb\x06proto3"
 
 var (
 	file_security_security_proto_rawDescOnce sync.Once

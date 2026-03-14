@@ -1,6 +1,6 @@
 syntax = "proto3";
 package jarvis.nlp;
-option go_package = "github.com/rkrimper1/jarvis/gen/nlp";
+option go_package = "github.com/rkrimper1/jarvis/api/pb/nlp";
 
 import "common/common.proto";
 import "google/protobuf/timestamp.proto";
