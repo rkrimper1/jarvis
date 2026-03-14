@@ -113,7 +113,7 @@ ifeq ($(UNAME),Darwin)
   OPEN := open
 else
   # Prefer Android Studio CLI on Linux; fall back to xdg-open
-  OPEN := $(shell command -v studio 2>/dev/null || command -v xdg-open 2>/dev/null || echo open)
+  OPEN := $(shell command -v android-studio 2>/dev/null || command -v studio 2>/dev/null || command -v xdg-open 2>/dev/null || echo open)
 endif
 
 # ── iOS Client ────────────────────────────────────────────────────────
@@ -136,7 +136,18 @@ proto-android:  ## Generate Kotlin/gRPC stubs via Gradle (output: app/build/gene
 
 android-open:   ## Generate Android proto stubs then open in Android Studio
 	@$(MAKE) proto-android
-	$(OPEN) $(ANDROID_PROJECT)
+	@if command -v android-studio >/dev/null 2>&1; then \
+		android-studio $(ANDROID_PROJECT); \
+	elif command -v studio >/dev/null 2>&1; then \
+		studio $(ANDROID_PROJECT); \
+	elif [ "$(UNAME)" = "Darwin" ]; then \
+		open $(ANDROID_PROJECT); \
+	else \
+		echo ""; \
+		echo "  Proto stubs generated. Open the project in Android Studio:"; \
+		echo "    $(ANDROID_PROJECT)"; \
+		echo ""; \
+	fi
 
 
 test-voice:     ## Run voice-service unit + integration tests only

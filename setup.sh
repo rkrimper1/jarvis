@@ -22,6 +22,16 @@ else
   success "xdg-open already installed"
 fi
 
+if command -v android-studio >/dev/null 2>&1 || command -v studio >/dev/null 2>&1; then
+  success "Android Studio already installed"
+elif command -v snap >/dev/null 2>&1; then
+  info "Installing Android Studio via snap..."
+  sudo snap install android-studio --classic 2>&1 | grep -E "^(android-studio|error)" || true
+  success "Android Studio installed"
+else
+  warn "snap not available — skipping Android Studio install (install manually from https://developer.android.com/studio)"
+fi
+
 command -v go >/dev/null 2>&1 || die "Go is not installed. Install from https://go.dev/dl/"
 info "Go version: $(go version | awk '{print $3}' | sed 's/go//')"
 
