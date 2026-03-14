@@ -1,182 +1,39 @@
 version: "3.8"
 
 # ──────────────────────────────────────────────────────────────────────
-#  JARVIS gRPC Microservices — Full Stack
+#  JARVIS — Single binary, all services in one process
 #
-#  Compatible with docker-compose v1.29+ and docker compose v2+
-#
-#  Ports exposed to the host:
-#    :8080  REST API  (Envoy → Go Gateway → gRPC services)
-#    :8081  REST API  direct gateway access (bypass Envoy — dev only)
-#    :9090  gRPC API  (Envoy passthrough → gRPC services)
-#    :9901  Envoy admin dashboard
-#    :50051-50058  individual gRPC services (dev only)
+#  Ports:
+#    :50051  gRPC  (all 7 services)
+#    :8080   REST  (grpc-gateway HTTP transcoder)
+#    :6379   Redis (session store — opt-in via SESSION_PROVIDER=redis)
 # ──────────────────────────────────────────────────────────────────────
 
 services:
 
-  # ── Envoy Proxy ──────────────────────────────────────────────────────
-  envoy:
-    image: envoyproxy/envoy:v1.29-latest
-    volumes:
-      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
-    ports:
-      - "8080:8080"
-      - "9090:9090"
-      - "9901:9901"
-    depends_on:
-      - gateway
-      - nlp-service
-      - security-service
-      - agent-coordinator
-      - hardware-service
-      - facility-service
-      - intelligence-service
-      - business-ops-service
-      - learning-service
-      - voice-service
-    restart: unless-stopped
-
-  # ── API Gateway ───────────────────────────────────────────────────────
-  gateway:
+  jarvis:
     build:
       context: ..
-      dockerfile: docker/gateway/Dockerfile
+      dockerfile: docker/jarvis/Dockerfile
     environment:
-      - HTTP_PORT=8080
-      - TOKEN_SECRET=${JARVIS_TOKEN_SECRET:-jarvis-dev-secret-change-in-prod}
-      - CORS_ORIGINS=*
-      - LOG_LEVEL=info
-      - NLP_ADDR=nlp-service:50051
-      - SECURITY_ADDR=security-service:50052
-      - AGENT_ADDR=agent-coordinator:50053
-      - HARDWARE_ADDR=hardware-service:50054
-      - FACILITY_ADDR=facility-service:50055
-      - INTELLIGENCE_ADDR=intelligence-service:50056
-      - BUSINESS_ADDR=business-ops-service:50057
-      - LEARNING_ADDR=learning-service:50058
-      - VOICE_ADDR=voice-service:50059
-      - DIAL_TIMEOUT=5s
-    ports:
-      - "8081:8080"
-    depends_on:
-      - nlp-service
-      - security-service
-      - agent-coordinator
-      - hardware-service
-      - facility-service
-      - intelligence-service
-      - business-ops-service
-      - learning-service
-      - voice-service
-    restart: unless-stopped
-
-  # ── Core Services ─────────────────────────────────────────────────────
-
-  nlp-service:
-    build:
-      context: ..
-      dockerfile: docker/nlp-service/Dockerfile
-    environment:
+      # ── Server ────────────────────────────────────────────────────
       - GRPC_PORT=50051
+      - HTTP_PORT=8080
+      - SHUTDOWN_TIMEOUT=10s
+      - MAX_RECV_MSG_SIZE=8388608
+      - MAX_SEND_MSG_SIZE=8388608
       - LOG_LEVEL=info
-    ports:
-      - "50051:50051"
-    restart: unless-stopped
 
-  security-service:
-    build:
-      context: ..
-      dockerfile: docker/security-service/Dockerfile
-    environment:
-      - GRPC_PORT=50052
+      # ── Security ──────────────────────────────────────────────────
       - TOKEN_SECRET=${JARVIS_TOKEN_SECRET:-jarvis-dev-secret-change-in-prod}
-      - LOG_LEVEL=info
-    ports:
-      - "50052:50052"
-    restart: unless-stopped
 
-  agent-coordinator:
-    build:
-      context: ..
-      dockerfile: docker/agent-coordinator/Dockerfile
-    environment:
-      - GRPC_PORT=50053
-      - LOG_LEVEL=info
-    ports:
-      - "50053:50053"
-    restart: unless-stopped
+      # ── NLP / Dialogue ────────────────────────────────────────────
+      - DIALOGUE_MAX_HISTORY=${DIALOGUE_MAX_HISTORY:-20}
+      - DIALOGUE_SESSION_TTL=${DIALOGUE_SESSION_TTL:-30m}
+      - DIALOGUE_CONFIDENCE_THRESH=${DIALOGUE_CONFIDENCE_THRESH:-0.6}
 
-  hardware-service:
-    build:
-      context: ..
-      dockerfile: docker/hardware-service/Dockerfile
-    environment:
-      - GRPC_PORT=50054
-      - LOG_LEVEL=info
-    ports:
-      - "50054:50054"
-    restart: unless-stopped
-
-  facility-service:
-    build:
-      context: ..
-      dockerfile: docker/facility-service/Dockerfile
-    environment:
-      - GRPC_PORT=50055
-      - LOG_LEVEL=info
-    ports:
-      - "50055:50055"
-    restart: unless-stopped
-
-  intelligence-service:
-    build:
-      context: ..
-      dockerfile: docker/intelligence-service/Dockerfile
-    environment:
-      - GRPC_PORT=50056
-      - LOG_LEVEL=info
-    ports:
-      - "50056:50056"
-    restart: unless-stopped
-
-  business-ops-service:
-    build:
-      context: ..
-      dockerfile: docker/business-ops-service/Dockerfile
-    environment:
-      - GRPC_PORT=50057
-      - LOG_LEVEL=info
-    ports:
-      - "50057:50057"
-    restart: unless-stopped
-
-  learning-service:
-    build:
-      context: ..
-      dockerfile: docker/learning-service/Dockerfile
-    environment:
-      - GRPC_PORT=50058
-      - LOG_LEVEL=info
-    ports:
-      - "50058:50058"
-    restart: unless-stopped
-
-  voice-service:
-    build:
-      context: ..
-      dockerfile: docker/voice-service/Dockerfile
-    environment:
-      - GRPC_PORT=50059
-      - LOG_LEVEL=info
-      - NLP_ADDR=nlp-service:50051
-      - NLP_DIAL_TIMEOUT=5s
-      - AUDIO_SAMPLE_RATE_HZ=16000
-      - AUDIO_CHUNK_DURATION_MS=20
-      - AUDIO_VAD_SILENCE_MS=800
-      - AUDIO_MAX_UTTERANCE_SEC=30
-      # ── Session store ──────────────────────────────────────────────
-      # SESSION_PROVIDER=memory  → zero-dep in-process store (default, dev)
+      # ── Session store ─────────────────────────────────────────────
+      # SESSION_PROVIDER=memory  → zero-dep in-process store (default)
       # SESSION_PROVIDER=redis   → Redis-backed, survives restarts
       - SESSION_PROVIDER=${SESSION_PROVIDER:-memory}
       - SESSION_TTL=${SESSION_TTL:-30m}
@@ -184,13 +41,21 @@ services:
       - REDIS_ADDR=${REDIS_ADDR:-redis:6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - REDIS_DB=${REDIS_DB:-0}
-      # ── STT ────────────────────────────────────────────────────────
+
+      # ── Audio ─────────────────────────────────────────────────────
+      - AUDIO_SAMPLE_RATE_HZ=${AUDIO_SAMPLE_RATE_HZ:-16000}
+      - AUDIO_CHUNK_DURATION_MS=${AUDIO_CHUNK_DURATION_MS:-20}
+      - AUDIO_VAD_SILENCE_MS=${AUDIO_VAD_SILENCE_MS:-800}
+      - AUDIO_MAX_UTTERANCE_SEC=${AUDIO_MAX_UTTERANCE_SEC:-30}
+
+      # ── STT ───────────────────────────────────────────────────────
       - STT_PROVIDER=${STT_PROVIDER:-stub}
       - STT_MODEL=${STT_MODEL:-latest_long}
       - STT_AUTO_PUNCTUATION=${STT_AUTO_PUNCTUATION:-true}
       - STT_WORD_TIME_OFFSETS=${STT_WORD_TIME_OFFSETS:-false}
       - STT_MAX_SYNC_DURATION_SEC=${STT_MAX_SYNC_DURATION_SEC:-55}
-      # ── TTS ────────────────────────────────────────────────────────
+
+      # ── TTS ───────────────────────────────────────────────────────
       - TTS_PROVIDER=${TTS_PROVIDER:-stub}
       - TTS_VOICE_ID=${TTS_VOICE_ID:-en-US-Journey-D}
       - TTS_LANGUAGE_CODE=${TTS_LANGUAGE_CODE:-en-US}
@@ -198,18 +63,18 @@ services:
       - TTS_PITCH=${TTS_PITCH:-0.0}
       - TTS_AUDIO_ENCODING=${TTS_AUDIO_ENCODING:-pcm}
       - TTS_CHUNK_SIZE_BYTES=${TTS_CHUNK_SIZE_BYTES:-8192}
-      # ── GCP (shared by STT + TTS when provider != stub) ────────────
+
+      # ── GCP (shared by STT + TTS when provider != stub) ──────────
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
     ports:
-      - "50059:50059"
+      - "50051:50051"
+      - "8080:8080"
     depends_on:
-      - nlp-service
       - redis
     restart: unless-stopped
 
-  # ── Redis — shared session store (opt-in via SESSION_PROVIDER=redis) ──────
-
+  # ── Redis — session store (opt-in via SESSION_PROVIDER=redis) ────────
   redis:
     image: redis:7-alpine
     command: >

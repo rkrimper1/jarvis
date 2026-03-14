@@ -5,11 +5,7 @@
 
 .PHONY: all proto proto-lint proto-breaking proto-android build test \
         docker-build docker-up docker-down docker-logs docker-ps \
-        gateway tidy clean ios-open ios-clean android-open help
-
-SERVICES := nlp-service security-service agent-coordinator \
-            hardware-service facility-service intelligence-service \
-            business-ops-service learning-service voice-service gateway
+        tidy clean ios-open ios-clean android-open help
 
 # ── Docker Compose command ────────────────────────────────────────────
 # Auto-detect Compose V2 plugin (docker compose) vs V1 standalone (docker-compose).
@@ -36,16 +32,10 @@ proto-breaking: ## Check for breaking proto changes vs main branch
 
 # ── Build ────────────────────────────────────────────────────────────
 
-build:          ## Build all service binaries locally
+build:          ## Build the single Jarvis binary
 	@mkdir -p bin
-	@for svc in nlp-service security-service agent-coordinator \
-	            hardware-service facility-service intelligence-service \
-	            business-ops-service learning-service voice-service; do \
-		echo "▶ Building $$svc..."; \
-		go build -o bin/$$svc ./services/$$svc/cmd/server; \
-	done
-	@echo "▶ Building gateway..."
-	@go build -o bin/gateway ./gateway/cmd/server
+	@echo "▶ Building jarvis..."
+	@go build -o bin/jarvis ./api/cmd/grpc-server
 
 # ── Test ─────────────────────────────────────────────────────────────
 
@@ -55,19 +45,19 @@ test:           ## Run all tests with race detector
 test-short:     ## Run tests without -v (faster CI output)
 	go test ./... -race -cover
 
+test-voice:     ## Run voice tests only
+	go test ./api/internal/voice/... -v -race -count=1 -timeout=60s
+
 # ── Docker ───────────────────────────────────────────────────────────
 
-docker-build:   ## Build all Docker images (without starting containers)
-	docker build -t jarvis-proto-gen -f docker/proto-gen/Dockerfile .
+docker-build:   ## Build the Jarvis Docker image
 	$(DC) -f $(COMPOSE_FILE) build
 
-docker-up:      ## Build images then start all services in background
-	docker build -t jarvis-proto-gen -f docker/proto-gen/Dockerfile .
+docker-up:      ## Build image then start jarvis + redis in background
 	$(DC) -f $(COMPOSE_FILE) build
 	$(DC) -f $(COMPOSE_FILE) up -d
 
-docker-up-fg:   ## Build images then start all services in foreground (shows logs)
-	docker build -t jarvis-proto-gen -f docker/proto-gen/Dockerfile .
+docker-up-fg:   ## Build image then start in foreground (shows logs)
 	$(DC) -f $(COMPOSE_FILE) build
 	$(DC) -f $(COMPOSE_FILE) up
 
@@ -77,21 +67,19 @@ docker-down:    ## Stop and remove all containers
 docker-down-v:  ## Stop containers AND remove volumes
 	$(DC) -f $(COMPOSE_FILE) down -v
 
-docker-logs:    ## Tail logs from all containers
+docker-logs:    ## Tail logs
 	$(DC) -f $(COMPOSE_FILE) logs -f
 
 docker-ps:      ## Show running container status
 	$(DC) -f $(COMPOSE_FILE) ps
 
-docker-restart: ## Restart all containers without rebuilding
+docker-restart: ## Restart containers without rebuilding
 	$(DC) -f $(COMPOSE_FILE) restart
 
-# ── Individual service targets ────────────────────────────────────────
-
-logs-%:         ## Tail logs for a specific service, e.g. make logs-gateway
+logs-%:         ## Tail logs for a specific service, e.g. make logs-jarvis
 	$(DC) -f $(COMPOSE_FILE) logs -f $*
 
-restart-%:      ## Restart a specific service, e.g. make restart-nlp-service
+restart-%:      ## Restart a specific service, e.g. make restart-jarvis
 	$(DC) -f $(COMPOSE_FILE) restart $*
 
 # ── Utilities ────────────────────────────────────────────────────────
@@ -99,12 +87,16 @@ restart-%:      ## Restart a specific service, e.g. make restart-nlp-service
 setup:          ## First-time setup: install buf, generate protos, tidy modules
 	bash setup.sh
 
-tidy: proto     ## Generate protos then tidy Go modules (gen/ must exist first)
+tidy: proto     ## Generate protos then tidy Go modules (api/pb/ must exist first)
 	go mod tidy
 	go mod verify
 
 clean:          ## Remove compiled binaries and generated code
-	rm -rf bin/ gen/ docs/openapi/
+	rm -rf bin/ api/pb/ docs/openapi/
+
+compose-version: ## Show which Docker Compose version is being used
+	@echo "Using: $(DC)"
+	@$(DC) version
 
 # ── Open helper (macOS: open, Linux: xdg-open / studio) ──────────────
 
@@ -127,11 +119,11 @@ ios-open:       ## Generate protos then open the Xcode project
 ios-clean:      ## Remove Swift generated stubs
 	rm -rf gen/swift/
 
-# ── Android Client ────────────────────────────────────────────────
+# ── Android Client ────────────────────────────────────────────────────
 
 ANDROID_PROJECT := clients/android
 
-proto-android:  ## Generate Kotlin/gRPC stubs via Gradle (output: app/build/generated/source/proto/)
+proto-android:  ## Generate Kotlin/gRPC stubs via Gradle
 	cd $(ANDROID_PROJECT) && ./gradlew generateDebugProto
 
 android-open:   ## Generate Android proto stubs then open in Android Studio
@@ -154,13 +146,7 @@ android-open:   ## Generate Android proto stubs then open in Android Studio
 		echo "Android Studio not found. Install it with: sudo snap install android-studio --classic"; \
 	fi
 
-
-test-voice:     ## Run voice-service unit + integration tests only
-	go test ./services/voice-service/... -v -race -count=1 -timeout=60s
-
-compose-version: ## Show which Docker Compose version is being used
-	@echo "Using: $(DC)"
-	@$(DC) version
+# ── Help ──────────────────────────────────────────────────────────────
 
 help:           ## Show this help message
 	@echo ""

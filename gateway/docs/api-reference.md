@@ -1,13 +1,15 @@
 # JARVIS REST API Reference
 
-Base URL: `http://localhost:8080` (via Envoy)
-Direct gateway: `http://localhost:8081` (bypass Envoy — dev only)
+Base URL: `http://localhost:8080`
+gRPC direct: `localhost:50051`
+
+All 7 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
 ---
 
 ## Authentication
 
-All endpoints except `/healthz` and `/v1/security/authenticate` require a Bearer token.
+All endpoints except `/v1/security/authenticate` require a Bearer token.
 
 ```bash
 # 1. Get a token
@@ -21,17 +23,8 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
   }' | jq -r '.accessToken')
 
 # 2. Use the token
-curl http://localhost:8080/v1/agents/status \
+curl http://localhost:8080/v1/business/schedule/tony-stark \
   -H "Authorization: Bearer $TOKEN"
-```
-
----
-
-## Health Check
-
-```bash
-curl http://localhost:8080/healthz
-# {"status":"ok","service":"jarvis-gateway"}
 ```
 
 ---
@@ -107,69 +100,6 @@ curl -X POST http://localhost:8080/v1/security/protocol \
 ### Audit Log
 ```bash
 curl "http://localhost:8080/v1/security/audit?page_size=20" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
----
-
-## Agent Coordinator
-
-### Get Agent Status
-```bash
-curl http://localhost:8080/v1/agents/status \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-### Dispatch Task
-```bash
-curl -X POST http://localhost:8080/v1/agents/dispatch \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meta": {"request_id": "dispatch-001"},
-    "task_description": "Perimeter patrol — sector 7",
-    "priority": "TASK_PRIORITY_HIGH",
-    "target_agent_ids": ["drone-01", "drone-02"]
-  }'
-```
-
-### Broadcast
-```bash
-curl -X POST http://localhost:8080/v1/agents/broadcast \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meta": {"request_id": "broadcast-001"},
-    "message": "Return to base immediately",
-    "priority": "TASK_PRIORITY_CRITICAL"
-  }'
-```
-
----
-
-## Hardware Service
-
-### Send Command
-```bash
-curl -X POST http://localhost:8080/v1/hardware/mark-vii-suit/command \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meta": {"request_id": "hw-001"},
-    "device_id": "mark-vii-suit",
-    "command": "POWER_ON"
-  }'
-```
-
-### Run Diagnostics
-```bash
-curl "http://localhost:8080/v1/hardware/arc-reactor-primary/diagnostics?deep_scan=true" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-### Scan Energy Sources
-```bash
-curl "http://localhost:8080/v1/hardware/energy/scan?location=malibu&scan_radius_km=50" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -347,23 +277,21 @@ curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
 
 ---
 
-## gRPC Direct Access (via Envoy :9090)
+## gRPC Direct Access
 
 ```bash
 # List all services
-grpcurl -plaintext localhost:9090 list
+grpcurl -plaintext localhost:50051 list
 
 # Call NLP directly
 grpcurl -plaintext -d '{
   "meta": {"request_id": "grpc-001"},
   "raw_text": "Power up the Mark VII",
   "session_id": "session-001"
-}' localhost:9090 jarvis.nlp.NLPService/ParseIntent
+}' localhost:50051 jarvis.nlp.NLPService/ParseIntent
 
-# Stream coordination events
-grpcurl -plaintext -d '{
-  "meta": {"request_id": "stream-001"}
-}' localhost:9090 jarvis.agent.AgentCoordinatorService/StreamCoordinationEvents
+# Health check
+grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
 ```
 
 ---
@@ -371,27 +299,21 @@ grpcurl -plaintext -d '{
 ## Architecture Diagram
 
 ```
-                        ┌─────────────────────────────────────────┐
-                        │           Client Applications           │
-                        │   (HUD / Mobile App / Voice Interface)  │
-                        └──────────────┬──────────────────────────┘
-                                       │
-                          ┌────────────▼────────────┐
-                          │         Envoy           │
-                          │   :8080 REST  :9090 gRPC│
-                          └─────┬────────────┬──────┘
-                                │            │
-                     ┌──────────▼──┐    Direct gRPC
-                     │ Go Gateway  │    passthrough
-                     │ grpc-gateway│         │
-                     │ :8080       │         │
-                     └──────┬──────┘         │
-                            │                │
-          ┌─────────────────▼────────────────▼──────────────────┐
-          │                    gRPC Services                     │
-          │                                                      │
-          │  nlp:50051   security:50052  agent:50053             │
-          │  hardware:50054  facility:50055  intel:50056         │
-          │  business:50057  learning:50058  voice:50059         │
-          └──────────────────────────────────────────────────────┘
+                  ┌─────────────────────────────────────────┐
+                  │          Client Applications             │
+                  │  (HUD / Mobile App / Voice Interface)    │
+                  └──────────────┬──────────────────────────┘
+                                 │
+                    REST :8080   │   gRPC :50051
+                  ┌──────────────▼──────────────────────────┐
+                  │            J.A.R.V.I.S.                  │
+                  │          Single Go Binary                 │
+                  │                                           │
+                  │  grpc-gateway (in-process REST → gRPC)   │
+                  │                                           │
+                  │  business-ops  facility  intelligence     │
+                  │  learning  nlp ◄──► voice  security       │
+                  │                                           │
+                  │  Redis (session state)                    │
+                  └───────────────────────────────────────────┘
 ```

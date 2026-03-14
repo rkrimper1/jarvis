@@ -8,73 +8,70 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 ## Architecture
 
 ```
-                         ┌─────────────────────┐
-                         │   Client (Voice/HUD) │
-                         └──────────┬──────────┘
-                                    │
-                         ┌──────────▼──────────┐
-                         │   Envoy / Gateway    │  ← REST + gRPC
-                         └──────────┬──────────┘
-                                    │
-          ┌──────────┬──────────────┼──────────────┬──────────┐
-          │          │              │               │          │
-    ┌─────▼──┐  ┌────▼───┐  ┌──────▼─────┐  ┌─────▼──┐ ┌────▼──────┐
-    │  NLP   │  │Security│  │Intelligence│  │Hardware│ │ Facility  │
-    └────────┘  └────────┘  └────────────┘  └────────┘ └───────────┘
-          │          │              │               │          │
-    ┌─────▼──┐  ┌────▼───────────────────────────────────────▼──────┐
-    │Business│  │              AgentCoordinator                      │
-    └────────┘  └─────────────────────────────────────────┬─────────┘
-                                                          │
-                                               ┌──────────▼──────┐
-                                               │    Learning      │
-                                               └─────────────────┘
-                         ┌─────────────────────┐
-                         │    Voice Service     │  ← bidi gRPC stream
-                         └─────────────────────┘
+                    ┌─────────────────────────────────┐
+                    │    Client (Voice / HUD / Mobile) │
+                    └────────────┬────────────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │       J.A.R.V.I.S.      │
+                    │   Single Go Binary      │
+                    │                         │
+                    │  gRPC  :50051           │
+                    │  REST  :8080            │
+                    │  (grpc-gateway)         │
+                    │                         │
+                    │  ┌─────────────────┐    │
+                    │  │  business-ops   │    │
+                    │  │  facility       │    │
+                    │  │  intelligence   │    │
+                    │  │  learning       │    │
+                    │  │  nlp ◄──► voice │    │
+                    │  │  security       │    │
+                    │  └─────────────────┘    │
+                    └─────────────────────────┘
 ```
+
+NLP and Voice are wired in-process — no network hop between them.
 
 ## Services
 
-| Service | Port | Responsibility |
-|---|---|---|
-| `nlp-service` | 50051 | Intent parsing, dialogue, voice transcription |
-| `security-service` | 50052 | Auth, threat assessment, emergency protocols |
-| `agent-coordinator` | 50053 | Multi-agent orchestration, task dispatch |
-| `hardware-service` | 50054 | Suit/device control, telemetry, energy scanning |
-| `facility-service` | 50055 | Building systems, environment monitoring |
-| `intelligence-service` | 50056 | Research, artifact analysis, cross-referencing |
-| `business-ops-service` | 50057 | Scheduling, tasks, messaging, reports |
-| `learning-service` | 50058 | Feedback loops, behavior profiling, model metrics |
-| `voice-service` | 50059 | Wake word, STT, bidi voice streaming, TTS |
+| Service | Responsibility |
+|---|---|
+| `business-ops` | Scheduling, tasks, messaging, reports |
+| `facility` | Building systems, environment monitoring |
+| `intelligence` | Research, artifact analysis, cross-referencing |
+| `learning` | Feedback loops, behavior profiling, model metrics |
+| `nlp` | Intent parsing, dialogue, voice transcription |
+| `security` | Auth, threat assessment, emergency protocols |
+| `voice` | Wake word, STT, bidi voice streaming, TTS |
+
+All 7 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
 
 ## Quick Start
 
 > **First time?** Run the bootstrap script — it installs `buf`, the Go protoc plugins,
-> generates all proto stubs into `gen/`, and runs `go mod tidy` in one step.
+> generates all proto stubs into `api/pb/`, and runs `go mod tidy` in one step.
 
 ```bash
-# 1. Bootstrap (run once after extracting the project)
+# 1. Bootstrap (run once after cloning)
 bash setup.sh
 
-# 2. Start everything with Docker
+# 2. Start with Docker
 make docker-up
 
-# 3. Check it's running
-curl http://localhost:8080/healthz
-# {"status":"ok","service":"jarvis-gateway"}
+# 3. Verify it's running (gRPC health)
+grpcurl -plaintext localhost:50051 list
 
-# 4. Call an endpoint
+# 4. Call a REST endpoint
 curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -H "Content-Type: application/json" \
   -d '{"meta":{"request_id":"r1"},"session_id":"s1","utterance":"Hello JARVIS"}'
 ```
 
-### Manual setup (if you prefer step-by-step)
+### Manual setup (step-by-step)
 
 ```bash
 # Install buf CLI — https://buf.build/docs/installation
-# On Linux/Mac:
 curl -fsSL https://github.com/bufbuild/buf/releases/download/v1.30.0/buf-$(uname -s)-$(uname -m) \
   -o /usr/local/bin/buf && chmod +x /usr/local/bin/buf
 
@@ -84,11 +81,11 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.19.1
 go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.19.1
 
-# Generate proto stubs (creates gen/ directory)
+# Generate proto stubs (creates api/pb/)
 buf dep update
 buf generate
 
-# Tidy modules (now that gen/ exists, go.sum can be resolved)
+# Tidy modules
 go mod tidy
 
 # Build and run
@@ -97,12 +94,9 @@ make docker-up
 
 ### Docker-only (no local Go/buf required)
 
-The Dockerfiles handle everything internally — proto generation, `go mod download`,
-and compilation all happen inside multi-stage Docker builds. You only need Docker.
-
 ```bash
-make docker-up      # build images and start all services
-make docker-logs    # tail logs from all containers
+make docker-up      # build image and start jarvis + redis
+make docker-logs    # tail logs
 make docker-down    # stop everything
 ```
 
@@ -112,34 +106,38 @@ make docker-down    # stop everything
 jarvis/
 ├── proto/                  # Protobuf definitions (source of truth)
 │   ├── common/             # Shared types (RequestMeta, ResponseMeta, etc.)
-│   ├── nlp/
-│   ├── security/
-│   ├── agent/
-│   ├── hardware/
+│   ├── business/
 │   ├── facility/
 │   ├── intelligence/
-│   ├── business/
 │   ├── learning/
+│   ├── nlp/
+│   ├── security/
 │   └── voice/
-├── gen/                    # Generated Go + Swift stubs (gitignored)
-│   └── swift/              # Swift stubs for the iOS client
-├── services/               # Service implementations
-│   ├── nlp-service/
-│   ├── security-service/
-│   ├── agent-coordinator/
-│   ├── hardware-service/
-│   ├── facility-service/
-│   ├── intelligence-service/
-│   ├── business-ops-service/
-│   ├── learning-service/
-│   └── voice-service/
-├── gateway/                # API Gateway (gRPC-Gateway + REST transcoding)
-│   └── docs/api-reference.md
+├── api/                    # Single Go module
+│   ├── cmd/grpc-server/    # Entry point (main.go, server.go, nlp_adapter.go)
+│   ├── internal/           # Service implementations (Go internal — not importable outside api/)
+│   │   ├── business-ops/server/
+│   │   ├── facility/server/
+│   │   ├── intelligence/server/
+│   │   ├── learning/server/
+│   │   ├── nlp/server/
+│   │   ├── security/server/
+│   │   └── voice/server/
+│   ├── middleware/         # Shared gRPC interceptors (logging, recovery)
+│   ├── pb/                 # Generated Go stubs — gitignored, do not edit
+│   └── rest/               # grpc-gateway error handler
+├── gen/
+│   └── swift/              # Generated Swift stubs for the iOS client
 ├── clients/
-│   └── ios/JarvisClient/   # SwiftUI iOS HUD client
-├── docker/                 # Dockerfiles + docker-compose.yml
+│   ├── ios/JarvisClient/   # SwiftUI iOS HUD client
+│   └── android/            # Android client
+├── docker/
+│   ├── jarvis/Dockerfile   # Single multi-stage build
+│   └── docker-compose.yml  # jarvis + redis
+├── gateway/
+│   └── docs/api-reference.md
 ├── buf.yaml                # Buf lint/breaking config
-├── buf.gen.yaml            # Code generation config (Go + Swift)
+├── buf.gen.yaml            # Code generation config (Go → api/pb/, Swift → gen/swift/)
 ├── Makefile
 └── setup.sh                # First-time bootstrap script
 ```
@@ -148,7 +146,7 @@ jarvis/
 
 - All RPCs accept a `RequestMeta` and return a `ResponseMeta` for tracing
 - Streaming RPCs are defined where real-time data flow is needed
-- Bidirectional streaming used for suit control, agent heartbeat, and voice conversation
+- Bidirectional streaming used for voice conversation
 - All services share `common.proto` types to avoid duplication
 
 ## gRPC Stream Patterns Used
@@ -156,21 +154,23 @@ jarvis/
 | Pattern | Example |
 |---|---|
 | Unary | `Authenticate`, `QueryIntel`, `ScheduleEvent` |
-| Server streaming | `StreamTelemetry`, `StreamSecurityAlerts`, `StreamCoordinationEvents`, `StreamAdaptationEvents`, `StreamIntelUpdates`, `StreamEnvironment` |
+| Server streaming | `StreamTelemetry`, `StreamSecurityAlerts`, `StreamAdaptationEvents`, `StreamIntelUpdates`, `StreamEnvironment` |
 | Client streaming | `StreamVoiceInput` |
-| Bidirectional | `Converse` (voice), `SuitControlStream`, `AgentHeartbeat` |
+| Bidirectional | `Converse` (voice) |
 
 ## Make Targets
 
 ```bash
-make build          # compile all service binaries
+make build          # compile the jarvis binary (bin/jarvis)
 make test           # run all tests with race detector
-make proto          # regenerate Go stubs from proto files
+make proto          # regenerate Go stubs from proto files (→ api/pb/)
 make proto-lint     # lint proto files
-make docker-up      # build images and start all services
+make proto-android  # generate Kotlin/gRPC stubs via Gradle
+make docker-up      # build image and start all services
 make docker-down    # stop all services
 make docker-logs    # tail all container logs
-make logs-<svc>     # tail a single service, e.g. make logs-gateway
+make logs-<svc>     # tail a specific service, e.g. make logs-jarvis
 make ios-open       # generate protos and open the Xcode project
+make android-open   # generate Android stubs and open Android Studio
 make help           # list all available targets
 ```
