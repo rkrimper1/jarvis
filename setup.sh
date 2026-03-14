@@ -81,7 +81,45 @@ info "Running go mod tidy..."
 go mod tidy 2>&1 | grep -v "^warning:" || true
 success "go.sum created"
 
-# ── 5. Done ───────────────────────────────────────────────────────────
+# ── 5. Android Gradle wrapper ─────────────────────────────────────────
+ANDROID_DIR="clients/android"
+WRAPPER_JAR="$ANDROID_DIR/gradle/wrapper/gradle-wrapper.jar"
+WRAPPER_PROPS="$ANDROID_DIR/gradle/wrapper/gradle-wrapper.properties"
+GRADLEW="$ANDROID_DIR/gradlew"
+
+if [ -f "$WRAPPER_JAR" ] && [ -x "$GRADLEW" ]; then
+  success "Android Gradle wrapper already present"
+else
+  info "Installing Android Gradle wrapper (Gradle 8.9)..."
+  mkdir -p "$ANDROID_DIR/gradle/wrapper"
+
+  # wrapper shell script
+  curl -fsSL "https://raw.githubusercontent.com/gradle/gradle/v8.9.0/gradlew" \
+    -o "$GRADLEW" && chmod +x "$GRADLEW"
+
+  # wrapper bat (Windows)
+  curl -fsSL "https://raw.githubusercontent.com/gradle/gradle/v8.9.0/gradlew.bat" \
+    -o "$ANDROID_DIR/gradlew.bat"
+
+  # wrapper jar
+  curl -fsSL "https://github.com/gradle/gradle/raw/v8.9.0/gradle/wrapper/gradle-wrapper.jar" \
+    -o "$WRAPPER_JAR"
+
+  # wrapper properties
+  cat > "$WRAPPER_PROPS" <<'PROPS'
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+PROPS
+
+  success "Android Gradle wrapper installed"
+fi
+
+# ── 6. Done ───────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"
@@ -90,4 +128,5 @@ echo ""
 echo "  Run tests:    go test ./..."
 echo "  Docker:       cd docker && sudo docker-compose build && sudo docker-compose up -d"
 echo "  With make:    sudo make docker-up"
+echo "  Android:      make proto-android  (requires Android SDK)"
 echo ""

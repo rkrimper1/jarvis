@@ -3,9 +3,9 @@
 #  Just A Rather Very Intelligent System
 # ═══════════════════════════════════════════════════════════════════
 
-.PHONY: all proto proto-lint proto-breaking build test \
+.PHONY: all proto proto-lint proto-breaking proto-android build test \
         docker-build docker-up docker-down docker-logs docker-ps \
-        gateway tidy clean ios-open ios-clean help
+        gateway tidy clean ios-open ios-clean android-open help
 
 SERVICES := nlp-service security-service agent-coordinator \
             hardware-service facility-service intelligence-service \
@@ -116,6 +116,17 @@ ios-open:       ## Generate protos then open the Xcode project
 
 ios-clean:      ## Remove Swift generated stubs
 	rm -rf gen/swift/
+
+# ── Android Client ────────────────────────────────────────────────
+
+ANDROID_PROJECT := clients/android
+
+proto-android:  ## Generate Kotlin/gRPC stubs via Gradle (output: app/build/generated/source/proto/)
+	cd $(ANDROID_PROJECT) && ./gradlew generateDebugProto
+
+android-open:   ## Generate Android proto stubs then open in Android Studio
+	@$(MAKE) proto-android
+	open $(ANDROID_PROJECT)
 
 
 test-voice:     ## Run voice-service unit + integration tests only
