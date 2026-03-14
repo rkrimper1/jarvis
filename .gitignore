@@ -3,3 +3,4 @@ docs/openapi/
 bin/
 *.test
 .DS_Store
+.claude/
