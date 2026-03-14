@@ -13,6 +13,15 @@ success() { echo -e "${GREEN}✔ $*${NC}"; }
 warn()    { echo -e "${YELLOW}⚠ $*${NC}"; }
 die()     { echo -e "${RED}✘ $*${NC}"; exit 1; }
 
+# ── 0. System packages ────────────────────────────────────────────────
+if ! command -v xdg-open >/dev/null 2>&1; then
+  info "Installing xdg-utils (provides xdg-open)..."
+  sudo apt-get install -y xdg-utils 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "xdg-utils installed"
+else
+  success "xdg-open already installed"
+fi
+
 command -v go >/dev/null 2>&1 || die "Go is not installed. Install from https://go.dev/dl/"
 info "Go version: $(go version | awk '{print $3}' | sed 's/go//')"
 

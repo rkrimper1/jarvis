@@ -106,13 +106,23 @@ tidy: proto     ## Generate protos then tidy Go modules (gen/ must exist first)
 clean:          ## Remove compiled binaries and generated code
 	rm -rf bin/ gen/ docs/openapi/
 
+# ── Open helper (macOS: open, Linux: xdg-open / studio) ──────────────
+
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+  OPEN := open
+else
+  # Prefer Android Studio CLI on Linux; fall back to xdg-open
+  OPEN := $(shell command -v studio 2>/dev/null || command -v xdg-open 2>/dev/null || echo open)
+endif
+
 # ── iOS Client ────────────────────────────────────────────────────────
 
 IOS_PROJECT := clients/ios/JarvisClient/JarvisClient.xcodeproj
 
 ios-open:       ## Generate protos then open the Xcode project
 	@$(MAKE) proto
-	open $(IOS_PROJECT)
+	$(OPEN) $(IOS_PROJECT)
 
 ios-clean:      ## Remove Swift generated stubs
 	rm -rf gen/swift/
@@ -126,7 +136,7 @@ proto-android:  ## Generate Kotlin/gRPC stubs via Gradle (output: app/build/gene
 
 android-open:   ## Generate Android proto stubs then open in Android Studio
 	@$(MAKE) proto-android
-	open $(ANDROID_PROJECT)
+	$(OPEN) $(ANDROID_PROJECT)
 
 
 test-voice:     ## Run voice-service unit + integration tests only
