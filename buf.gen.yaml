@@ -4,19 +4,19 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/rkrimper1/jarvis/gen
+      value: github.com/rkrimper1/jarvis/api/pb
       path: proto
 
 plugins:
 # ── Go: protobuf messages ──────────────────────────────────────────
   - remote: buf.build/protocolbuffers/go
-    out: gen
+    out: api/pb
     opt:
       - paths=source_relative
 
   # ── Go: gRPC service stubs ─────────────────────────────────────────
   - remote: buf.build/grpc/go
-    out: gen
+    out: api/pb
     opt:
       - paths=source_relative
 
@@ -37,7 +37,7 @@ plugins:
 
   # ── Go: grpc-gateway HTTP transcoding ─────────────────────────────
   - remote: buf.build/grpc-ecosystem/gateway
-    out: gen
+    out: api/pb
     opt:
       - paths=source_relative
 

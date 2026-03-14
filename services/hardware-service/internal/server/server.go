@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	commonv1 "github.com/rkrimper1/jarvis/gen/common"
-	hardwarev1 "github.com/rkrimper1/jarvis/gen/hardware"
+	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
+	hardwarev1 "github.com/rkrimper1/jarvis/api/pb/hardware"
 	"github.com/rkrimper1/jarvis/services/hardware-service/internal/config"
 	"github.com/rkrimper1/jarvis/services/hardware-service/internal/device"
 	"github.com/rkrimper1/jarvis/services/hardware-service/internal/telemetry"

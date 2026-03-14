@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	hardwarev1 "github.com/rkrimper1/jarvis/gen/hardware"
+	hardwarev1 "github.com/rkrimper1/jarvis/api/pb/hardware"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

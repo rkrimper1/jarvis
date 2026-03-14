@@ -5,7 +5,7 @@ package dispatcher
 import (
 	"log/slog"
 
-	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
+	agentv1 "github.com/rkrimper1/jarvis/api/pb/agent"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/registry"
 )
 

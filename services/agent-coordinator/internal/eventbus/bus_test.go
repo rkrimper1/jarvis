@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	commonv1 "github.com/rkrimper1/jarvis/gen/common"
+	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/eventbus"
 )
 

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package jarvis.intelligence;
-option go_package = "github.com/rkrimper1/jarvis/gen/intelligence";
+option go_package = "github.com/rkrimper1/jarvis/api/pb/intelligence";
 
 import "common/common.proto";
 import "google/protobuf/timestamp.proto";

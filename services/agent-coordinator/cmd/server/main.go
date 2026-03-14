@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
+	agentv1 "github.com/rkrimper1/jarvis/api/pb/agent"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/config"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/server"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/pkg/middleware"

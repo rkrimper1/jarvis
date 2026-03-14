@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package jarvis.common;
 
-option go_package = "github.com/rkrimper1/jarvis/gen/common";
+option go_package = "github.com/rkrimper1/jarvis/api/pb/common";
 
 import "google/protobuf/timestamp.proto";
 

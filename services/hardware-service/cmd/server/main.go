@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	hardwarev1 "github.com/rkrimper1/jarvis/gen/hardware"
+	hardwarev1 "github.com/rkrimper1/jarvis/api/pb/hardware"
 	"github.com/rkrimper1/jarvis/services/hardware-service/internal/config"
 	"github.com/rkrimper1/jarvis/services/hardware-service/internal/server"
 	"github.com/rkrimper1/jarvis/services/hardware-service/pkg/middleware"

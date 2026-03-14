@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
-	commonv1 "github.com/rkrimper1/jarvis/gen/common"
+	agentv1 "github.com/rkrimper1/jarvis/api/pb/agent"
+	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
-	commonv1 "github.com/rkrimper1/jarvis/gen/common"
+	agentv1 "github.com/rkrimper1/jarvis/api/pb/agent"
+	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/config"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/dispatcher"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/eventbus"

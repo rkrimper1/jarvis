@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
+	agentv1 "github.com/rkrimper1/jarvis/api/pb/agent"
 	"github.com/rkrimper1/jarvis/services/agent-coordinator/internal/registry"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

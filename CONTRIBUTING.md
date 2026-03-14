@@ -35,14 +35,14 @@ Thank you for contributing to **Just A Rather Very Intelligent System**. This gu
 git clone https://github.com/rkrimper1/jarvis.git
 cd jarvis
 
-# Bootstrap: installs buf plugins, generates gen/, runs go mod tidy
+# Bootstrap: installs buf plugins, generates api/pb/, runs go mod tidy
 bash setup.sh
 
 # Verify everything builds
 make build
 ```
 
-> **Do not** run `go mod tidy` before `gen/` exists — the generated code is a required dependency. `setup.sh` handles ordering correctly.
+> **Do not** run `go mod tidy` before `api/pb/` exists — the generated code is a required dependency. `setup.sh` handles ordering correctly.
 
 ---
 
@@ -50,55 +50,58 @@ make build
 
 ```
 jarvis/
-├── proto/                        # Source of truth — edit these, never gen/
+├── proto/                        # Source of truth — edit these, never api/pb/
 │   ├── common/common.proto       # Shared types (RequestMeta, ResponseMeta, Severity, …)
-│   ├── nlp/nlp.proto
-│   ├── security/security.proto
-│   ├── agent/agent.proto
-│   ├── hardware/hardware.proto
+│   ├── business/business.proto
 │   ├── facility/facility.proto
 │   ├── intelligence/intelligence.proto
-│   ├── business/business.proto
 │   ├── learning/learning.proto
+│   ├── nlp/nlp.proto
+│   ├── security/security.proto
 │   └── voice/voice.proto
-├── gen/                          # Generated code — gitignored, do not edit
-│   ├── <domain>/                 # Go stubs (protobuf + gRPC)
-│   └── swift/                    # Swift stubs for the iOS client
-├── services/                     # gRPC service implementations (Go)
-│   ├── nlp-service/
-│   ├── security-service/
-│   ├── agent-coordinator/
-│   ├── hardware-service/
-│   ├── facility-service/
-│   ├── intelligence-service/
-│   ├── business-ops-service/
-│   ├── learning-service/
-│   └── voice-service/
-│       └── cmd/server/           # Each service follows this layout
-│           internal/             # (business logic, unexported)
-│           └── pkg/middleware/   # (shared gRPC interceptors)
-├── gateway/                      # API Gateway — REST ↔ gRPC transcoding
-│   ├── cmd/server/main.go
-│   ├── internal/
-│   │   ├── config/
-│   │   ├── middleware/
-│   │   └── proxy/
-│   └── docs/api-reference.md
+├── api/                          # Single Go module — one binary
+│   ├── cmd/grpc-server/          # Entry point
+│   │   ├── main.go               # Listeners, env vars, graceful shutdown
+│   │   ├── server.go             # Wires all 7 services onto gRPC + grpc-gateway
+│   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
+│   ├── internal/                 # Service implementations (Go internal package)
+│   │   ├── business-ops/server/
+│   │   ├── facility/server/
+│   │   ├── intelligence/server/
+│   │   ├── learning/server/
+│   │   ├── nlp/
+│   │   │   ├── config/
+│   │   │   └── server/
+│   │   ├── security/
+│   │   │   ├── config/
+│   │   │   └── server/
+│   │   └── voice/
+│   │       ├── config/
+│   │       └── server/
+│   ├── middleware/               # Shared gRPC interceptors (logging, panic recovery)
+│   │   └── interceptors.go
+│   ├── pb/                       # Generated Go stubs — gitignored, do not edit
+│   │   ├── business/
+│   │   ├── facility/
+│   │   ├── intelligence/
+│   │   ├── learning/
+│   │   ├── nlp/
+│   │   ├── security/
+│   │   └── voice/
+│   └── rest/                     # grpc-gateway custom error handler
+├── gen/
+│   └── swift/                    # Generated Swift stubs for the iOS client
 ├── clients/
-│   └── ios/JarvisClient/         # SwiftUI iOS client
-│       ├── JarvisClient/
-│       │   ├── Services/         # GRPCVoiceService, AudioCaptureEngine, WakeWordDetector
-│       │   ├── ViewModels/       # VoiceViewModel
-│       │   └── Proto/            # Symlink / copy of gen/swift stubs
-│       └── Views/                # HUDView, TranscriptView, WaveformView, DesignSystem
-├── docker/                       # Dockerfiles + orchestration
-│   ├── docker-compose.yml
-│   ├── envoy.yaml
-│   ├── proto-gen/Dockerfile      # Buf codegen container
-│   └── <service>/Dockerfile      # One per service + gateway
+│   ├── ios/JarvisClient/         # SwiftUI iOS client
+│   └── android/                  # Android client
+├── docker/
+│   ├── jarvis/Dockerfile         # Multi-stage build → single static binary
+│   └── docker-compose.yml        # jarvis + redis only
+├── gateway/
+│   └── docs/api-reference.md     # REST API reference
 ├── docs/openapi/                 # Generated OpenAPI spec — gitignored
 ├── buf.yaml                      # Buf lint / breaking-change config
-├── buf.gen.yaml                  # Code generation config (Go + Swift plugins)
+├── buf.gen.yaml                  # Code generation config (Go → api/pb/, Swift → gen/swift/)
 ├── buf.lock                      # Pinned buf dependency versions
 ├── go.mod / go.sum
 ├── Makefile
@@ -114,7 +117,7 @@ jarvis/
 Always regenerate after editing any `.proto` file:
 
 ```bash
-make proto        # runs buf generate
+make proto        # runs buf generate → api/pb/
 make proto-lint   # must pass before opening a PR
 ```
 
@@ -129,16 +132,16 @@ Breaking changes to existing RPCs or message fields require a discussion in the 
 ### 3. Build and test locally
 
 ```bash
-make build        # compiles all service binaries into bin/
+make build        # compiles bin/jarvis
 make test         # go test ./... -race -cover
 ```
 
 ### 4. Run the full stack
 
 ```bash
-make docker-up        # builds images and starts all services
-make docker-logs      # tail all logs
-make logs-nlp-service # tail a single service
+make docker-up        # builds image and starts jarvis + redis
+make docker-logs      # tail logs
+make logs-jarvis      # tail jarvis service only
 make docker-down      # stop everything
 ```
 
@@ -162,7 +165,7 @@ All `.proto` files live under `proto/<domain>/`. Follow these rules:
 | Unary | Request/response with a defined end |
 | Server streaming | Continuous data pushed to client (telemetry, alerts) |
 | Client streaming | Continuous data pushed to server (voice input) |
-| Bidirectional | Ongoing dialogue between client and service (suit control, agent heartbeat) |
+| Bidirectional | Ongoing dialogue between client and service |
 
 ---
 
@@ -170,12 +173,16 @@ All `.proto` files live under `proto/<domain>/`. Follow these rules:
 
 1. **Define the proto** under `proto/<domain>/<domain>.proto`
 2. **Regenerate**: `make proto`
-3. **Implement** the service under `services/<service-name>/`
-   - Follow the layout of an existing service (e.g., `services/nlp-service/`)
-   - Entry point: `services/<service-name>/cmd/server/main.go`
-4. **Add a Dockerfile** at `docker/<service-name>/Dockerfile`
-5. **Register** the service in `docker/docker-compose.yml` and `Makefile` (`SERVICES` list)
-6. **Wire routing** in the gateway if REST access is needed
+3. **Implement** the service under `api/internal/<service>/server/`
+   - Follow the layout of an existing service (e.g., `api/internal/facility/server/`)
+   - Config (if needed): `api/internal/<service>/config/`
+4. **Register** in `api/cmd/grpc-server/server.go`:
+   - Instantiate the server and call `RegisterXxxServiceServer(grpcSrv, srv)`
+   - Call `RegisterXxxServiceHandlerServer(ctx, gwMux, srv)` for REST
+   - Add the fully-qualified service name to `serviceNames` for health tracking
+5. **No new Dockerfile or compose entry needed** — the service runs inside the single `jarvis` binary
+
+If the new service needs to call another service in-process, follow the `nlpServerAdapter` pattern in `api/cmd/grpc-server/nlp_adapter.go` — wrap the `ServiceServer` to satisfy the `ServiceClient` interface rather than dialing over gRPC.
 
 ---
 
@@ -183,7 +190,7 @@ All `.proto` files live under `proto/<domain>/`. Follow these rules:
 
 - Unit tests live alongside the code they test (`foo_test.go` next to `foo.go`)
 - Use the race detector: `make test` runs with `-race` by default
-- Aim for coverage on business logic; generated code in `gen/` does not need tests
+- Aim for coverage on business logic; generated code in `api/pb/` does not need tests
 - Integration tests that require a running service should be in a `_integration_test.go` file with build tag `//go:build integration`
 
 ---
@@ -212,7 +219,7 @@ Branch off `main` using this naming convention:
 ```bash
 git checkout -b feat/stream-security-alerts
 git checkout -b proto/add-confidence-field
-git checkout -b fix/gateway-hardware-route
+git checkout -b fix/voice-wake-word-threshold
 ```
 
 Keep branch names lowercase and hyphen-separated. Delete the branch after the PR is merged.
@@ -242,7 +249,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 feat(security): add StreamSecurityAlerts server-streaming RPC
 proto(nlp): add confidence field to IntentResponse
-fix(gateway): correct route prefix for hardware endpoints
+fix(voice): correct wake word threshold default
 ```
 
 ### Pull requests
@@ -253,8 +260,9 @@ fix(gateway): correct route prefix for hardware endpoints
   - `make proto-lint`
   - `make proto-breaking`
   - `make test`
-- attach the results of above to the PR request as a text file
-- Describe *why* the change is needed, not just what it does 
+- Attach the results of above to the PR as a text file
+- Describe *why* the change is needed, not just what it does
+
 ---
 
 ## Make Targets Reference
@@ -265,12 +273,13 @@ Key targets:
 
 | Target | Description |
 |---|---|
-| `make proto` | Generate Go stubs from proto files |
+| `make proto` | Generate Go stubs from proto files (→ `api/pb/`) |
 | `make proto-lint` | Lint proto files |
 | `make proto-breaking` | Check for breaking changes vs main |
-| `make build` | Build all service binaries |
+| `make proto-android` | Generate Kotlin/gRPC stubs via Gradle |
+| `make build` | Build `bin/jarvis` |
 | `make test` | Run all tests with race detector |
-| `make docker-up` | Build images and start all services |
+| `make docker-up` | Build image and start jarvis + redis |
 | `make docker-down` | Stop all services |
 | `make tidy` | Generate protos then run go mod tidy |
-| `make clean` | Remove bin/, gen/, docs/openapi/ |
+| `make clean` | Remove `bin/`, `api/pb/`, `docs/openapi/` |

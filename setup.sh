@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────
 #  JARVIS — Project Bootstrap
 #  Run once after cloning/extracting. Installs buf + Go protoc plugins,
-#  generates proto stubs into gen/, then runs go mod tidy.
+#  generates proto stubs into api/pb/, then runs go mod tidy.
 #  Prerequisites: Go 1.22+, internet access
 # ─────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -97,42 +97,26 @@ install_plugin() {
   fi
 }
 
-install_plugin "google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2"                              protoc-gen-go
-install_plugin "google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0"                              protoc-gen-go-grpc
-install_plugin "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.20.0"         protoc-gen-grpc-gateway
-install_plugin "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.20.0"            protoc-gen-openapiv2
+install_plugin "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11"                             protoc-gen-go
+install_plugin "google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1"                             protoc-gen-go-grpc
+install_plugin "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.20.0"        protoc-gen-grpc-gateway
+install_plugin "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.20.0"           protoc-gen-openapiv2
+install_plugin "github.com/fullstorydev/grpcurl/cmd/grpcurl@latest"                               grpcurl
 
 # ── 3. Generate proto stubs ───────────────────────────────────────────
 info "Generating proto stubs..."
-rm -rf gen docs/openapi
-mkdir -p gen docs/openapi
+rm -rf api/pb docs/openapi
+mkdir -p api/pb docs/openapi
 
 buf dep update 2>&1 | grep -v "^WARN" || true
 buf generate 2>&1 | grep -v "^WARN" || true
 
-# Remove google/api stubs emitted by buf — these live in google.golang.org/genproto
-if [ -d "gen/google" ]; then
-  warn "Removing gen/google/ (provided by google.golang.org/genproto)"
-  rm -rf gen/google
-fi
-for dir in gen/grpc gen/protoc_gen_openapiv2; do
-  [ -d "$dir" ] && rm -rf "$dir" && warn "Removed $dir/"
-done
+success "Proto stubs generated in api/pb/"
 
-success "Proto stubs generated in gen/"
-
-# ── 4. Pin deps to Go 1.22-compatible versions, then tidy ────────────
-info "Pinning Go 1.22-compatible dependency versions..."
-# Pin before tidy so go mod tidy doesn't resolve to newer incompatible versions
-go get google.golang.org/grpc@v1.65.0                                                  2>&1 | grep -v "^warning:" || true
-go get google.golang.org/protobuf@v1.34.2                                              2>&1 | grep -v "^warning:" || true
-go get github.com/grpc-ecosystem/grpc-gateway/v2@v2.20.0                               2>&1 | grep -v "^warning:" || true
-go get google.golang.org/genproto/googleapis/api@v0.0.0-20240617180043-68d350f18fd4   2>&1 | grep -v "^warning:" || true
-go get google.golang.org/genproto/googleapis/rpc@v0.0.0-20240617180043-68d350f18fd4   2>&1 | grep -v "^warning:" || true
-
+# ── 4. Tidy modules ───────────────────────────────────────────────────
 info "Running go mod tidy..."
 go mod tidy 2>&1 | grep -v "^warning:" || true
-success "go.sum created"
+success "go.sum updated"
 
 # ── 5. Android Gradle wrapper ─────────────────────────────────────────
 ANDROID_DIR="clients/android"
