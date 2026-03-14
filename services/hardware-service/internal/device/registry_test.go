@@ -3,7 +3,7 @@ package device_test
 import (
 	"testing"
 
-	hardwarev1 "github.com/rkrimper1/jarvis/gen/hardware"
+	hardwarev1 "github.com/rkrimper1/jarvis/api/pb/hardware"
 	"github.com/rkrimper1/jarvis/services/hardware-service/internal/device"
 )
 

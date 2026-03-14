@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	agentv1 "github.com/rkrimper1/jarvis/gen/agent"
+	agentv1 "github.com/rkrimper1/jarvis/api/pb/agent"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
