@@ -37,9 +37,15 @@ build:          ## Build the single Jarvis binary
 	@echo "▶ Building jarvis..."
 	@go build -o bin/jarvis ./api/cmd/grpc-server
 
-run:            ## Build then run the binary directly (no Docker)
+ENV_PATH ?= /home/vagrant/credentials/jarvis/.env
+
+run:            ## Build then run the binary directly (loads $$ENV_PATH if present)
 	@$(MAKE) build
-	./bin/jarvis
+	@if [ -f "$(ENV_PATH)" ]; then \
+		export $$(grep -v '^#' "$(ENV_PATH)" | grep -v '^$$' | xargs) && ./bin/jarvis; \
+	else \
+		./bin/jarvis; \
+	fi
 
 # ── Test ─────────────────────────────────────────────────────────────
 
@@ -54,16 +60,19 @@ test-voice:     ## Run voice tests only
 
 # ── Docker ───────────────────────────────────────────────────────────
 
+ENV_FILE := $(wildcard $(ENV_PATH))
+ENV_FLAG  := $(if $(ENV_FILE),--env-file $(ENV_PATH))
+
 docker-build:   ## Build the Jarvis Docker image
-	$(DC) -f $(COMPOSE_FILE) build
+	$(DC) $(ENV_FLAG) -f $(COMPOSE_FILE) build
 
 docker-up:      ## Build image then start jarvis + redis in background
-	$(DC) -f $(COMPOSE_FILE) build
-	$(DC) -f $(COMPOSE_FILE) up -d
+	$(DC) $(ENV_FLAG) -f $(COMPOSE_FILE) build
+	$(DC) $(ENV_FLAG) -f $(COMPOSE_FILE) up -d
 
 docker-up-fg:   ## Build image then start in foreground (shows logs)
-	$(DC) -f $(COMPOSE_FILE) build
-	$(DC) -f $(COMPOSE_FILE) up
+	$(DC) $(ENV_FLAG) -f $(COMPOSE_FILE) build
+	$(DC) $(ENV_FLAG) -f $(COMPOSE_FILE) up
 
 docker-down:    ## Stop and remove all containers
 	$(DC) -f $(COMPOSE_FILE) down
