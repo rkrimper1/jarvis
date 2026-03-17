@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"google.golang.org/grpc/codes"
@@ -14,6 +15,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/business-ops/messaging"
 	"github.com/rkrimper1/jarvis/api/internal/business-ops/reports"
 	"github.com/rkrimper1/jarvis/api/internal/business-ops/tasks"
+	"github.com/rkrimper1/jarvis/api/internal/integrations/email"
 )
 
 // BusinessOpsServer implements businessv1.BusinessOpsServiceServer.
@@ -22,17 +24,26 @@ type BusinessOpsServer struct {
 	cal      *calendar.Store
 	tasks    *tasks.Store
 	router   *messaging.Router
+	smtp     *email.Config
 	log      *slog.Logger
 }
 
 // New wires all dependencies.
+// If SMTP env vars are present the server will send calendar invites on ScheduleEvent;
+// if they are missing it logs a warning and continues without email.
 func New(log *slog.Logger) *BusinessOpsServer {
-	return &BusinessOpsServer{
+	srv := &BusinessOpsServer{
 		cal:    calendar.New(),
 		tasks:  tasks.New(),
 		router: messaging.New(log),
 		log:    log,
 	}
+	if cfg, err := email.ConfigFromEnv(); err != nil {
+		log.Warn("email invites disabled", slog.String("reason", err.Error()))
+	} else {
+		srv.smtp = &cfg
+	}
+	return srv
 }
 
 func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.ScheduleEventRequest) (*businessv1.ScheduleEventResponse, error) {
@@ -43,10 +54,6 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 		return nil, status.Error(codes.InvalidArgument, "title is required")
 	}
 
-	var start, end interface{ AsTime() interface{ IsZero() bool } }
-	_ = start
-	_ = end
-
 	startTime := req.GetStart().AsTime()
 	endTime := req.GetEnd().AsTime()
 
@@ -56,6 +63,27 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 		req.Title, req.Description, req.Location,
 		req.Attendees, startTime, endTime, req.HighPriority,
 	)
+
+	// Send calendar invite via email (soft failure — never fails the RPC).
+	if s.smtp != nil {
+		go func() {
+			ics := email.BuildICS(email.Event{
+				Title:          req.Title,
+				Description:    req.Description,
+				Location:       req.Location,
+				Attendees:      req.Attendees,
+				Start:          startTime,
+				End:            endTime,
+				OrganizerEmail: s.smtp.User,
+			})
+			subject := fmt.Sprintf("Invite: %s", req.Title)
+			if err := email.SendInvite(*s.smtp, subject, ics, req.Attendees); err != nil {
+				s.log.Warn("calendar invite not sent", slog.String("event_id", id), slog.Any("error", err))
+			} else {
+				s.log.Info("calendar invite sent", slog.String("event_id", id), slog.String("organizer", s.smtp.Organizer))
+			}
+		}()
+	}
 
 	return &businessv1.ScheduleEventResponse{
 		Meta:         metaOK(req.Meta.RequestId),

@@ -67,6 +67,15 @@ services:
       # ── GCP (shared by STT + TTS when provider != stub) ──────────
       - GCP_PROJECT=${GCP_PROJECT:-}
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
+
+      # ── Email / Calendar invites (optional) ──────────────────────
+      # Set all five to enable calendar invite emails on ScheduleEvent.
+      # SMTP_PASS should be a Gmail App Password (not your login password).
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_TO=${SMTP_TO:-}
     ports:
       - "50051:50051"
       - "8080:8080"

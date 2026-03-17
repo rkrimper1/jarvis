@@ -194,11 +194,32 @@ curl -X POST http://localhost:8080/v1/business/schedule \
   -d '{
     "meta": {"request_id": "sched-001"},
     "title": "Stark Expo Press Conference",
-    "attendees": ["tony-stark", "pepper-potts", "happy-hogan"],
+    "description": "Q4 press briefing and live demo of the new arc reactor.",
+    "attendees": ["pepper@starkindustries.com", "happy@starkindustries.com"],
     "location": "stark-expo-pavilion",
+    "start": "2026-04-01T14:00:00Z",
+    "end":   "2026-04-01T15:00:00Z",
     "high_priority": true
   }'
 ```
+
+**Calendar invite:** If `SMTP_*` env vars are configured, JARVIS will automatically
+email an iCalendar (`.ics`) invite to every address in `attendees`, plus the organizer
+(`SMTP_TO`). Each recipient receives the invite as an email attachment — open it to
+add the event to their calendar.
+
+> **Setup** — requires a Gmail App Password:
+> 1. Enable 2-Step Verification on your Google Account
+> 2. Go to **myaccount.google.com/apppasswords** → create an app password named `jarvis`
+> 3. Set env vars (store outside the repo, e.g. `/home/vagrant/credentials/jarvis/.env`):
+>    ```
+>    SMTP_HOST=smtp.gmail.com
+>    SMTP_PORT=587
+>    SMTP_USER=you@gmail.com
+>    SMTP_PASS=<16-char app password>
+>    SMTP_TO=you@gmail.com
+>    ```
+> 4. Run with `make run` — env file is loaded automatically from `ENV_PATH`.
 
 ### Get Schedule
 ```bash
@@ -289,6 +310,18 @@ grpcurl -plaintext -d '{
   "raw_text": "Power up the Mark VII",
   "session_id": "session-001"
 }' localhost:50051 jarvis.nlp.NLPService/ParseIntent
+
+# Schedule an event (triggers calendar invite email if SMTP is configured)
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "grpc-sched-001"},
+  "title": "Stark Expo Press Conference",
+  "description": "Q4 press briefing and live demo.",
+  "location": "stark-expo-pavilion",
+  "attendees": ["pepper@starkindustries.com", "happy@starkindustries.com"],
+  "start": "2026-04-01T14:00:00Z",
+  "end":   "2026-04-01T15:00:00Z",
+  "high_priority": true
+}' localhost:50051 jarvis.business.BusinessOpsService/ScheduleEvent
 
 # Health check
 grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
