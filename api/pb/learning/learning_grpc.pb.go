@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: learning/learning.proto
+// source: pb/learning/learning.proto
 
 package learning
 
@@ -235,5 +235,5 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "learning/learning.proto",
+	Metadata: "pb/learning/learning.proto",
 }

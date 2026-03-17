@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: facility/facility.proto
+// source: pb/facility/facility.proto
 
 package facility
 
@@ -235,5 +235,5 @@ var FacilityService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "facility/facility.proto",
+	Metadata: "pb/facility/facility.proto",
 }

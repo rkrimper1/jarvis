@@ -4,7 +4,7 @@ package jarvis.voice;
 
 option go_package = "github.com/rkrimper1/jarvis/api/pb/voice";
 
-import "common/common.proto";
+import "pb/common/common.proto";
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 

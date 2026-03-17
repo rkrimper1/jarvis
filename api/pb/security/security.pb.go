@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: security/security.proto
+// source: pb/security/security.proto
 
 package security
 
@@ -66,11 +66,11 @@ func (x AuthMethod) String() string {
 }
 
 func (AuthMethod) Descriptor() protoreflect.EnumDescriptor {
-	return file_security_security_proto_enumTypes[0].Descriptor()
+	return file_pb_security_security_proto_enumTypes[0].Descriptor()
 }
 
 func (AuthMethod) Type() protoreflect.EnumType {
-	return &file_security_security_proto_enumTypes[0]
+	return &file_pb_security_security_proto_enumTypes[0]
 }
 
 func (x AuthMethod) Number() protoreflect.EnumNumber {
@@ -79,7 +79,7 @@ func (x AuthMethod) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AuthMethod.Descriptor instead.
 func (AuthMethod) EnumDescriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{0}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{0}
 }
 
 type ThreatLevel int32
@@ -121,11 +121,11 @@ func (x ThreatLevel) String() string {
 }
 
 func (ThreatLevel) Descriptor() protoreflect.EnumDescriptor {
-	return file_security_security_proto_enumTypes[1].Descriptor()
+	return file_pb_security_security_proto_enumTypes[1].Descriptor()
 }
 
 func (ThreatLevel) Type() protoreflect.EnumType {
-	return &file_security_security_proto_enumTypes[1]
+	return &file_pb_security_security_proto_enumTypes[1]
 }
 
 func (x ThreatLevel) Number() protoreflect.EnumNumber {
@@ -134,7 +134,7 @@ func (x ThreatLevel) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ThreatLevel.Descriptor instead.
 func (ThreatLevel) EnumDescriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{1}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{1}
 }
 
 type ProtocolType int32
@@ -176,11 +176,11 @@ func (x ProtocolType) String() string {
 }
 
 func (ProtocolType) Descriptor() protoreflect.EnumDescriptor {
-	return file_security_security_proto_enumTypes[2].Descriptor()
+	return file_pb_security_security_proto_enumTypes[2].Descriptor()
 }
 
 func (ProtocolType) Type() protoreflect.EnumType {
-	return &file_security_security_proto_enumTypes[2]
+	return &file_pb_security_security_proto_enumTypes[2]
 }
 
 func (x ProtocolType) Number() protoreflect.EnumNumber {
@@ -189,7 +189,7 @@ func (x ProtocolType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ProtocolType.Descriptor instead.
 func (ProtocolType) EnumDescriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{2}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{2}
 }
 
 type AuthenticateRequest struct {
@@ -204,7 +204,7 @@ type AuthenticateRequest struct {
 
 func (x *AuthenticateRequest) Reset() {
 	*x = AuthenticateRequest{}
-	mi := &file_security_security_proto_msgTypes[0]
+	mi := &file_pb_security_security_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -216,7 +216,7 @@ func (x *AuthenticateRequest) String() string {
 func (*AuthenticateRequest) ProtoMessage() {}
 
 func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[0]
+	mi := &file_pb_security_security_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -229,7 +229,7 @@ func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateRequest.ProtoReflect.Descriptor instead.
 func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{0}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *AuthenticateRequest) GetMeta() *common.RequestMeta {
@@ -273,7 +273,7 @@ type AuthenticateResponse struct {
 
 func (x *AuthenticateResponse) Reset() {
 	*x = AuthenticateResponse{}
-	mi := &file_security_security_proto_msgTypes[1]
+	mi := &file_pb_security_security_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -285,7 +285,7 @@ func (x *AuthenticateResponse) String() string {
 func (*AuthenticateResponse) ProtoMessage() {}
 
 func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[1]
+	mi := &file_pb_security_security_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -298,7 +298,7 @@ func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{1}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AuthenticateResponse) GetMeta() *common.ResponseMeta {
@@ -348,7 +348,7 @@ type AssessThreatRequest struct {
 
 func (x *AssessThreatRequest) Reset() {
 	*x = AssessThreatRequest{}
-	mi := &file_security_security_proto_msgTypes[2]
+	mi := &file_pb_security_security_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -360,7 +360,7 @@ func (x *AssessThreatRequest) String() string {
 func (*AssessThreatRequest) ProtoMessage() {}
 
 func (x *AssessThreatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[2]
+	mi := &file_pb_security_security_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -373,7 +373,7 @@ func (x *AssessThreatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssessThreatRequest.ProtoReflect.Descriptor instead.
 func (*AssessThreatRequest) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{2}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AssessThreatRequest) GetMeta() *common.RequestMeta {
@@ -417,7 +417,7 @@ type AssessThreatResponse struct {
 
 func (x *AssessThreatResponse) Reset() {
 	*x = AssessThreatResponse{}
-	mi := &file_security_security_proto_msgTypes[3]
+	mi := &file_pb_security_security_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -429,7 +429,7 @@ func (x *AssessThreatResponse) String() string {
 func (*AssessThreatResponse) ProtoMessage() {}
 
 func (x *AssessThreatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[3]
+	mi := &file_pb_security_security_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -442,7 +442,7 @@ func (x *AssessThreatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssessThreatResponse.ProtoReflect.Descriptor instead.
 func (*AssessThreatResponse) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{3}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AssessThreatResponse) GetMeta() *common.ResponseMeta {
@@ -492,7 +492,7 @@ type ExecuteProtocolRequest struct {
 
 func (x *ExecuteProtocolRequest) Reset() {
 	*x = ExecuteProtocolRequest{}
-	mi := &file_security_security_proto_msgTypes[4]
+	mi := &file_pb_security_security_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -504,7 +504,7 @@ func (x *ExecuteProtocolRequest) String() string {
 func (*ExecuteProtocolRequest) ProtoMessage() {}
 
 func (x *ExecuteProtocolRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[4]
+	mi := &file_pb_security_security_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -517,7 +517,7 @@ func (x *ExecuteProtocolRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteProtocolRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteProtocolRequest) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{4}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ExecuteProtocolRequest) GetMeta() *common.RequestMeta {
@@ -559,7 +559,7 @@ type ExecuteProtocolResponse struct {
 
 func (x *ExecuteProtocolResponse) Reset() {
 	*x = ExecuteProtocolResponse{}
-	mi := &file_security_security_proto_msgTypes[5]
+	mi := &file_pb_security_security_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -571,7 +571,7 @@ func (x *ExecuteProtocolResponse) String() string {
 func (*ExecuteProtocolResponse) ProtoMessage() {}
 
 func (x *ExecuteProtocolResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[5]
+	mi := &file_pb_security_security_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -584,7 +584,7 @@ func (x *ExecuteProtocolResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteProtocolResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteProtocolResponse) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{5}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ExecuteProtocolResponse) GetMeta() *common.ResponseMeta {
@@ -622,7 +622,7 @@ type GetAuditLogRequest struct {
 
 func (x *GetAuditLogRequest) Reset() {
 	*x = GetAuditLogRequest{}
-	mi := &file_security_security_proto_msgTypes[6]
+	mi := &file_pb_security_security_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +634,7 @@ func (x *GetAuditLogRequest) String() string {
 func (*GetAuditLogRequest) ProtoMessage() {}
 
 func (x *GetAuditLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[6]
+	mi := &file_pb_security_security_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +647,7 @@ func (x *GetAuditLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuditLogRequest.ProtoReflect.Descriptor instead.
 func (*GetAuditLogRequest) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{6}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetAuditLogRequest) GetMeta() *common.RequestMeta {
@@ -706,7 +706,7 @@ type AuditEntry struct {
 
 func (x *AuditEntry) Reset() {
 	*x = AuditEntry{}
-	mi := &file_security_security_proto_msgTypes[7]
+	mi := &file_pb_security_security_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -718,7 +718,7 @@ func (x *AuditEntry) String() string {
 func (*AuditEntry) ProtoMessage() {}
 
 func (x *AuditEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[7]
+	mi := &file_pb_security_security_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -731,7 +731,7 @@ func (x *AuditEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditEntry.ProtoReflect.Descriptor instead.
 func (*AuditEntry) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{7}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AuditEntry) GetEventId() string {
@@ -787,7 +787,7 @@ type GetAuditLogResponse struct {
 
 func (x *GetAuditLogResponse) Reset() {
 	*x = GetAuditLogResponse{}
-	mi := &file_security_security_proto_msgTypes[8]
+	mi := &file_pb_security_security_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -799,7 +799,7 @@ func (x *GetAuditLogResponse) String() string {
 func (*GetAuditLogResponse) ProtoMessage() {}
 
 func (x *GetAuditLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[8]
+	mi := &file_pb_security_security_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -812,7 +812,7 @@ func (x *GetAuditLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuditLogResponse.ProtoReflect.Descriptor instead.
 func (*GetAuditLogResponse) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{8}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetAuditLogResponse) GetMeta() *common.ResponseMeta {
@@ -849,7 +849,7 @@ type SecurityAlert struct {
 
 func (x *SecurityAlert) Reset() {
 	*x = SecurityAlert{}
-	mi := &file_security_security_proto_msgTypes[9]
+	mi := &file_pb_security_security_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -861,7 +861,7 @@ func (x *SecurityAlert) String() string {
 func (*SecurityAlert) ProtoMessage() {}
 
 func (x *SecurityAlert) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[9]
+	mi := &file_pb_security_security_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -874,7 +874,7 @@ func (x *SecurityAlert) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecurityAlert.ProtoReflect.Descriptor instead.
 func (*SecurityAlert) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{9}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SecurityAlert) GetAlertId() string {
@@ -921,7 +921,7 @@ type StreamSecurityAlertsRequest struct {
 
 func (x *StreamSecurityAlertsRequest) Reset() {
 	*x = StreamSecurityAlertsRequest{}
-	mi := &file_security_security_proto_msgTypes[10]
+	mi := &file_pb_security_security_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +933,7 @@ func (x *StreamSecurityAlertsRequest) String() string {
 func (*StreamSecurityAlertsRequest) ProtoMessage() {}
 
 func (x *StreamSecurityAlertsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[10]
+	mi := &file_pb_security_security_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +946,7 @@ func (x *StreamSecurityAlertsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSecurityAlertsRequest.ProtoReflect.Descriptor instead.
 func (*StreamSecurityAlertsRequest) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{10}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StreamSecurityAlertsRequest) GetMeta() *common.RequestMeta {
@@ -966,7 +966,7 @@ type StreamSecurityAlertsResponse struct {
 
 func (x *StreamSecurityAlertsResponse) Reset() {
 	*x = StreamSecurityAlertsResponse{}
-	mi := &file_security_security_proto_msgTypes[11]
+	mi := &file_pb_security_security_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +978,7 @@ func (x *StreamSecurityAlertsResponse) String() string {
 func (*StreamSecurityAlertsResponse) ProtoMessage() {}
 
 func (x *StreamSecurityAlertsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_security_security_proto_msgTypes[11]
+	mi := &file_pb_security_security_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +991,7 @@ func (x *StreamSecurityAlertsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSecurityAlertsResponse.ProtoReflect.Descriptor instead.
 func (*StreamSecurityAlertsResponse) Descriptor() ([]byte, []int) {
-	return file_security_security_proto_rawDescGZIP(), []int{11}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *StreamSecurityAlertsResponse) GetMeta() *common.ResponseMeta {
@@ -1008,11 +1008,11 @@ func (x *StreamSecurityAlertsResponse) GetAlert() *SecurityAlert {
 	return nil
 }
 
-var File_security_security_proto protoreflect.FileDescriptor
+var File_pb_security_security_proto protoreflect.FileDescriptor
 
-const file_security_security_proto_rawDesc = "" +
+const file_pb_security_security_proto_rawDesc = "" +
 	"\n" +
-	"\x17security/security.proto\x12\x0fjarvis.security\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xc8\x01\n" +
+	"\x1apb/security/security.proto\x12\x0fjarvis.security\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xc8\x01\n" +
 	"\x13AuthenticateRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x1d\n" +
 	"\n" +
@@ -1111,20 +1111,20 @@ const file_security_security_proto_rawDesc = "" +
 	"\x13com.jarvis.securityB\rSecurityProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/security\xa2\x02\x03JSX\xaa\x02\x0fJarvis.Security\xca\x02\x0fJarvis\\Security\xe2\x02\x1bJarvis\\Security\\GPBMetadata\xea\x02\x10Jarvis::Securityb\x06proto3"
 
 var (
-	file_security_security_proto_rawDescOnce sync.Once
-	file_security_security_proto_rawDescData []byte
+	file_pb_security_security_proto_rawDescOnce sync.Once
+	file_pb_security_security_proto_rawDescData []byte
 )
 
-func file_security_security_proto_rawDescGZIP() []byte {
-	file_security_security_proto_rawDescOnce.Do(func() {
-		file_security_security_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_security_security_proto_rawDesc), len(file_security_security_proto_rawDesc)))
+func file_pb_security_security_proto_rawDescGZIP() []byte {
+	file_pb_security_security_proto_rawDescOnce.Do(func() {
+		file_pb_security_security_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_security_security_proto_rawDesc), len(file_pb_security_security_proto_rawDesc)))
 	})
-	return file_security_security_proto_rawDescData
+	return file_pb_security_security_proto_rawDescData
 }
 
-var file_security_security_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_security_security_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_security_security_proto_goTypes = []any{
+var file_pb_security_security_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_pb_security_security_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_pb_security_security_proto_goTypes = []any{
 	(AuthMethod)(0),                      // 0: jarvis.security.AuthMethod
 	(ThreatLevel)(0),                     // 1: jarvis.security.ThreatLevel
 	(ProtocolType)(0),                    // 2: jarvis.security.ProtocolType
@@ -1144,7 +1144,7 @@ var file_security_security_proto_goTypes = []any{
 	(*common.ResponseMeta)(nil),          // 16: jarvis.common.ResponseMeta
 	(*timestamppb.Timestamp)(nil),        // 17: google.protobuf.Timestamp
 }
-var file_security_security_proto_depIdxs = []int32{
+var file_pb_security_security_proto_depIdxs = []int32{
 	15, // 0: jarvis.security.AuthenticateRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.security.AuthenticateRequest.method:type_name -> jarvis.security.AuthMethod
 	16, // 2: jarvis.security.AuthenticateResponse.meta:type_name -> jarvis.common.ResponseMeta
@@ -1184,27 +1184,27 @@ var file_security_security_proto_depIdxs = []int32{
 	0,  // [0:22] is the sub-list for field type_name
 }
 
-func init() { file_security_security_proto_init() }
-func file_security_security_proto_init() {
-	if File_security_security_proto != nil {
+func init() { file_pb_security_security_proto_init() }
+func file_pb_security_security_proto_init() {
+	if File_pb_security_security_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_security_security_proto_rawDesc), len(file_security_security_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_security_security_proto_rawDesc), len(file_pb_security_security_proto_rawDesc)),
 			NumEnums:      3,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_security_security_proto_goTypes,
-		DependencyIndexes: file_security_security_proto_depIdxs,
-		EnumInfos:         file_security_security_proto_enumTypes,
-		MessageInfos:      file_security_security_proto_msgTypes,
+		GoTypes:           file_pb_security_security_proto_goTypes,
+		DependencyIndexes: file_pb_security_security_proto_depIdxs,
+		EnumInfos:         file_pb_security_security_proto_enumTypes,
+		MessageInfos:      file_pb_security_security_proto_msgTypes,
 	}.Build()
-	File_security_security_proto = out.File
-	file_security_security_proto_goTypes = nil
-	file_security_security_proto_depIdxs = nil
+	File_pb_security_security_proto = out.File
+	file_pb_security_security_proto_goTypes = nil
+	file_pb_security_security_proto_depIdxs = nil
 }

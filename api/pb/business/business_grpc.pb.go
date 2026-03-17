@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: business/business.proto
+// source: pb/business/business.proto
 
 package business
 
@@ -269,5 +269,5 @@ var BusinessOpsService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "business/business.proto",
+	Metadata: "pb/business/business.proto",
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: voice/voice.proto
+// source: pb/voice/voice.proto
 
 package voice
 
@@ -63,11 +63,11 @@ func (x AudioEncoding) String() string {
 }
 
 func (AudioEncoding) Descriptor() protoreflect.EnumDescriptor {
-	return file_voice_voice_proto_enumTypes[0].Descriptor()
+	return file_pb_voice_voice_proto_enumTypes[0].Descriptor()
 }
 
 func (AudioEncoding) Type() protoreflect.EnumType {
-	return &file_voice_voice_proto_enumTypes[0]
+	return &file_pb_voice_voice_proto_enumTypes[0]
 }
 
 func (x AudioEncoding) Number() protoreflect.EnumNumber {
@@ -76,7 +76,7 @@ func (x AudioEncoding) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AudioEncoding.Descriptor instead.
 func (AudioEncoding) EnumDescriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{0}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{0}
 }
 
 // Mirrors ErrorCode style from other Jarvis services.
@@ -125,11 +125,11 @@ func (x VoiceErrorCode) String() string {
 }
 
 func (VoiceErrorCode) Descriptor() protoreflect.EnumDescriptor {
-	return file_voice_voice_proto_enumTypes[1].Descriptor()
+	return file_pb_voice_voice_proto_enumTypes[1].Descriptor()
 }
 
 func (VoiceErrorCode) Type() protoreflect.EnumType {
-	return &file_voice_voice_proto_enumTypes[1]
+	return &file_pb_voice_voice_proto_enumTypes[1]
 }
 
 func (x VoiceErrorCode) Number() protoreflect.EnumNumber {
@@ -138,7 +138,7 @@ func (x VoiceErrorCode) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use VoiceErrorCode.Descriptor instead.
 func (VoiceErrorCode) EnumDescriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{1}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{1}
 }
 
 type ControlEvent_Type int32
@@ -184,11 +184,11 @@ func (x ControlEvent_Type) String() string {
 }
 
 func (ControlEvent_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_voice_voice_proto_enumTypes[2].Descriptor()
+	return file_pb_voice_voice_proto_enumTypes[2].Descriptor()
 }
 
 func (ControlEvent_Type) Type() protoreflect.EnumType {
-	return &file_voice_voice_proto_enumTypes[2]
+	return &file_pb_voice_voice_proto_enumTypes[2]
 }
 
 func (x ControlEvent_Type) Number() protoreflect.EnumNumber {
@@ -197,7 +197,7 @@ func (x ControlEvent_Type) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ControlEvent_Type.Descriptor instead.
 func (ControlEvent_Type) EnumDescriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{5, 0}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{5, 0}
 }
 
 type StatusEvent_State int32
@@ -251,11 +251,11 @@ func (x StatusEvent_State) String() string {
 }
 
 func (StatusEvent_State) Descriptor() protoreflect.EnumDescriptor {
-	return file_voice_voice_proto_enumTypes[3].Descriptor()
+	return file_pb_voice_voice_proto_enumTypes[3].Descriptor()
 }
 
 func (StatusEvent_State) Type() protoreflect.EnumType {
-	return &file_voice_voice_proto_enumTypes[3]
+	return &file_pb_voice_voice_proto_enumTypes[3]
 }
 
 func (x StatusEvent_State) Number() protoreflect.EnumNumber {
@@ -264,7 +264,7 @@ func (x StatusEvent_State) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use StatusEvent_State.Descriptor instead.
 func (StatusEvent_State) EnumDescriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{7, 0}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{7, 0}
 }
 
 type HUDAction_Type int32
@@ -326,11 +326,11 @@ func (x HUDAction_Type) String() string {
 }
 
 func (HUDAction_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_voice_voice_proto_enumTypes[4].Descriptor()
+	return file_pb_voice_voice_proto_enumTypes[4].Descriptor()
 }
 
 func (HUDAction_Type) Type() protoreflect.EnumType {
-	return &file_voice_voice_proto_enumTypes[4]
+	return &file_pb_voice_voice_proto_enumTypes[4]
 }
 
 func (x HUDAction_Type) Number() protoreflect.EnumNumber {
@@ -339,7 +339,7 @@ func (x HUDAction_Type) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HUDAction_Type.Descriptor instead.
 func (HUDAction_Type) EnumDescriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{12, 0}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{12, 0}
 }
 
 type ConverseRequest struct {
@@ -356,7 +356,7 @@ type ConverseRequest struct {
 
 func (x *ConverseRequest) Reset() {
 	*x = ConverseRequest{}
-	mi := &file_voice_voice_proto_msgTypes[0]
+	mi := &file_pb_voice_voice_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -368,7 +368,7 @@ func (x *ConverseRequest) String() string {
 func (*ConverseRequest) ProtoMessage() {}
 
 func (x *ConverseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[0]
+	mi := &file_pb_voice_voice_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -381,7 +381,7 @@ func (x *ConverseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConverseRequest.ProtoReflect.Descriptor instead.
 func (*ConverseRequest) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{0}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ConverseRequest) GetPayload() isConverseRequest_Payload {
@@ -464,7 +464,7 @@ type StreamConfig struct {
 
 func (x *StreamConfig) Reset() {
 	*x = StreamConfig{}
-	mi := &file_voice_voice_proto_msgTypes[1]
+	mi := &file_pb_voice_voice_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -476,7 +476,7 @@ func (x *StreamConfig) String() string {
 func (*StreamConfig) ProtoMessage() {}
 
 func (x *StreamConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[1]
+	mi := &file_pb_voice_voice_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -489,7 +489,7 @@ func (x *StreamConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamConfig.ProtoReflect.Descriptor instead.
 func (*StreamConfig) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{1}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *StreamConfig) GetMeta() *common.RequestMeta {
@@ -550,7 +550,7 @@ type ClientInfo struct {
 
 func (x *ClientInfo) Reset() {
 	*x = ClientInfo{}
-	mi := &file_voice_voice_proto_msgTypes[2]
+	mi := &file_pb_voice_voice_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -562,7 +562,7 @@ func (x *ClientInfo) String() string {
 func (*ClientInfo) ProtoMessage() {}
 
 func (x *ClientInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[2]
+	mi := &file_pb_voice_voice_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +575,7 @@ func (x *ClientInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientInfo.ProtoReflect.Descriptor instead.
 func (*ClientInfo) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{2}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ClientInfo) GetPlatform() string {
@@ -621,7 +621,7 @@ type AudioConfig struct {
 
 func (x *AudioConfig) Reset() {
 	*x = AudioConfig{}
-	mi := &file_voice_voice_proto_msgTypes[3]
+	mi := &file_pb_voice_voice_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -633,7 +633,7 @@ func (x *AudioConfig) String() string {
 func (*AudioConfig) ProtoMessage() {}
 
 func (x *AudioConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[3]
+	mi := &file_pb_voice_voice_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -646,7 +646,7 @@ func (x *AudioConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AudioConfig.ProtoReflect.Descriptor instead.
 func (*AudioConfig) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{3}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AudioConfig) GetEncoding() AudioEncoding {
@@ -694,7 +694,7 @@ type AudioChunk struct {
 
 func (x *AudioChunk) Reset() {
 	*x = AudioChunk{}
-	mi := &file_voice_voice_proto_msgTypes[4]
+	mi := &file_pb_voice_voice_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -706,7 +706,7 @@ func (x *AudioChunk) String() string {
 func (*AudioChunk) ProtoMessage() {}
 
 func (x *AudioChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[4]
+	mi := &file_pb_voice_voice_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -719,7 +719,7 @@ func (x *AudioChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AudioChunk.ProtoReflect.Descriptor instead.
 func (*AudioChunk) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{4}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AudioChunk) GetData() []byte {
@@ -760,7 +760,7 @@ type ControlEvent struct {
 
 func (x *ControlEvent) Reset() {
 	*x = ControlEvent{}
-	mi := &file_voice_voice_proto_msgTypes[5]
+	mi := &file_pb_voice_voice_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -772,7 +772,7 @@ func (x *ControlEvent) String() string {
 func (*ControlEvent) ProtoMessage() {}
 
 func (x *ControlEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[5]
+	mi := &file_pb_voice_voice_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -785,7 +785,7 @@ func (x *ControlEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlEvent.ProtoReflect.Descriptor instead.
 func (*ControlEvent) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{5}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ControlEvent) GetType() ControlEvent_Type {
@@ -822,7 +822,7 @@ type ConverseResponse struct {
 
 func (x *ConverseResponse) Reset() {
 	*x = ConverseResponse{}
-	mi := &file_voice_voice_proto_msgTypes[6]
+	mi := &file_pb_voice_voice_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -834,7 +834,7 @@ func (x *ConverseResponse) String() string {
 func (*ConverseResponse) ProtoMessage() {}
 
 func (x *ConverseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[6]
+	mi := &file_pb_voice_voice_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -847,7 +847,7 @@ func (x *ConverseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConverseResponse.ProtoReflect.Descriptor instead.
 func (*ConverseResponse) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{6}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ConverseResponse) GetSessionId() string {
@@ -968,7 +968,7 @@ type StatusEvent struct {
 
 func (x *StatusEvent) Reset() {
 	*x = StatusEvent{}
-	mi := &file_voice_voice_proto_msgTypes[7]
+	mi := &file_pb_voice_voice_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -980,7 +980,7 @@ func (x *StatusEvent) String() string {
 func (*StatusEvent) ProtoMessage() {}
 
 func (x *StatusEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[7]
+	mi := &file_pb_voice_voice_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -993,7 +993,7 @@ func (x *StatusEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusEvent.ProtoReflect.Descriptor instead.
 func (*StatusEvent) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{7}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *StatusEvent) GetState() StatusEvent_State {
@@ -1035,7 +1035,7 @@ type Transcript struct {
 
 func (x *Transcript) Reset() {
 	*x = Transcript{}
-	mi := &file_voice_voice_proto_msgTypes[8]
+	mi := &file_pb_voice_voice_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1047,7 +1047,7 @@ func (x *Transcript) String() string {
 func (*Transcript) ProtoMessage() {}
 
 func (x *Transcript) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[8]
+	mi := &file_pb_voice_voice_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1060,7 +1060,7 @@ func (x *Transcript) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transcript.ProtoReflect.Descriptor instead.
 func (*Transcript) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{8}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Transcript) GetText() string {
@@ -1110,7 +1110,7 @@ type WordInfo struct {
 
 func (x *WordInfo) Reset() {
 	*x = WordInfo{}
-	mi := &file_voice_voice_proto_msgTypes[9]
+	mi := &file_pb_voice_voice_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1122,7 +1122,7 @@ func (x *WordInfo) String() string {
 func (*WordInfo) ProtoMessage() {}
 
 func (x *WordInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[9]
+	mi := &file_pb_voice_voice_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1135,7 @@ func (x *WordInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WordInfo.ProtoReflect.Descriptor instead.
 func (*WordInfo) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{9}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WordInfo) GetWord() string {
@@ -1184,7 +1184,7 @@ type Reply struct {
 
 func (x *Reply) Reset() {
 	*x = Reply{}
-	mi := &file_voice_voice_proto_msgTypes[10]
+	mi := &file_pb_voice_voice_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1196,7 +1196,7 @@ func (x *Reply) String() string {
 func (*Reply) ProtoMessage() {}
 
 func (x *Reply) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[10]
+	mi := &file_pb_voice_voice_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1209,7 +1209,7 @@ func (x *Reply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reply.ProtoReflect.Descriptor instead.
 func (*Reply) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{10}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Reply) GetReplyText() string {
@@ -1257,7 +1257,7 @@ type AudioReply struct {
 
 func (x *AudioReply) Reset() {
 	*x = AudioReply{}
-	mi := &file_voice_voice_proto_msgTypes[11]
+	mi := &file_pb_voice_voice_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1269,7 +1269,7 @@ func (x *AudioReply) String() string {
 func (*AudioReply) ProtoMessage() {}
 
 func (x *AudioReply) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[11]
+	mi := &file_pb_voice_voice_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1282,7 +1282,7 @@ func (x *AudioReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AudioReply.ProtoReflect.Descriptor instead.
 func (*AudioReply) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{11}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AudioReply) GetData() []byte {
@@ -1334,7 +1334,7 @@ type HUDAction struct {
 
 func (x *HUDAction) Reset() {
 	*x = HUDAction{}
-	mi := &file_voice_voice_proto_msgTypes[12]
+	mi := &file_pb_voice_voice_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1346,7 +1346,7 @@ func (x *HUDAction) String() string {
 func (*HUDAction) ProtoMessage() {}
 
 func (x *HUDAction) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[12]
+	mi := &file_pb_voice_voice_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1359,7 +1359,7 @@ func (x *HUDAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HUDAction.ProtoReflect.Descriptor instead.
 func (*HUDAction) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{12}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *HUDAction) GetType() HUDAction_Type {
@@ -1393,7 +1393,7 @@ type GetSessionRequest struct {
 
 func (x *GetSessionRequest) Reset() {
 	*x = GetSessionRequest{}
-	mi := &file_voice_voice_proto_msgTypes[13]
+	mi := &file_pb_voice_voice_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1405,7 +1405,7 @@ func (x *GetSessionRequest) String() string {
 func (*GetSessionRequest) ProtoMessage() {}
 
 func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[13]
+	mi := &file_pb_voice_voice_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1418,7 +1418,7 @@ func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSessionRequest.ProtoReflect.Descriptor instead.
 func (*GetSessionRequest) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{13}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetSessionRequest) GetMeta() *common.RequestMeta {
@@ -1445,7 +1445,7 @@ type GetSessionResponse struct {
 
 func (x *GetSessionResponse) Reset() {
 	*x = GetSessionResponse{}
-	mi := &file_voice_voice_proto_msgTypes[14]
+	mi := &file_pb_voice_voice_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1457,7 +1457,7 @@ func (x *GetSessionResponse) String() string {
 func (*GetSessionResponse) ProtoMessage() {}
 
 func (x *GetSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[14]
+	mi := &file_pb_voice_voice_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1470,7 +1470,7 @@ func (x *GetSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSessionResponse.ProtoReflect.Descriptor instead.
 func (*GetSessionResponse) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{14}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetSessionResponse) GetMeta() *common.ResponseMeta {
@@ -1498,7 +1498,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_voice_voice_proto_msgTypes[15]
+	mi := &file_pb_voice_voice_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1510,7 +1510,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[15]
+	mi := &file_pb_voice_voice_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1523,7 +1523,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{15}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListSessionsRequest) GetMeta() *common.RequestMeta {
@@ -1558,7 +1558,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_voice_voice_proto_msgTypes[16]
+	mi := &file_pb_voice_voice_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1570,7 +1570,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[16]
+	mi := &file_pb_voice_voice_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1583,7 +1583,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{16}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListSessionsResponse) GetMeta() *common.ResponseMeta {
@@ -1622,7 +1622,7 @@ type VoiceSession struct {
 
 func (x *VoiceSession) Reset() {
 	*x = VoiceSession{}
-	mi := &file_voice_voice_proto_msgTypes[17]
+	mi := &file_pb_voice_voice_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1634,7 +1634,7 @@ func (x *VoiceSession) String() string {
 func (*VoiceSession) ProtoMessage() {}
 
 func (x *VoiceSession) ProtoReflect() protoreflect.Message {
-	mi := &file_voice_voice_proto_msgTypes[17]
+	mi := &file_pb_voice_voice_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1647,7 +1647,7 @@ func (x *VoiceSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VoiceSession.ProtoReflect.Descriptor instead.
 func (*VoiceSession) Descriptor() ([]byte, []int) {
-	return file_voice_voice_proto_rawDescGZIP(), []int{17}
+	return file_pb_voice_voice_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *VoiceSession) GetSessionId() string {
@@ -1692,11 +1692,11 @@ func (x *VoiceSession) GetTerminalState() StatusEvent_State {
 	return StatusEvent_STATE_UNSPECIFIED
 }
 
-var File_voice_voice_proto protoreflect.FileDescriptor
+var File_pb_voice_voice_proto protoreflect.FileDescriptor
 
-const file_voice_voice_proto_rawDesc = "" +
+const file_pb_voice_voice_proto_rawDesc = "" +
 	"\n" +
-	"\x11voice/voice.proto\x12\fjarvis.voice\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xb8\x01\n" +
+	"\x14pb/voice/voice.proto\x12\fjarvis.voice\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xb8\x01\n" +
 	"\x0fConverseRequest\x124\n" +
 	"\x06config\x18\x01 \x01(\v2\x1a.jarvis.voice.StreamConfigH\x00R\x06config\x120\n" +
 	"\x05audio\x18\x02 \x01(\v2\x18.jarvis.voice.AudioChunkH\x00R\x05audio\x122\n" +
@@ -1859,20 +1859,20 @@ const file_voice_voice_proto_rawDesc = "" +
 	"VoiceProtoP\x01Z(github.com/rkrimper1/jarvis/api/pb/voice\xa2\x02\x03JVX\xaa\x02\fJarvis.Voice\xca\x02\fJarvis\\Voice\xe2\x02\x18Jarvis\\Voice\\GPBMetadata\xea\x02\rJarvis::Voiceb\x06proto3"
 
 var (
-	file_voice_voice_proto_rawDescOnce sync.Once
-	file_voice_voice_proto_rawDescData []byte
+	file_pb_voice_voice_proto_rawDescOnce sync.Once
+	file_pb_voice_voice_proto_rawDescData []byte
 )
 
-func file_voice_voice_proto_rawDescGZIP() []byte {
-	file_voice_voice_proto_rawDescOnce.Do(func() {
-		file_voice_voice_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_voice_voice_proto_rawDesc), len(file_voice_voice_proto_rawDesc)))
+func file_pb_voice_voice_proto_rawDescGZIP() []byte {
+	file_pb_voice_voice_proto_rawDescOnce.Do(func() {
+		file_pb_voice_voice_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_voice_voice_proto_rawDesc), len(file_pb_voice_voice_proto_rawDesc)))
 	})
-	return file_voice_voice_proto_rawDescData
+	return file_pb_voice_voice_proto_rawDescData
 }
 
-var file_voice_voice_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_voice_voice_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
-var file_voice_voice_proto_goTypes = []any{
+var file_pb_voice_voice_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_pb_voice_voice_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_pb_voice_voice_proto_goTypes = []any{
 	(AudioEncoding)(0),            // 0: jarvis.voice.AudioEncoding
 	(VoiceErrorCode)(0),           // 1: jarvis.voice.VoiceErrorCode
 	(ControlEvent_Type)(0),        // 2: jarvis.voice.ControlEvent.Type
@@ -1902,7 +1902,7 @@ var file_voice_voice_proto_goTypes = []any{
 	(*common.ResponseMeta)(nil),   // 26: jarvis.common.ResponseMeta
 	(*timestamppb.Timestamp)(nil), // 27: google.protobuf.Timestamp
 }
-var file_voice_voice_proto_depIdxs = []int32{
+var file_pb_voice_voice_proto_depIdxs = []int32{
 	6,  // 0: jarvis.voice.ConverseRequest.config:type_name -> jarvis.voice.StreamConfig
 	9,  // 1: jarvis.voice.ConverseRequest.audio:type_name -> jarvis.voice.AudioChunk
 	10, // 2: jarvis.voice.ConverseRequest.event:type_name -> jarvis.voice.ControlEvent
@@ -1946,17 +1946,17 @@ var file_voice_voice_proto_depIdxs = []int32{
 	0,  // [0:30] is the sub-list for field type_name
 }
 
-func init() { file_voice_voice_proto_init() }
-func file_voice_voice_proto_init() {
-	if File_voice_voice_proto != nil {
+func init() { file_pb_voice_voice_proto_init() }
+func file_pb_voice_voice_proto_init() {
+	if File_pb_voice_voice_proto != nil {
 		return
 	}
-	file_voice_voice_proto_msgTypes[0].OneofWrappers = []any{
+	file_pb_voice_voice_proto_msgTypes[0].OneofWrappers = []any{
 		(*ConverseRequest_Config)(nil),
 		(*ConverseRequest_Audio)(nil),
 		(*ConverseRequest_Event)(nil),
 	}
-	file_voice_voice_proto_msgTypes[6].OneofWrappers = []any{
+	file_pb_voice_voice_proto_msgTypes[6].OneofWrappers = []any{
 		(*ConverseResponse_Status)(nil),
 		(*ConverseResponse_Transcript)(nil),
 		(*ConverseResponse_Reply)(nil),
@@ -1967,18 +1967,18 @@ func file_voice_voice_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_voice_voice_proto_rawDesc), len(file_voice_voice_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_voice_voice_proto_rawDesc), len(file_pb_voice_voice_proto_rawDesc)),
 			NumEnums:      5,
 			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_voice_voice_proto_goTypes,
-		DependencyIndexes: file_voice_voice_proto_depIdxs,
-		EnumInfos:         file_voice_voice_proto_enumTypes,
-		MessageInfos:      file_voice_voice_proto_msgTypes,
+		GoTypes:           file_pb_voice_voice_proto_goTypes,
+		DependencyIndexes: file_pb_voice_voice_proto_depIdxs,
+		EnumInfos:         file_pb_voice_voice_proto_enumTypes,
+		MessageInfos:      file_pb_voice_voice_proto_msgTypes,
 	}.Build()
-	File_voice_voice_proto = out.File
-	file_voice_voice_proto_goTypes = nil
-	file_voice_voice_proto_depIdxs = nil
+	File_pb_voice_voice_proto = out.File
+	file_pb_voice_voice_proto_goTypes = nil
+	file_pb_voice_voice_proto_depIdxs = nil
 }

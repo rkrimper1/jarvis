@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: common/common.proto
+// source: pb/common/common.proto
 
 package common
 
@@ -62,11 +62,11 @@ func (x Severity) String() string {
 }
 
 func (Severity) Descriptor() protoreflect.EnumDescriptor {
-	return file_common_common_proto_enumTypes[0].Descriptor()
+	return file_pb_common_common_proto_enumTypes[0].Descriptor()
 }
 
 func (Severity) Type() protoreflect.EnumType {
-	return &file_common_common_proto_enumTypes[0]
+	return &file_pb_common_common_proto_enumTypes[0]
 }
 
 func (x Severity) Number() protoreflect.EnumNumber {
@@ -75,7 +75,7 @@ func (x Severity) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Severity.Descriptor instead.
 func (Severity) EnumDescriptor() ([]byte, []int) {
-	return file_common_common_proto_rawDescGZIP(), []int{0}
+	return file_pb_common_common_proto_rawDescGZIP(), []int{0}
 }
 
 // Standard metadata attached to every request
@@ -92,7 +92,7 @@ type RequestMeta struct {
 
 func (x *RequestMeta) Reset() {
 	*x = RequestMeta{}
-	mi := &file_common_common_proto_msgTypes[0]
+	mi := &file_pb_common_common_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -104,7 +104,7 @@ func (x *RequestMeta) String() string {
 func (*RequestMeta) ProtoMessage() {}
 
 func (x *RequestMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_common_common_proto_msgTypes[0]
+	mi := &file_pb_common_common_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -117,7 +117,7 @@ func (x *RequestMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestMeta.ProtoReflect.Descriptor instead.
 func (*RequestMeta) Descriptor() ([]byte, []int) {
-	return file_common_common_proto_rawDescGZIP(), []int{0}
+	return file_pb_common_common_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *RequestMeta) GetRequestId() string {
@@ -169,7 +169,7 @@ type ResponseMeta struct {
 
 func (x *ResponseMeta) Reset() {
 	*x = ResponseMeta{}
-	mi := &file_common_common_proto_msgTypes[1]
+	mi := &file_pb_common_common_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -181,7 +181,7 @@ func (x *ResponseMeta) String() string {
 func (*ResponseMeta) ProtoMessage() {}
 
 func (x *ResponseMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_common_common_proto_msgTypes[1]
+	mi := &file_pb_common_common_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -194,7 +194,7 @@ func (x *ResponseMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseMeta.ProtoReflect.Descriptor instead.
 func (*ResponseMeta) Descriptor() ([]byte, []int) {
-	return file_common_common_proto_rawDescGZIP(), []int{1}
+	return file_pb_common_common_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ResponseMeta) GetRequestId() string {
@@ -243,7 +243,7 @@ type KeyValue struct {
 
 func (x *KeyValue) Reset() {
 	*x = KeyValue{}
-	mi := &file_common_common_proto_msgTypes[2]
+	mi := &file_pb_common_common_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -255,7 +255,7 @@ func (x *KeyValue) String() string {
 func (*KeyValue) ProtoMessage() {}
 
 func (x *KeyValue) ProtoReflect() protoreflect.Message {
-	mi := &file_common_common_proto_msgTypes[2]
+	mi := &file_pb_common_common_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -268,7 +268,7 @@ func (x *KeyValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeyValue.ProtoReflect.Descriptor instead.
 func (*KeyValue) Descriptor() ([]byte, []int) {
-	return file_common_common_proto_rawDescGZIP(), []int{2}
+	return file_pb_common_common_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *KeyValue) GetKey() string {
@@ -285,11 +285,11 @@ func (x *KeyValue) GetValue() string {
 	return ""
 }
 
-var File_common_common_proto protoreflect.FileDescriptor
+var File_pb_common_common_proto protoreflect.FileDescriptor
 
-const file_common_common_proto_rawDesc = "" +
+const file_pb_common_common_proto_rawDesc = "" +
 	"\n" +
-	"\x13common/common.proto\x12\rjarvis.common\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb6\x01\n" +
+	"\x16pb/common/common.proto\x12\rjarvis.common\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb6\x01\n" +
 	"\vRequestMeta\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12\x17\n" +
@@ -318,27 +318,27 @@ const file_common_common_proto_rawDesc = "" +
 	"\x11com.jarvis.commonB\vCommonProtoP\x01Z)github.com/rkrimper1/jarvis/api/pb/common\xa2\x02\x03JCX\xaa\x02\rJarvis.Common\xca\x02\rJarvis\\Common\xe2\x02\x19Jarvis\\Common\\GPBMetadata\xea\x02\x0eJarvis::Commonb\x06proto3"
 
 var (
-	file_common_common_proto_rawDescOnce sync.Once
-	file_common_common_proto_rawDescData []byte
+	file_pb_common_common_proto_rawDescOnce sync.Once
+	file_pb_common_common_proto_rawDescData []byte
 )
 
-func file_common_common_proto_rawDescGZIP() []byte {
-	file_common_common_proto_rawDescOnce.Do(func() {
-		file_common_common_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_common_common_proto_rawDesc), len(file_common_common_proto_rawDesc)))
+func file_pb_common_common_proto_rawDescGZIP() []byte {
+	file_pb_common_common_proto_rawDescOnce.Do(func() {
+		file_pb_common_common_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_common_common_proto_rawDesc), len(file_pb_common_common_proto_rawDesc)))
 	})
-	return file_common_common_proto_rawDescData
+	return file_pb_common_common_proto_rawDescData
 }
 
-var file_common_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_common_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_common_common_proto_goTypes = []any{
+var file_pb_common_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_pb_common_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_pb_common_common_proto_goTypes = []any{
 	(Severity)(0),                 // 0: jarvis.common.Severity
 	(*RequestMeta)(nil),           // 1: jarvis.common.RequestMeta
 	(*ResponseMeta)(nil),          // 2: jarvis.common.ResponseMeta
 	(*KeyValue)(nil),              // 3: jarvis.common.KeyValue
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
-var file_common_common_proto_depIdxs = []int32{
+var file_pb_common_common_proto_depIdxs = []int32{
 	4, // 0: jarvis.common.RequestMeta.timestamp:type_name -> google.protobuf.Timestamp
 	4, // 1: jarvis.common.ResponseMeta.timestamp:type_name -> google.protobuf.Timestamp
 	2, // [2:2] is the sub-list for method output_type
@@ -348,27 +348,27 @@ var file_common_common_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_common_common_proto_init() }
-func file_common_common_proto_init() {
-	if File_common_common_proto != nil {
+func init() { file_pb_common_common_proto_init() }
+func file_pb_common_common_proto_init() {
+	if File_pb_common_common_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_common_proto_rawDesc), len(file_common_common_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_common_common_proto_rawDesc), len(file_pb_common_common_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_common_common_proto_goTypes,
-		DependencyIndexes: file_common_common_proto_depIdxs,
-		EnumInfos:         file_common_common_proto_enumTypes,
-		MessageInfos:      file_common_common_proto_msgTypes,
+		GoTypes:           file_pb_common_common_proto_goTypes,
+		DependencyIndexes: file_pb_common_common_proto_depIdxs,
+		EnumInfos:         file_pb_common_common_proto_enumTypes,
+		MessageInfos:      file_pb_common_common_proto_msgTypes,
 	}.Build()
-	File_common_common_proto = out.File
-	file_common_common_proto_goTypes = nil
-	file_common_common_proto_depIdxs = nil
+	File_pb_common_common_proto = out.File
+	file_pb_common_common_proto_goTypes = nil
+	file_pb_common_common_proto_depIdxs = nil
 }

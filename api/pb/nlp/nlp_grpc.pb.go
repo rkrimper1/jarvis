@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: nlp/nlp.proto
+// source: pb/nlp/nlp.proto
 
 package nlp
 
@@ -190,5 +190,5 @@ var NLPService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "nlp/nlp.proto",
+	Metadata: "pb/nlp/nlp.proto",
 }

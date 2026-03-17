@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: learning/learning.proto
+// source: pb/learning/learning.proto
 
 package learning
 
@@ -60,11 +60,11 @@ func (x FeedbackType) String() string {
 }
 
 func (FeedbackType) Descriptor() protoreflect.EnumDescriptor {
-	return file_learning_learning_proto_enumTypes[0].Descriptor()
+	return file_pb_learning_learning_proto_enumTypes[0].Descriptor()
 }
 
 func (FeedbackType) Type() protoreflect.EnumType {
-	return &file_learning_learning_proto_enumTypes[0]
+	return &file_pb_learning_learning_proto_enumTypes[0]
 }
 
 func (x FeedbackType) Number() protoreflect.EnumNumber {
@@ -73,7 +73,7 @@ func (x FeedbackType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use FeedbackType.Descriptor instead.
 func (FeedbackType) EnumDescriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{0}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{0}
 }
 
 type ModelDomain int32
@@ -115,11 +115,11 @@ func (x ModelDomain) String() string {
 }
 
 func (ModelDomain) Descriptor() protoreflect.EnumDescriptor {
-	return file_learning_learning_proto_enumTypes[1].Descriptor()
+	return file_pb_learning_learning_proto_enumTypes[1].Descriptor()
 }
 
 func (ModelDomain) Type() protoreflect.EnumType {
-	return &file_learning_learning_proto_enumTypes[1]
+	return &file_pb_learning_learning_proto_enumTypes[1]
 }
 
 func (x ModelDomain) Number() protoreflect.EnumNumber {
@@ -128,7 +128,7 @@ func (x ModelDomain) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ModelDomain.Descriptor instead.
 func (ModelDomain) EnumDescriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{1}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{1}
 }
 
 type SubmitFeedbackRequest struct {
@@ -145,7 +145,7 @@ type SubmitFeedbackRequest struct {
 
 func (x *SubmitFeedbackRequest) Reset() {
 	*x = SubmitFeedbackRequest{}
-	mi := &file_learning_learning_proto_msgTypes[0]
+	mi := &file_pb_learning_learning_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -157,7 +157,7 @@ func (x *SubmitFeedbackRequest) String() string {
 func (*SubmitFeedbackRequest) ProtoMessage() {}
 
 func (x *SubmitFeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[0]
+	mi := &file_pb_learning_learning_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -170,7 +170,7 @@ func (x *SubmitFeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitFeedbackRequest.ProtoReflect.Descriptor instead.
 func (*SubmitFeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{0}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SubmitFeedbackRequest) GetMeta() *common.RequestMeta {
@@ -226,7 +226,7 @@ type SubmitFeedbackResponse struct {
 
 func (x *SubmitFeedbackResponse) Reset() {
 	*x = SubmitFeedbackResponse{}
-	mi := &file_learning_learning_proto_msgTypes[1]
+	mi := &file_pb_learning_learning_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -238,7 +238,7 @@ func (x *SubmitFeedbackResponse) String() string {
 func (*SubmitFeedbackResponse) ProtoMessage() {}
 
 func (x *SubmitFeedbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[1]
+	mi := &file_pb_learning_learning_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -251,7 +251,7 @@ func (x *SubmitFeedbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitFeedbackResponse.ProtoReflect.Descriptor instead.
 func (*SubmitFeedbackResponse) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{1}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SubmitFeedbackResponse) GetMeta() *common.ResponseMeta {
@@ -285,7 +285,7 @@ type GetBehaviorProfileRequest struct {
 
 func (x *GetBehaviorProfileRequest) Reset() {
 	*x = GetBehaviorProfileRequest{}
-	mi := &file_learning_learning_proto_msgTypes[2]
+	mi := &file_pb_learning_learning_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +297,7 @@ func (x *GetBehaviorProfileRequest) String() string {
 func (*GetBehaviorProfileRequest) ProtoMessage() {}
 
 func (x *GetBehaviorProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[2]
+	mi := &file_pb_learning_learning_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +310,7 @@ func (x *GetBehaviorProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBehaviorProfileRequest.ProtoReflect.Descriptor instead.
 func (*GetBehaviorProfileRequest) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{2}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetBehaviorProfileRequest) GetMeta() *common.RequestMeta {
@@ -340,7 +340,7 @@ type GetBehaviorProfileResponse struct {
 
 func (x *GetBehaviorProfileResponse) Reset() {
 	*x = GetBehaviorProfileResponse{}
-	mi := &file_learning_learning_proto_msgTypes[3]
+	mi := &file_pb_learning_learning_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -352,7 +352,7 @@ func (x *GetBehaviorProfileResponse) String() string {
 func (*GetBehaviorProfileResponse) ProtoMessage() {}
 
 func (x *GetBehaviorProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[3]
+	mi := &file_pb_learning_learning_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -365,7 +365,7 @@ func (x *GetBehaviorProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBehaviorProfileResponse.ProtoReflect.Descriptor instead.
 func (*GetBehaviorProfileResponse) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{3}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetBehaviorProfileResponse) GetMeta() *common.ResponseMeta {
@@ -415,7 +415,7 @@ type GetModelPerformanceRequest struct {
 
 func (x *GetModelPerformanceRequest) Reset() {
 	*x = GetModelPerformanceRequest{}
-	mi := &file_learning_learning_proto_msgTypes[4]
+	mi := &file_pb_learning_learning_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -427,7 +427,7 @@ func (x *GetModelPerformanceRequest) String() string {
 func (*GetModelPerformanceRequest) ProtoMessage() {}
 
 func (x *GetModelPerformanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[4]
+	mi := &file_pb_learning_learning_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -440,7 +440,7 @@ func (x *GetModelPerformanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetModelPerformanceRequest.ProtoReflect.Descriptor instead.
 func (*GetModelPerformanceRequest) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{4}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetModelPerformanceRequest) GetMeta() *common.RequestMeta {
@@ -486,7 +486,7 @@ type GetModelPerformanceResponse struct {
 
 func (x *GetModelPerformanceResponse) Reset() {
 	*x = GetModelPerformanceResponse{}
-	mi := &file_learning_learning_proto_msgTypes[5]
+	mi := &file_pb_learning_learning_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -498,7 +498,7 @@ func (x *GetModelPerformanceResponse) String() string {
 func (*GetModelPerformanceResponse) ProtoMessage() {}
 
 func (x *GetModelPerformanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[5]
+	mi := &file_pb_learning_learning_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,7 +511,7 @@ func (x *GetModelPerformanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetModelPerformanceResponse.ProtoReflect.Descriptor instead.
 func (*GetModelPerformanceResponse) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{5}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetModelPerformanceResponse) GetMeta() *common.ResponseMeta {
@@ -576,7 +576,7 @@ type AdaptationEvent struct {
 
 func (x *AdaptationEvent) Reset() {
 	*x = AdaptationEvent{}
-	mi := &file_learning_learning_proto_msgTypes[6]
+	mi := &file_pb_learning_learning_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -588,7 +588,7 @@ func (x *AdaptationEvent) String() string {
 func (*AdaptationEvent) ProtoMessage() {}
 
 func (x *AdaptationEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[6]
+	mi := &file_pb_learning_learning_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -601,7 +601,7 @@ func (x *AdaptationEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdaptationEvent.ProtoReflect.Descriptor instead.
 func (*AdaptationEvent) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{6}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AdaptationEvent) GetEventId() string {
@@ -648,7 +648,7 @@ type StreamAdaptationEventsRequest struct {
 
 func (x *StreamAdaptationEventsRequest) Reset() {
 	*x = StreamAdaptationEventsRequest{}
-	mi := &file_learning_learning_proto_msgTypes[7]
+	mi := &file_pb_learning_learning_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -660,7 +660,7 @@ func (x *StreamAdaptationEventsRequest) String() string {
 func (*StreamAdaptationEventsRequest) ProtoMessage() {}
 
 func (x *StreamAdaptationEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[7]
+	mi := &file_pb_learning_learning_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -673,7 +673,7 @@ func (x *StreamAdaptationEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamAdaptationEventsRequest.ProtoReflect.Descriptor instead.
 func (*StreamAdaptationEventsRequest) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{7}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *StreamAdaptationEventsRequest) GetMeta() *common.RequestMeta {
@@ -693,7 +693,7 @@ type StreamAdaptationEventsResponse struct {
 
 func (x *StreamAdaptationEventsResponse) Reset() {
 	*x = StreamAdaptationEventsResponse{}
-	mi := &file_learning_learning_proto_msgTypes[8]
+	mi := &file_pb_learning_learning_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -705,7 +705,7 @@ func (x *StreamAdaptationEventsResponse) String() string {
 func (*StreamAdaptationEventsResponse) ProtoMessage() {}
 
 func (x *StreamAdaptationEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_learning_learning_proto_msgTypes[8]
+	mi := &file_pb_learning_learning_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -718,7 +718,7 @@ func (x *StreamAdaptationEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamAdaptationEventsResponse.ProtoReflect.Descriptor instead.
 func (*StreamAdaptationEventsResponse) Descriptor() ([]byte, []int) {
-	return file_learning_learning_proto_rawDescGZIP(), []int{8}
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StreamAdaptationEventsResponse) GetMeta() *common.ResponseMeta {
@@ -735,11 +735,11 @@ func (x *StreamAdaptationEventsResponse) GetEvent() *AdaptationEvent {
 	return nil
 }
 
-var File_learning_learning_proto protoreflect.FileDescriptor
+var File_pb_learning_learning_proto protoreflect.FileDescriptor
 
-const file_learning_learning_proto_rawDesc = "" +
+const file_pb_learning_learning_proto_rawDesc = "" +
 	"\n" +
-	"\x17learning/learning.proto\x12\x0fjarvis.learning\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\x80\x02\n" +
+	"\x1apb/learning/learning.proto\x12\x0fjarvis.learning\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\x80\x02\n" +
 	"\x15SubmitFeedbackRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12%\n" +
 	"\x0einteraction_id\x18\x02 \x01(\tR\rinteractionId\x12B\n" +
@@ -811,20 +811,20 @@ const file_learning_learning_proto_rawDesc = "" +
 	"\x13com.jarvis.learningB\rLearningProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/learning\xa2\x02\x03JLX\xaa\x02\x0fJarvis.Learning\xca\x02\x0fJarvis\\Learning\xe2\x02\x1bJarvis\\Learning\\GPBMetadata\xea\x02\x10Jarvis::Learningb\x06proto3"
 
 var (
-	file_learning_learning_proto_rawDescOnce sync.Once
-	file_learning_learning_proto_rawDescData []byte
+	file_pb_learning_learning_proto_rawDescOnce sync.Once
+	file_pb_learning_learning_proto_rawDescData []byte
 )
 
-func file_learning_learning_proto_rawDescGZIP() []byte {
-	file_learning_learning_proto_rawDescOnce.Do(func() {
-		file_learning_learning_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_learning_learning_proto_rawDesc), len(file_learning_learning_proto_rawDesc)))
+func file_pb_learning_learning_proto_rawDescGZIP() []byte {
+	file_pb_learning_learning_proto_rawDescOnce.Do(func() {
+		file_pb_learning_learning_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_learning_learning_proto_rawDesc), len(file_pb_learning_learning_proto_rawDesc)))
 	})
-	return file_learning_learning_proto_rawDescData
+	return file_pb_learning_learning_proto_rawDescData
 }
 
-var file_learning_learning_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_learning_learning_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_learning_learning_proto_goTypes = []any{
+var file_pb_learning_learning_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_pb_learning_learning_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_pb_learning_learning_proto_goTypes = []any{
 	(FeedbackType)(0),                      // 0: jarvis.learning.FeedbackType
 	(ModelDomain)(0),                       // 1: jarvis.learning.ModelDomain
 	(*SubmitFeedbackRequest)(nil),          // 2: jarvis.learning.SubmitFeedbackRequest
@@ -841,7 +841,7 @@ var file_learning_learning_proto_goTypes = []any{
 	(*common.ResponseMeta)(nil),            // 13: jarvis.common.ResponseMeta
 	(*timestamppb.Timestamp)(nil),          // 14: google.protobuf.Timestamp
 }
-var file_learning_learning_proto_depIdxs = []int32{
+var file_pb_learning_learning_proto_depIdxs = []int32{
 	12, // 0: jarvis.learning.SubmitFeedbackRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.learning.SubmitFeedbackRequest.feedback_type:type_name -> jarvis.learning.FeedbackType
 	13, // 2: jarvis.learning.SubmitFeedbackResponse.meta:type_name -> jarvis.common.ResponseMeta
@@ -875,27 +875,27 @@ var file_learning_learning_proto_depIdxs = []int32{
 	0,  // [0:18] is the sub-list for field type_name
 }
 
-func init() { file_learning_learning_proto_init() }
-func file_learning_learning_proto_init() {
-	if File_learning_learning_proto != nil {
+func init() { file_pb_learning_learning_proto_init() }
+func file_pb_learning_learning_proto_init() {
+	if File_pb_learning_learning_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_learning_learning_proto_rawDesc), len(file_learning_learning_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_learning_learning_proto_rawDesc), len(file_pb_learning_learning_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_learning_learning_proto_goTypes,
-		DependencyIndexes: file_learning_learning_proto_depIdxs,
-		EnumInfos:         file_learning_learning_proto_enumTypes,
-		MessageInfos:      file_learning_learning_proto_msgTypes,
+		GoTypes:           file_pb_learning_learning_proto_goTypes,
+		DependencyIndexes: file_pb_learning_learning_proto_depIdxs,
+		EnumInfos:         file_pb_learning_learning_proto_enumTypes,
+		MessageInfos:      file_pb_learning_learning_proto_msgTypes,
 	}.Build()
-	File_learning_learning_proto = out.File
-	file_learning_learning_proto_goTypes = nil
-	file_learning_learning_proto_depIdxs = nil
+	File_pb_learning_learning_proto = out.File
+	file_pb_learning_learning_proto_goTypes = nil
+	file_pb_learning_learning_proto_depIdxs = nil
 }

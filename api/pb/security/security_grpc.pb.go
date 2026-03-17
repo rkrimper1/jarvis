@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: security/security.proto
+// source: pb/security/security.proto
 
 package security
 
@@ -273,5 +273,5 @@ var SecurityService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "security/security.proto",
+	Metadata: "pb/security/security.proto",
 }

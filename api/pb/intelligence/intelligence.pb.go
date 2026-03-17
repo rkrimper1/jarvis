@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: intelligence/intelligence.proto
+// source: pb/intelligence/intelligence.proto
 
 package intelligence
 
@@ -66,11 +66,11 @@ func (x SubjectType) String() string {
 }
 
 func (SubjectType) Descriptor() protoreflect.EnumDescriptor {
-	return file_intelligence_intelligence_proto_enumTypes[0].Descriptor()
+	return file_pb_intelligence_intelligence_proto_enumTypes[0].Descriptor()
 }
 
 func (SubjectType) Type() protoreflect.EnumType {
-	return &file_intelligence_intelligence_proto_enumTypes[0]
+	return &file_pb_intelligence_intelligence_proto_enumTypes[0]
 }
 
 func (x SubjectType) Number() protoreflect.EnumNumber {
@@ -79,7 +79,7 @@ func (x SubjectType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SubjectType.Descriptor instead.
 func (SubjectType) EnumDescriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{0}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{0}
 }
 
 type AnalysisDepth int32
@@ -115,11 +115,11 @@ func (x AnalysisDepth) String() string {
 }
 
 func (AnalysisDepth) Descriptor() protoreflect.EnumDescriptor {
-	return file_intelligence_intelligence_proto_enumTypes[1].Descriptor()
+	return file_pb_intelligence_intelligence_proto_enumTypes[1].Descriptor()
 }
 
 func (AnalysisDepth) Type() protoreflect.EnumType {
-	return &file_intelligence_intelligence_proto_enumTypes[1]
+	return &file_pb_intelligence_intelligence_proto_enumTypes[1]
 }
 
 func (x AnalysisDepth) Number() protoreflect.EnumNumber {
@@ -128,7 +128,7 @@ func (x AnalysisDepth) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AnalysisDepth.Descriptor instead.
 func (AnalysisDepth) EnumDescriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{1}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{1}
 }
 
 type QueryIntelRequest struct {
@@ -144,7 +144,7 @@ type QueryIntelRequest struct {
 
 func (x *QueryIntelRequest) Reset() {
 	*x = QueryIntelRequest{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[0]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +156,7 @@ func (x *QueryIntelRequest) String() string {
 func (*QueryIntelRequest) ProtoMessage() {}
 
 func (x *QueryIntelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[0]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +169,7 @@ func (x *QueryIntelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryIntelRequest.ProtoReflect.Descriptor instead.
 func (*QueryIntelRequest) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{0}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *QueryIntelRequest) GetMeta() *common.RequestMeta {
@@ -219,7 +219,7 @@ type IntelFact struct {
 
 func (x *IntelFact) Reset() {
 	*x = IntelFact{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[1]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -231,7 +231,7 @@ func (x *IntelFact) String() string {
 func (*IntelFact) ProtoMessage() {}
 
 func (x *IntelFact) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[1]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -244,7 +244,7 @@ func (x *IntelFact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IntelFact.ProtoReflect.Descriptor instead.
 func (*IntelFact) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{1}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *IntelFact) GetSource() string {
@@ -289,7 +289,7 @@ type QueryIntelResponse struct {
 
 func (x *QueryIntelResponse) Reset() {
 	*x = QueryIntelResponse{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[2]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -301,7 +301,7 @@ func (x *QueryIntelResponse) String() string {
 func (*QueryIntelResponse) ProtoMessage() {}
 
 func (x *QueryIntelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[2]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -314,7 +314,7 @@ func (x *QueryIntelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryIntelResponse.ProtoReflect.Descriptor instead.
 func (*QueryIntelResponse) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{2}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *QueryIntelResponse) GetMeta() *common.ResponseMeta {
@@ -371,7 +371,7 @@ type AnalyzeArtifactRequest struct {
 
 func (x *AnalyzeArtifactRequest) Reset() {
 	*x = AnalyzeArtifactRequest{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[3]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -383,7 +383,7 @@ func (x *AnalyzeArtifactRequest) String() string {
 func (*AnalyzeArtifactRequest) ProtoMessage() {}
 
 func (x *AnalyzeArtifactRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[3]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -396,7 +396,7 @@ func (x *AnalyzeArtifactRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeArtifactRequest.ProtoReflect.Descriptor instead.
 func (*AnalyzeArtifactRequest) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{3}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AnalyzeArtifactRequest) GetMeta() *common.RequestMeta {
@@ -442,7 +442,7 @@ type AnalyzeArtifactResponse struct {
 
 func (x *AnalyzeArtifactResponse) Reset() {
 	*x = AnalyzeArtifactResponse{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[4]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -454,7 +454,7 @@ func (x *AnalyzeArtifactResponse) String() string {
 func (*AnalyzeArtifactResponse) ProtoMessage() {}
 
 func (x *AnalyzeArtifactResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[4]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +467,7 @@ func (x *AnalyzeArtifactResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeArtifactResponse.ProtoReflect.Descriptor instead.
 func (*AnalyzeArtifactResponse) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{4}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AnalyzeArtifactResponse) GetMeta() *common.ResponseMeta {
@@ -530,7 +530,7 @@ type CrossReferenceRequest struct {
 
 func (x *CrossReferenceRequest) Reset() {
 	*x = CrossReferenceRequest{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[5]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -542,7 +542,7 @@ func (x *CrossReferenceRequest) String() string {
 func (*CrossReferenceRequest) ProtoMessage() {}
 
 func (x *CrossReferenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[5]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -555,7 +555,7 @@ func (x *CrossReferenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CrossReferenceRequest.ProtoReflect.Descriptor instead.
 func (*CrossReferenceRequest) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{5}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CrossReferenceRequest) GetMeta() *common.RequestMeta {
@@ -592,7 +592,7 @@ type Relationship struct {
 
 func (x *Relationship) Reset() {
 	*x = Relationship{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[6]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -604,7 +604,7 @@ func (x *Relationship) String() string {
 func (*Relationship) ProtoMessage() {}
 
 func (x *Relationship) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[6]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -617,7 +617,7 @@ func (x *Relationship) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Relationship.ProtoReflect.Descriptor instead.
 func (*Relationship) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{6}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Relationship) GetSubjectA() string {
@@ -665,7 +665,7 @@ type CrossReferenceResponse struct {
 
 func (x *CrossReferenceResponse) Reset() {
 	*x = CrossReferenceResponse{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[7]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -677,7 +677,7 @@ func (x *CrossReferenceResponse) String() string {
 func (*CrossReferenceResponse) ProtoMessage() {}
 
 func (x *CrossReferenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[7]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -690,7 +690,7 @@ func (x *CrossReferenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CrossReferenceResponse.ProtoReflect.Descriptor instead.
 func (*CrossReferenceResponse) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{7}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CrossReferenceResponse) GetMeta() *common.ResponseMeta {
@@ -716,7 +716,7 @@ type StreamIntelUpdatesRequest struct {
 
 func (x *StreamIntelUpdatesRequest) Reset() {
 	*x = StreamIntelUpdatesRequest{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[8]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -728,7 +728,7 @@ func (x *StreamIntelUpdatesRequest) String() string {
 func (*StreamIntelUpdatesRequest) ProtoMessage() {}
 
 func (x *StreamIntelUpdatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[8]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -741,7 +741,7 @@ func (x *StreamIntelUpdatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamIntelUpdatesRequest.ProtoReflect.Descriptor instead.
 func (*StreamIntelUpdatesRequest) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{8}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StreamIntelUpdatesRequest) GetMeta() *common.RequestMeta {
@@ -761,7 +761,7 @@ type StreamIntelUpdatesResponse struct {
 
 func (x *StreamIntelUpdatesResponse) Reset() {
 	*x = StreamIntelUpdatesResponse{}
-	mi := &file_intelligence_intelligence_proto_msgTypes[9]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -773,7 +773,7 @@ func (x *StreamIntelUpdatesResponse) String() string {
 func (*StreamIntelUpdatesResponse) ProtoMessage() {}
 
 func (x *StreamIntelUpdatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_intelligence_intelligence_proto_msgTypes[9]
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -786,7 +786,7 @@ func (x *StreamIntelUpdatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamIntelUpdatesResponse.ProtoReflect.Descriptor instead.
 func (*StreamIntelUpdatesResponse) Descriptor() ([]byte, []int) {
-	return file_intelligence_intelligence_proto_rawDescGZIP(), []int{9}
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *StreamIntelUpdatesResponse) GetMeta() *common.ResponseMeta {
@@ -803,11 +803,11 @@ func (x *StreamIntelUpdatesResponse) GetUpdate() *QueryIntelResponse {
 	return nil
 }
 
-var File_intelligence_intelligence_proto protoreflect.FileDescriptor
+var File_pb_intelligence_intelligence_proto protoreflect.FileDescriptor
 
-const file_intelligence_intelligence_proto_rawDesc = "" +
+const file_pb_intelligence_intelligence_proto_rawDesc = "" +
 	"\n" +
-	"\x1fintelligence/intelligence.proto\x12\x13jarvis.intelligence\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xfb\x01\n" +
+	"\"pb/intelligence/intelligence.proto\x12\x13jarvis.intelligence\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xfb\x01\n" +
 	"\x11QueryIntelRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12C\n" +
 	"\fsubject_type\x18\x02 \x01(\x0e2 .jarvis.intelligence.SubjectTypeR\vsubjectType\x12\x14\n" +
@@ -887,20 +887,20 @@ const file_intelligence_intelligence_proto_rawDesc = "" +
 	"\x17com.jarvis.intelligenceB\x11IntelligenceProtoP\x01Z/github.com/rkrimper1/jarvis/api/pb/intelligence\xa2\x02\x03JIX\xaa\x02\x13Jarvis.Intelligence\xca\x02\x13Jarvis\\Intelligence\xe2\x02\x1fJarvis\\Intelligence\\GPBMetadata\xea\x02\x14Jarvis::Intelligenceb\x06proto3"
 
 var (
-	file_intelligence_intelligence_proto_rawDescOnce sync.Once
-	file_intelligence_intelligence_proto_rawDescData []byte
+	file_pb_intelligence_intelligence_proto_rawDescOnce sync.Once
+	file_pb_intelligence_intelligence_proto_rawDescData []byte
 )
 
-func file_intelligence_intelligence_proto_rawDescGZIP() []byte {
-	file_intelligence_intelligence_proto_rawDescOnce.Do(func() {
-		file_intelligence_intelligence_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_intelligence_intelligence_proto_rawDesc), len(file_intelligence_intelligence_proto_rawDesc)))
+func file_pb_intelligence_intelligence_proto_rawDescGZIP() []byte {
+	file_pb_intelligence_intelligence_proto_rawDescOnce.Do(func() {
+		file_pb_intelligence_intelligence_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_intelligence_intelligence_proto_rawDesc), len(file_pb_intelligence_intelligence_proto_rawDesc)))
 	})
-	return file_intelligence_intelligence_proto_rawDescData
+	return file_pb_intelligence_intelligence_proto_rawDescData
 }
 
-var file_intelligence_intelligence_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_intelligence_intelligence_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_intelligence_intelligence_proto_goTypes = []any{
+var file_pb_intelligence_intelligence_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_pb_intelligence_intelligence_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_pb_intelligence_intelligence_proto_goTypes = []any{
 	(SubjectType)(0),                   // 0: jarvis.intelligence.SubjectType
 	(AnalysisDepth)(0),                 // 1: jarvis.intelligence.AnalysisDepth
 	(*QueryIntelRequest)(nil),          // 2: jarvis.intelligence.QueryIntelRequest
@@ -918,7 +918,7 @@ var file_intelligence_intelligence_proto_goTypes = []any{
 	(*timestamppb.Timestamp)(nil),      // 14: google.protobuf.Timestamp
 	(*common.ResponseMeta)(nil),        // 15: jarvis.common.ResponseMeta
 }
-var file_intelligence_intelligence_proto_depIdxs = []int32{
+var file_pb_intelligence_intelligence_proto_depIdxs = []int32{
 	13, // 0: jarvis.intelligence.QueryIntelRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.intelligence.QueryIntelRequest.subject_type:type_name -> jarvis.intelligence.SubjectType
 	1,  // 2: jarvis.intelligence.QueryIntelRequest.depth:type_name -> jarvis.intelligence.AnalysisDepth
@@ -949,27 +949,27 @@ var file_intelligence_intelligence_proto_depIdxs = []int32{
 	0,  // [0:15] is the sub-list for field type_name
 }
 
-func init() { file_intelligence_intelligence_proto_init() }
-func file_intelligence_intelligence_proto_init() {
-	if File_intelligence_intelligence_proto != nil {
+func init() { file_pb_intelligence_intelligence_proto_init() }
+func file_pb_intelligence_intelligence_proto_init() {
+	if File_pb_intelligence_intelligence_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_intelligence_intelligence_proto_rawDesc), len(file_intelligence_intelligence_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_intelligence_intelligence_proto_rawDesc), len(file_pb_intelligence_intelligence_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_intelligence_intelligence_proto_goTypes,
-		DependencyIndexes: file_intelligence_intelligence_proto_depIdxs,
-		EnumInfos:         file_intelligence_intelligence_proto_enumTypes,
-		MessageInfos:      file_intelligence_intelligence_proto_msgTypes,
+		GoTypes:           file_pb_intelligence_intelligence_proto_goTypes,
+		DependencyIndexes: file_pb_intelligence_intelligence_proto_depIdxs,
+		EnumInfos:         file_pb_intelligence_intelligence_proto_enumTypes,
+		MessageInfos:      file_pb_intelligence_intelligence_proto_msgTypes,
 	}.Build()
-	File_intelligence_intelligence_proto = out.File
-	file_intelligence_intelligence_proto_goTypes = nil
-	file_intelligence_intelligence_proto_depIdxs = nil
+	File_pb_intelligence_intelligence_proto = out.File
+	file_pb_intelligence_intelligence_proto_goTypes = nil
+	file_pb_intelligence_intelligence_proto_depIdxs = nil
 }

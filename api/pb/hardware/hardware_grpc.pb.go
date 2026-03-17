@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: hardware/hardware.proto
+// source: pb/hardware/hardware.proto
 
 package hardware
 
@@ -267,5 +267,5 @@ var HardwareService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "hardware/hardware.proto",
+	Metadata: "pb/hardware/hardware.proto",
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: intelligence/intelligence.proto
+// source: pb/intelligence/intelligence.proto
 
 package intelligence
 
@@ -235,5 +235,5 @@ var IntelligenceService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "intelligence/intelligence.proto",
+	Metadata: "pb/intelligence/intelligence.proto",
 }

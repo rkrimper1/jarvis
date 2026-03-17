@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: hardware/hardware.proto
+// source: pb/hardware/hardware.proto
 
 package hardware
 
@@ -66,11 +66,11 @@ func (x DeviceType) String() string {
 }
 
 func (DeviceType) Descriptor() protoreflect.EnumDescriptor {
-	return file_hardware_hardware_proto_enumTypes[0].Descriptor()
+	return file_pb_hardware_hardware_proto_enumTypes[0].Descriptor()
 }
 
 func (DeviceType) Type() protoreflect.EnumType {
-	return &file_hardware_hardware_proto_enumTypes[0]
+	return &file_pb_hardware_hardware_proto_enumTypes[0]
 }
 
 func (x DeviceType) Number() protoreflect.EnumNumber {
@@ -79,7 +79,7 @@ func (x DeviceType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DeviceType.Descriptor instead.
 func (DeviceType) EnumDescriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{0}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{0}
 }
 
 type PowerState int32
@@ -121,11 +121,11 @@ func (x PowerState) String() string {
 }
 
 func (PowerState) Descriptor() protoreflect.EnumDescriptor {
-	return file_hardware_hardware_proto_enumTypes[1].Descriptor()
+	return file_pb_hardware_hardware_proto_enumTypes[1].Descriptor()
 }
 
 func (PowerState) Type() protoreflect.EnumType {
-	return &file_hardware_hardware_proto_enumTypes[1]
+	return &file_pb_hardware_hardware_proto_enumTypes[1]
 }
 
 func (x PowerState) Number() protoreflect.EnumNumber {
@@ -134,7 +134,7 @@ func (x PowerState) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PowerState.Descriptor instead.
 func (PowerState) EnumDescriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{1}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{1}
 }
 
 type Device struct {
@@ -153,7 +153,7 @@ type Device struct {
 
 func (x *Device) Reset() {
 	*x = Device{}
-	mi := &file_hardware_hardware_proto_msgTypes[0]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -165,7 +165,7 @@ func (x *Device) String() string {
 func (*Device) ProtoMessage() {}
 
 func (x *Device) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[0]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -178,7 +178,7 @@ func (x *Device) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Device.ProtoReflect.Descriptor instead.
 func (*Device) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{0}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Device) GetDeviceId() string {
@@ -251,7 +251,7 @@ type TelemetryReading struct {
 
 func (x *TelemetryReading) Reset() {
 	*x = TelemetryReading{}
-	mi := &file_hardware_hardware_proto_msgTypes[1]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +263,7 @@ func (x *TelemetryReading) String() string {
 func (*TelemetryReading) ProtoMessage() {}
 
 func (x *TelemetryReading) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[1]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +276,7 @@ func (x *TelemetryReading) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TelemetryReading.ProtoReflect.Descriptor instead.
 func (*TelemetryReading) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{1}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *TelemetryReading) GetDeviceId() string {
@@ -333,7 +333,7 @@ type SendCommandRequest struct {
 
 func (x *SendCommandRequest) Reset() {
 	*x = SendCommandRequest{}
-	mi := &file_hardware_hardware_proto_msgTypes[2]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -345,7 +345,7 @@ func (x *SendCommandRequest) String() string {
 func (*SendCommandRequest) ProtoMessage() {}
 
 func (x *SendCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[2]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -358,7 +358,7 @@ func (x *SendCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendCommandRequest.ProtoReflect.Descriptor instead.
 func (*SendCommandRequest) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{2}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SendCommandRequest) GetMeta() *common.RequestMeta {
@@ -401,7 +401,7 @@ type SendCommandResponse struct {
 
 func (x *SendCommandResponse) Reset() {
 	*x = SendCommandResponse{}
-	mi := &file_hardware_hardware_proto_msgTypes[3]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -413,7 +413,7 @@ func (x *SendCommandResponse) String() string {
 func (*SendCommandResponse) ProtoMessage() {}
 
 func (x *SendCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[3]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -426,7 +426,7 @@ func (x *SendCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendCommandResponse.ProtoReflect.Descriptor instead.
 func (*SendCommandResponse) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{3}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SendCommandResponse) GetMeta() *common.ResponseMeta {
@@ -468,7 +468,7 @@ type RunDiagnosticsRequest struct {
 
 func (x *RunDiagnosticsRequest) Reset() {
 	*x = RunDiagnosticsRequest{}
-	mi := &file_hardware_hardware_proto_msgTypes[4]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +480,7 @@ func (x *RunDiagnosticsRequest) String() string {
 func (*RunDiagnosticsRequest) ProtoMessage() {}
 
 func (x *RunDiagnosticsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[4]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +493,7 @@ func (x *RunDiagnosticsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunDiagnosticsRequest.ProtoReflect.Descriptor instead.
 func (*RunDiagnosticsRequest) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{4}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RunDiagnosticsRequest) GetMeta() *common.RequestMeta {
@@ -531,7 +531,7 @@ type RunDiagnosticsResponse struct {
 
 func (x *RunDiagnosticsResponse) Reset() {
 	*x = RunDiagnosticsResponse{}
-	mi := &file_hardware_hardware_proto_msgTypes[5]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -543,7 +543,7 @@ func (x *RunDiagnosticsResponse) String() string {
 func (*RunDiagnosticsResponse) ProtoMessage() {}
 
 func (x *RunDiagnosticsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[5]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -556,7 +556,7 @@ func (x *RunDiagnosticsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunDiagnosticsResponse.ProtoReflect.Descriptor instead.
 func (*RunDiagnosticsResponse) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{5}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RunDiagnosticsResponse) GetMeta() *common.ResponseMeta {
@@ -612,7 +612,7 @@ type ScanEnergySourcesRequest struct {
 
 func (x *ScanEnergySourcesRequest) Reset() {
 	*x = ScanEnergySourcesRequest{}
-	mi := &file_hardware_hardware_proto_msgTypes[6]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -624,7 +624,7 @@ func (x *ScanEnergySourcesRequest) String() string {
 func (*ScanEnergySourcesRequest) ProtoMessage() {}
 
 func (x *ScanEnergySourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[6]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -637,7 +637,7 @@ func (x *ScanEnergySourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScanEnergySourcesRequest.ProtoReflect.Descriptor instead.
 func (*ScanEnergySourcesRequest) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{6}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ScanEnergySourcesRequest) GetMeta() *common.RequestMeta {
@@ -671,7 +671,7 @@ type ScanEnergySourcesResponse struct {
 
 func (x *ScanEnergySourcesResponse) Reset() {
 	*x = ScanEnergySourcesResponse{}
-	mi := &file_hardware_hardware_proto_msgTypes[7]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -683,7 +683,7 @@ func (x *ScanEnergySourcesResponse) String() string {
 func (*ScanEnergySourcesResponse) ProtoMessage() {}
 
 func (x *ScanEnergySourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[7]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,7 +696,7 @@ func (x *ScanEnergySourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScanEnergySourcesResponse.ProtoReflect.Descriptor instead.
 func (*ScanEnergySourcesResponse) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{7}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ScanEnergySourcesResponse) GetMeta() *common.ResponseMeta {
@@ -726,7 +726,7 @@ type EnergySource struct {
 
 func (x *EnergySource) Reset() {
 	*x = EnergySource{}
-	mi := &file_hardware_hardware_proto_msgTypes[8]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -738,7 +738,7 @@ func (x *EnergySource) String() string {
 func (*EnergySource) ProtoMessage() {}
 
 func (x *EnergySource) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[8]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -751,7 +751,7 @@ func (x *EnergySource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnergySource.ProtoReflect.Descriptor instead.
 func (*EnergySource) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{8}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *EnergySource) GetSourceId() string {
@@ -799,7 +799,7 @@ type StreamTelemetryRequest struct {
 
 func (x *StreamTelemetryRequest) Reset() {
 	*x = StreamTelemetryRequest{}
-	mi := &file_hardware_hardware_proto_msgTypes[9]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -811,7 +811,7 @@ func (x *StreamTelemetryRequest) String() string {
 func (*StreamTelemetryRequest) ProtoMessage() {}
 
 func (x *StreamTelemetryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[9]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -824,7 +824,7 @@ func (x *StreamTelemetryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamTelemetryRequest.ProtoReflect.Descriptor instead.
 func (*StreamTelemetryRequest) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{9}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *StreamTelemetryRequest) GetMeta() *common.RequestMeta {
@@ -851,7 +851,7 @@ type StreamTelemetryResponse struct {
 
 func (x *StreamTelemetryResponse) Reset() {
 	*x = StreamTelemetryResponse{}
-	mi := &file_hardware_hardware_proto_msgTypes[10]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -863,7 +863,7 @@ func (x *StreamTelemetryResponse) String() string {
 func (*StreamTelemetryResponse) ProtoMessage() {}
 
 func (x *StreamTelemetryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[10]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -876,7 +876,7 @@ func (x *StreamTelemetryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamTelemetryResponse.ProtoReflect.Descriptor instead.
 func (*StreamTelemetryResponse) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{10}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StreamTelemetryResponse) GetMeta() *common.ResponseMeta {
@@ -905,7 +905,7 @@ type SuitControlStreamRequest struct {
 
 func (x *SuitControlStreamRequest) Reset() {
 	*x = SuitControlStreamRequest{}
-	mi := &file_hardware_hardware_proto_msgTypes[11]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -917,7 +917,7 @@ func (x *SuitControlStreamRequest) String() string {
 func (*SuitControlStreamRequest) ProtoMessage() {}
 
 func (x *SuitControlStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[11]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -930,7 +930,7 @@ func (x *SuitControlStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuitControlStreamRequest.ProtoReflect.Descriptor instead.
 func (*SuitControlStreamRequest) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{11}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SuitControlStreamRequest) GetMeta() *common.RequestMeta {
@@ -971,7 +971,7 @@ type SuitControlStreamResponse struct {
 
 func (x *SuitControlStreamResponse) Reset() {
 	*x = SuitControlStreamResponse{}
-	mi := &file_hardware_hardware_proto_msgTypes[12]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -983,7 +983,7 @@ func (x *SuitControlStreamResponse) String() string {
 func (*SuitControlStreamResponse) ProtoMessage() {}
 
 func (x *SuitControlStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hardware_hardware_proto_msgTypes[12]
+	mi := &file_pb_hardware_hardware_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -996,7 +996,7 @@ func (x *SuitControlStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuitControlStreamResponse.ProtoReflect.Descriptor instead.
 func (*SuitControlStreamResponse) Descriptor() ([]byte, []int) {
-	return file_hardware_hardware_proto_rawDescGZIP(), []int{12}
+	return file_pb_hardware_hardware_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SuitControlStreamResponse) GetMeta() *common.ResponseMeta {
@@ -1013,11 +1013,11 @@ func (x *SuitControlStreamResponse) GetReading() *TelemetryReading {
 	return nil
 }
 
-var File_hardware_hardware_proto protoreflect.FileDescriptor
+var File_pb_hardware_hardware_proto protoreflect.FileDescriptor
 
-const file_hardware_hardware_proto_rawDesc = "" +
+const file_pb_hardware_hardware_proto_rawDesc = "" +
 	"\n" +
-	"\x17hardware/hardware.proto\x12\x0fjarvis.hardware\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xc1\x02\n" +
+	"\x1apb/hardware/hardware.proto\x12\x0fjarvis.hardware\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xc1\x02\n" +
 	"\x06Device\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12/\n" +
@@ -1121,20 +1121,20 @@ const file_hardware_hardware_proto_rawDesc = "" +
 	"\x13com.jarvis.hardwareB\rHardwareProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/hardware\xa2\x02\x03JHX\xaa\x02\x0fJarvis.Hardware\xca\x02\x0fJarvis\\Hardware\xe2\x02\x1bJarvis\\Hardware\\GPBMetadata\xea\x02\x10Jarvis::Hardwareb\x06proto3"
 
 var (
-	file_hardware_hardware_proto_rawDescOnce sync.Once
-	file_hardware_hardware_proto_rawDescData []byte
+	file_pb_hardware_hardware_proto_rawDescOnce sync.Once
+	file_pb_hardware_hardware_proto_rawDescData []byte
 )
 
-func file_hardware_hardware_proto_rawDescGZIP() []byte {
-	file_hardware_hardware_proto_rawDescOnce.Do(func() {
-		file_hardware_hardware_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_hardware_hardware_proto_rawDesc), len(file_hardware_hardware_proto_rawDesc)))
+func file_pb_hardware_hardware_proto_rawDescGZIP() []byte {
+	file_pb_hardware_hardware_proto_rawDescOnce.Do(func() {
+		file_pb_hardware_hardware_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_hardware_hardware_proto_rawDesc), len(file_pb_hardware_hardware_proto_rawDesc)))
 	})
-	return file_hardware_hardware_proto_rawDescData
+	return file_pb_hardware_hardware_proto_rawDescData
 }
 
-var file_hardware_hardware_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_hardware_hardware_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
-var file_hardware_hardware_proto_goTypes = []any{
+var file_pb_hardware_hardware_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_pb_hardware_hardware_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_pb_hardware_hardware_proto_goTypes = []any{
 	(DeviceType)(0),                   // 0: jarvis.hardware.DeviceType
 	(PowerState)(0),                   // 1: jarvis.hardware.PowerState
 	(*Device)(nil),                    // 2: jarvis.hardware.Device
@@ -1158,7 +1158,7 @@ var file_hardware_hardware_proto_goTypes = []any{
 	(*common.RequestMeta)(nil),        // 20: jarvis.common.RequestMeta
 	(*common.ResponseMeta)(nil),       // 21: jarvis.common.ResponseMeta
 }
-var file_hardware_hardware_proto_depIdxs = []int32{
+var file_pb_hardware_hardware_proto_depIdxs = []int32{
 	0,  // 0: jarvis.hardware.Device.type:type_name -> jarvis.hardware.DeviceType
 	1,  // 1: jarvis.hardware.Device.power_state:type_name -> jarvis.hardware.PowerState
 	18, // 2: jarvis.hardware.Device.last_sync:type_name -> google.protobuf.Timestamp
@@ -1197,27 +1197,27 @@ var file_hardware_hardware_proto_depIdxs = []int32{
 	0,  // [0:21] is the sub-list for field type_name
 }
 
-func init() { file_hardware_hardware_proto_init() }
-func file_hardware_hardware_proto_init() {
-	if File_hardware_hardware_proto != nil {
+func init() { file_pb_hardware_hardware_proto_init() }
+func file_pb_hardware_hardware_proto_init() {
+	if File_pb_hardware_hardware_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hardware_hardware_proto_rawDesc), len(file_hardware_hardware_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_hardware_hardware_proto_rawDesc), len(file_pb_hardware_hardware_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_hardware_hardware_proto_goTypes,
-		DependencyIndexes: file_hardware_hardware_proto_depIdxs,
-		EnumInfos:         file_hardware_hardware_proto_enumTypes,
-		MessageInfos:      file_hardware_hardware_proto_msgTypes,
+		GoTypes:           file_pb_hardware_hardware_proto_goTypes,
+		DependencyIndexes: file_pb_hardware_hardware_proto_depIdxs,
+		EnumInfos:         file_pb_hardware_hardware_proto_enumTypes,
+		MessageInfos:      file_pb_hardware_hardware_proto_msgTypes,
 	}.Build()
-	File_hardware_hardware_proto = out.File
-	file_hardware_hardware_proto_goTypes = nil
-	file_hardware_hardware_proto_depIdxs = nil
+	File_pb_hardware_hardware_proto = out.File
+	file_pb_hardware_hardware_proto_goTypes = nil
+	file_pb_hardware_hardware_proto_depIdxs = nil
 }

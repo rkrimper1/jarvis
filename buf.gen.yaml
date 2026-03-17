@@ -10,13 +10,13 @@ managed:
 plugins:
 # ── Go: protobuf messages ──────────────────────────────────────────
   - remote: buf.build/protocolbuffers/go
-    out: api/pb
+    out: api
     opt:
       - paths=source_relative
 
   # ── Go: gRPC service stubs ─────────────────────────────────────────
   - remote: buf.build/grpc/go
-    out: api/pb
+    out: api
     opt:
       - paths=source_relative
 
@@ -37,7 +37,7 @@ plugins:
 
   # ── Go: grpc-gateway HTTP transcoding ─────────────────────────────
   - remote: buf.build/grpc-ecosystem/gateway
-    out: api/pb
+    out: api
     opt:
       - paths=source_relative
 

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: nlp/nlp.proto
+// source: pb/nlp/nlp.proto
 
 package nlp
 
@@ -81,11 +81,11 @@ func (x Intent) String() string {
 }
 
 func (Intent) Descriptor() protoreflect.EnumDescriptor {
-	return file_nlp_nlp_proto_enumTypes[0].Descriptor()
+	return file_pb_nlp_nlp_proto_enumTypes[0].Descriptor()
 }
 
 func (Intent) Type() protoreflect.EnumType {
-	return &file_nlp_nlp_proto_enumTypes[0]
+	return &file_pb_nlp_nlp_proto_enumTypes[0]
 }
 
 func (x Intent) Number() protoreflect.EnumNumber {
@@ -94,7 +94,7 @@ func (x Intent) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Intent.Descriptor instead.
 func (Intent) EnumDescriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{0}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{0}
 }
 
 // Entity field names match Go service code exactly
@@ -109,7 +109,7 @@ type Entity struct {
 
 func (x *Entity) Reset() {
 	*x = Entity{}
-	mi := &file_nlp_nlp_proto_msgTypes[0]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -121,7 +121,7 @@ func (x *Entity) String() string {
 func (*Entity) ProtoMessage() {}
 
 func (x *Entity) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[0]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -134,7 +134,7 @@ func (x *Entity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Entity.ProtoReflect.Descriptor instead.
 func (*Entity) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{0}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Entity) GetType() string {
@@ -171,7 +171,7 @@ type ParseIntentRequest struct {
 
 func (x *ParseIntentRequest) Reset() {
 	*x = ParseIntentRequest{}
-	mi := &file_nlp_nlp_proto_msgTypes[1]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -183,7 +183,7 @@ func (x *ParseIntentRequest) String() string {
 func (*ParseIntentRequest) ProtoMessage() {}
 
 func (x *ParseIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[1]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -196,7 +196,7 @@ func (x *ParseIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ParseIntentRequest.ProtoReflect.Descriptor instead.
 func (*ParseIntentRequest) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{1}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ParseIntentRequest) GetMeta() *common.RequestMeta {
@@ -248,7 +248,7 @@ type ParseIntentResponse struct {
 
 func (x *ParseIntentResponse) Reset() {
 	*x = ParseIntentResponse{}
-	mi := &file_nlp_nlp_proto_msgTypes[2]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -260,7 +260,7 @@ func (x *ParseIntentResponse) String() string {
 func (*ParseIntentResponse) ProtoMessage() {}
 
 func (x *ParseIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[2]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -273,7 +273,7 @@ func (x *ParseIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ParseIntentResponse.ProtoReflect.Descriptor instead.
 func (*ParseIntentResponse) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{2}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ParseIntentResponse) GetMeta() *common.ResponseMeta {
@@ -331,7 +331,7 @@ type ProcessDialogueTurnRequest struct {
 
 func (x *ProcessDialogueTurnRequest) Reset() {
 	*x = ProcessDialogueTurnRequest{}
-	mi := &file_nlp_nlp_proto_msgTypes[3]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -343,7 +343,7 @@ func (x *ProcessDialogueTurnRequest) String() string {
 func (*ProcessDialogueTurnRequest) ProtoMessage() {}
 
 func (x *ProcessDialogueTurnRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[3]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -356,7 +356,7 @@ func (x *ProcessDialogueTurnRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessDialogueTurnRequest.ProtoReflect.Descriptor instead.
 func (*ProcessDialogueTurnRequest) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{3}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ProcessDialogueTurnRequest) GetMeta() *common.RequestMeta {
@@ -401,7 +401,7 @@ type ProcessDialogueTurnResponse struct {
 
 func (x *ProcessDialogueTurnResponse) Reset() {
 	*x = ProcessDialogueTurnResponse{}
-	mi := &file_nlp_nlp_proto_msgTypes[4]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -413,7 +413,7 @@ func (x *ProcessDialogueTurnResponse) String() string {
 func (*ProcessDialogueTurnResponse) ProtoMessage() {}
 
 func (x *ProcessDialogueTurnResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[4]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -426,7 +426,7 @@ func (x *ProcessDialogueTurnResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessDialogueTurnResponse.ProtoReflect.Descriptor instead.
 func (*ProcessDialogueTurnResponse) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{4}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ProcessDialogueTurnResponse) GetMeta() *common.ResponseMeta {
@@ -476,7 +476,7 @@ type DialogueHistory struct {
 
 func (x *DialogueHistory) Reset() {
 	*x = DialogueHistory{}
-	mi := &file_nlp_nlp_proto_msgTypes[5]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -488,7 +488,7 @@ func (x *DialogueHistory) String() string {
 func (*DialogueHistory) ProtoMessage() {}
 
 func (x *DialogueHistory) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[5]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -501,7 +501,7 @@ func (x *DialogueHistory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DialogueHistory.ProtoReflect.Descriptor instead.
 func (*DialogueHistory) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{5}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *DialogueHistory) GetRole() string {
@@ -538,7 +538,7 @@ type StreamVoiceInputRequest struct {
 
 func (x *StreamVoiceInputRequest) Reset() {
 	*x = StreamVoiceInputRequest{}
-	mi := &file_nlp_nlp_proto_msgTypes[6]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -550,7 +550,7 @@ func (x *StreamVoiceInputRequest) String() string {
 func (*StreamVoiceInputRequest) ProtoMessage() {}
 
 func (x *StreamVoiceInputRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[6]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -563,7 +563,7 @@ func (x *StreamVoiceInputRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamVoiceInputRequest.ProtoReflect.Descriptor instead.
 func (*StreamVoiceInputRequest) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{6}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *StreamVoiceInputRequest) GetMeta() *common.RequestMeta {
@@ -615,7 +615,7 @@ type StreamVoiceInputResponse struct {
 
 func (x *StreamVoiceInputResponse) Reset() {
 	*x = StreamVoiceInputResponse{}
-	mi := &file_nlp_nlp_proto_msgTypes[7]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -627,7 +627,7 @@ func (x *StreamVoiceInputResponse) String() string {
 func (*StreamVoiceInputResponse) ProtoMessage() {}
 
 func (x *StreamVoiceInputResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_nlp_nlp_proto_msgTypes[7]
+	mi := &file_pb_nlp_nlp_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +640,7 @@ func (x *StreamVoiceInputResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamVoiceInputResponse.ProtoReflect.Descriptor instead.
 func (*StreamVoiceInputResponse) Descriptor() ([]byte, []int) {
-	return file_nlp_nlp_proto_rawDescGZIP(), []int{7}
+	return file_pb_nlp_nlp_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *StreamVoiceInputResponse) GetMeta() *common.ResponseMeta {
@@ -685,12 +685,12 @@ func (x *StreamVoiceInputResponse) GetSuggestedActions() []string {
 	return nil
 }
 
-var File_nlp_nlp_proto protoreflect.FileDescriptor
+var File_pb_nlp_nlp_proto protoreflect.FileDescriptor
 
-const file_nlp_nlp_proto_rawDesc = "" +
+const file_pb_nlp_nlp_proto_rawDesc = "" +
 	"\n" +
-	"\rnlp/nlp.proto\x12\n" +
-	"jarvis.nlp\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"H\n" +
+	"\x10pb/nlp/nlp.proto\x12\n" +
+	"jarvis.nlp\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"H\n" +
 	"\x06Entity\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12\x14\n" +
@@ -768,20 +768,20 @@ const file_nlp_nlp_proto_rawDesc = "" +
 	"Jarvis\\Nlp\xe2\x02\x16Jarvis\\Nlp\\GPBMetadata\xea\x02\vJarvis::Nlpb\x06proto3"
 
 var (
-	file_nlp_nlp_proto_rawDescOnce sync.Once
-	file_nlp_nlp_proto_rawDescData []byte
+	file_pb_nlp_nlp_proto_rawDescOnce sync.Once
+	file_pb_nlp_nlp_proto_rawDescData []byte
 )
 
-func file_nlp_nlp_proto_rawDescGZIP() []byte {
-	file_nlp_nlp_proto_rawDescOnce.Do(func() {
-		file_nlp_nlp_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_nlp_nlp_proto_rawDesc), len(file_nlp_nlp_proto_rawDesc)))
+func file_pb_nlp_nlp_proto_rawDescGZIP() []byte {
+	file_pb_nlp_nlp_proto_rawDescOnce.Do(func() {
+		file_pb_nlp_nlp_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_nlp_nlp_proto_rawDesc), len(file_pb_nlp_nlp_proto_rawDesc)))
 	})
-	return file_nlp_nlp_proto_rawDescData
+	return file_pb_nlp_nlp_proto_rawDescData
 }
 
-var file_nlp_nlp_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_nlp_nlp_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_nlp_nlp_proto_goTypes = []any{
+var file_pb_nlp_nlp_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_pb_nlp_nlp_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_pb_nlp_nlp_proto_goTypes = []any{
 	(Intent)(0),                         // 0: jarvis.nlp.Intent
 	(*Entity)(nil),                      // 1: jarvis.nlp.Entity
 	(*ParseIntentRequest)(nil),          // 2: jarvis.nlp.ParseIntentRequest
@@ -795,7 +795,7 @@ var file_nlp_nlp_proto_goTypes = []any{
 	(*common.ResponseMeta)(nil),         // 10: jarvis.common.ResponseMeta
 	(*timestamppb.Timestamp)(nil),       // 11: google.protobuf.Timestamp
 }
-var file_nlp_nlp_proto_depIdxs = []int32{
+var file_pb_nlp_nlp_proto_depIdxs = []int32{
 	9,  // 0: jarvis.nlp.ParseIntentRequest.meta:type_name -> jarvis.common.RequestMeta
 	10, // 1: jarvis.nlp.ParseIntentResponse.meta:type_name -> jarvis.common.ResponseMeta
 	0,  // 2: jarvis.nlp.ParseIntentResponse.intent:type_name -> jarvis.nlp.Intent
@@ -821,27 +821,27 @@ var file_nlp_nlp_proto_depIdxs = []int32{
 	0,  // [0:12] is the sub-list for field type_name
 }
 
-func init() { file_nlp_nlp_proto_init() }
-func file_nlp_nlp_proto_init() {
-	if File_nlp_nlp_proto != nil {
+func init() { file_pb_nlp_nlp_proto_init() }
+func file_pb_nlp_nlp_proto_init() {
+	if File_pb_nlp_nlp_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_nlp_nlp_proto_rawDesc), len(file_nlp_nlp_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_nlp_nlp_proto_rawDesc), len(file_pb_nlp_nlp_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_nlp_nlp_proto_goTypes,
-		DependencyIndexes: file_nlp_nlp_proto_depIdxs,
-		EnumInfos:         file_nlp_nlp_proto_enumTypes,
-		MessageInfos:      file_nlp_nlp_proto_msgTypes,
+		GoTypes:           file_pb_nlp_nlp_proto_goTypes,
+		DependencyIndexes: file_pb_nlp_nlp_proto_depIdxs,
+		EnumInfos:         file_pb_nlp_nlp_proto_enumTypes,
+		MessageInfos:      file_pb_nlp_nlp_proto_msgTypes,
 	}.Build()
-	File_nlp_nlp_proto = out.File
-	file_nlp_nlp_proto_goTypes = nil
-	file_nlp_nlp_proto_depIdxs = nil
+	File_pb_nlp_nlp_proto = out.File
+	file_pb_nlp_nlp_proto_goTypes = nil
+	file_pb_nlp_nlp_proto_depIdxs = nil
 }

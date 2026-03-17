@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: facility/facility.proto
+// source: pb/facility/facility.proto
 
 package facility
 
@@ -69,11 +69,11 @@ func (x ZoneType) String() string {
 }
 
 func (ZoneType) Descriptor() protoreflect.EnumDescriptor {
-	return file_facility_facility_proto_enumTypes[0].Descriptor()
+	return file_pb_facility_facility_proto_enumTypes[0].Descriptor()
 }
 
 func (ZoneType) Type() protoreflect.EnumType {
-	return &file_facility_facility_proto_enumTypes[0]
+	return &file_pb_facility_facility_proto_enumTypes[0]
 }
 
 func (x ZoneType) Number() protoreflect.EnumNumber {
@@ -82,7 +82,7 @@ func (x ZoneType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ZoneType.Descriptor instead.
 func (ZoneType) EnumDescriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{0}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{0}
 }
 
 type SystemType int32
@@ -130,11 +130,11 @@ func (x SystemType) String() string {
 }
 
 func (SystemType) Descriptor() protoreflect.EnumDescriptor {
-	return file_facility_facility_proto_enumTypes[1].Descriptor()
+	return file_pb_facility_facility_proto_enumTypes[1].Descriptor()
 }
 
 func (SystemType) Type() protoreflect.EnumType {
-	return &file_facility_facility_proto_enumTypes[1]
+	return &file_pb_facility_facility_proto_enumTypes[1]
 }
 
 func (x SystemType) Number() protoreflect.EnumNumber {
@@ -143,7 +143,7 @@ func (x SystemType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SystemType.Descriptor instead.
 func (SystemType) EnumDescriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{1}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{1}
 }
 
 type Zone struct {
@@ -160,7 +160,7 @@ type Zone struct {
 
 func (x *Zone) Reset() {
 	*x = Zone{}
-	mi := &file_facility_facility_proto_msgTypes[0]
+	mi := &file_pb_facility_facility_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -172,7 +172,7 @@ func (x *Zone) String() string {
 func (*Zone) ProtoMessage() {}
 
 func (x *Zone) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[0]
+	mi := &file_pb_facility_facility_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -185,7 +185,7 @@ func (x *Zone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Zone.ProtoReflect.Descriptor instead.
 func (*Zone) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{0}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Zone) GetZoneId() string {
@@ -245,7 +245,7 @@ type EnvironmentReading struct {
 
 func (x *EnvironmentReading) Reset() {
 	*x = EnvironmentReading{}
-	mi := &file_facility_facility_proto_msgTypes[1]
+	mi := &file_pb_facility_facility_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +257,7 @@ func (x *EnvironmentReading) String() string {
 func (*EnvironmentReading) ProtoMessage() {}
 
 func (x *EnvironmentReading) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[1]
+	mi := &file_pb_facility_facility_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +270,7 @@ func (x *EnvironmentReading) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnvironmentReading.ProtoReflect.Descriptor instead.
 func (*EnvironmentReading) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{1}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *EnvironmentReading) GetZoneId() string {
@@ -335,7 +335,7 @@ type ControlSystemRequest struct {
 
 func (x *ControlSystemRequest) Reset() {
 	*x = ControlSystemRequest{}
-	mi := &file_facility_facility_proto_msgTypes[2]
+	mi := &file_pb_facility_facility_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -347,7 +347,7 @@ func (x *ControlSystemRequest) String() string {
 func (*ControlSystemRequest) ProtoMessage() {}
 
 func (x *ControlSystemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[2]
+	mi := &file_pb_facility_facility_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -360,7 +360,7 @@ func (x *ControlSystemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlSystemRequest.ProtoReflect.Descriptor instead.
 func (*ControlSystemRequest) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{2}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ControlSystemRequest) GetMeta() *common.RequestMeta {
@@ -411,7 +411,7 @@ type ControlSystemResponse struct {
 
 func (x *ControlSystemResponse) Reset() {
 	*x = ControlSystemResponse{}
-	mi := &file_facility_facility_proto_msgTypes[3]
+	mi := &file_pb_facility_facility_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -423,7 +423,7 @@ func (x *ControlSystemResponse) String() string {
 func (*ControlSystemResponse) ProtoMessage() {}
 
 func (x *ControlSystemResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[3]
+	mi := &file_pb_facility_facility_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,7 +436,7 @@ func (x *ControlSystemResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlSystemResponse.ProtoReflect.Descriptor instead.
 func (*ControlSystemResponse) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{3}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ControlSystemResponse) GetMeta() *common.ResponseMeta {
@@ -486,7 +486,7 @@ type ManageAccessRequest struct {
 
 func (x *ManageAccessRequest) Reset() {
 	*x = ManageAccessRequest{}
-	mi := &file_facility_facility_proto_msgTypes[4]
+	mi := &file_pb_facility_facility_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -498,7 +498,7 @@ func (x *ManageAccessRequest) String() string {
 func (*ManageAccessRequest) ProtoMessage() {}
 
 func (x *ManageAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[4]
+	mi := &file_pb_facility_facility_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,7 +511,7 @@ func (x *ManageAccessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ManageAccessRequest.ProtoReflect.Descriptor instead.
 func (*ManageAccessRequest) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{4}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ManageAccessRequest) GetMeta() *common.RequestMeta {
@@ -554,7 +554,7 @@ type ManageAccessResponse struct {
 
 func (x *ManageAccessResponse) Reset() {
 	*x = ManageAccessResponse{}
-	mi := &file_facility_facility_proto_msgTypes[5]
+	mi := &file_pb_facility_facility_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -566,7 +566,7 @@ func (x *ManageAccessResponse) String() string {
 func (*ManageAccessResponse) ProtoMessage() {}
 
 func (x *ManageAccessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[5]
+	mi := &file_pb_facility_facility_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -579,7 +579,7 @@ func (x *ManageAccessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ManageAccessResponse.ProtoReflect.Descriptor instead.
 func (*ManageAccessResponse) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{5}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ManageAccessResponse) GetMeta() *common.ResponseMeta {
@@ -620,7 +620,7 @@ type GetEnvironmentReadingRequest struct {
 
 func (x *GetEnvironmentReadingRequest) Reset() {
 	*x = GetEnvironmentReadingRequest{}
-	mi := &file_facility_facility_proto_msgTypes[6]
+	mi := &file_pb_facility_facility_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -632,7 +632,7 @@ func (x *GetEnvironmentReadingRequest) String() string {
 func (*GetEnvironmentReadingRequest) ProtoMessage() {}
 
 func (x *GetEnvironmentReadingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[6]
+	mi := &file_pb_facility_facility_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -645,7 +645,7 @@ func (x *GetEnvironmentReadingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnvironmentReadingRequest.ProtoReflect.Descriptor instead.
 func (*GetEnvironmentReadingRequest) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{6}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetEnvironmentReadingRequest) GetMeta() *common.RequestMeta {
@@ -672,7 +672,7 @@ type GetEnvironmentReadingResponse struct {
 
 func (x *GetEnvironmentReadingResponse) Reset() {
 	*x = GetEnvironmentReadingResponse{}
-	mi := &file_facility_facility_proto_msgTypes[7]
+	mi := &file_pb_facility_facility_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -684,7 +684,7 @@ func (x *GetEnvironmentReadingResponse) String() string {
 func (*GetEnvironmentReadingResponse) ProtoMessage() {}
 
 func (x *GetEnvironmentReadingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[7]
+	mi := &file_pb_facility_facility_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,7 +697,7 @@ func (x *GetEnvironmentReadingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnvironmentReadingResponse.ProtoReflect.Descriptor instead.
 func (*GetEnvironmentReadingResponse) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{7}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetEnvironmentReadingResponse) GetMeta() *common.ResponseMeta {
@@ -724,7 +724,7 @@ type StreamEnvironmentRequest struct {
 
 func (x *StreamEnvironmentRequest) Reset() {
 	*x = StreamEnvironmentRequest{}
-	mi := &file_facility_facility_proto_msgTypes[8]
+	mi := &file_pb_facility_facility_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -736,7 +736,7 @@ func (x *StreamEnvironmentRequest) String() string {
 func (*StreamEnvironmentRequest) ProtoMessage() {}
 
 func (x *StreamEnvironmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[8]
+	mi := &file_pb_facility_facility_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +749,7 @@ func (x *StreamEnvironmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamEnvironmentRequest.ProtoReflect.Descriptor instead.
 func (*StreamEnvironmentRequest) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{8}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StreamEnvironmentRequest) GetMeta() *common.RequestMeta {
@@ -776,7 +776,7 @@ type StreamEnvironmentResponse struct {
 
 func (x *StreamEnvironmentResponse) Reset() {
 	*x = StreamEnvironmentResponse{}
-	mi := &file_facility_facility_proto_msgTypes[9]
+	mi := &file_pb_facility_facility_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -788,7 +788,7 @@ func (x *StreamEnvironmentResponse) String() string {
 func (*StreamEnvironmentResponse) ProtoMessage() {}
 
 func (x *StreamEnvironmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_facility_facility_proto_msgTypes[9]
+	mi := &file_pb_facility_facility_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -801,7 +801,7 @@ func (x *StreamEnvironmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamEnvironmentResponse.ProtoReflect.Descriptor instead.
 func (*StreamEnvironmentResponse) Descriptor() ([]byte, []int) {
-	return file_facility_facility_proto_rawDescGZIP(), []int{9}
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *StreamEnvironmentResponse) GetMeta() *common.ResponseMeta {
@@ -818,11 +818,11 @@ func (x *StreamEnvironmentResponse) GetReading() *EnvironmentReading {
 	return nil
 }
 
-var File_facility_facility_proto protoreflect.FileDescriptor
+var File_pb_facility_facility_proto protoreflect.FileDescriptor
 
-const file_facility_facility_proto_rawDesc = "" +
+const file_pb_facility_facility_proto_rawDesc = "" +
 	"\n" +
-	"\x17facility/facility.proto\x12\x0fjarvis.facility\x1a\x13common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xc0\x01\n" +
+	"\x1apb/facility/facility.proto\x12\x0fjarvis.facility\x1a\x16pb/common/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xc0\x01\n" +
 	"\x04Zone\x12\x17\n" +
 	"\azone_id\x18\x01 \x01(\tR\x06zoneId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12-\n" +
@@ -904,20 +904,20 @@ const file_facility_facility_proto_rawDesc = "" +
 	"\x13com.jarvis.facilityB\rFacilityProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/facility\xa2\x02\x03JFX\xaa\x02\x0fJarvis.Facility\xca\x02\x0fJarvis\\Facility\xe2\x02\x1bJarvis\\Facility\\GPBMetadata\xea\x02\x10Jarvis::Facilityb\x06proto3"
 
 var (
-	file_facility_facility_proto_rawDescOnce sync.Once
-	file_facility_facility_proto_rawDescData []byte
+	file_pb_facility_facility_proto_rawDescOnce sync.Once
+	file_pb_facility_facility_proto_rawDescData []byte
 )
 
-func file_facility_facility_proto_rawDescGZIP() []byte {
-	file_facility_facility_proto_rawDescOnce.Do(func() {
-		file_facility_facility_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_facility_facility_proto_rawDesc), len(file_facility_facility_proto_rawDesc)))
+func file_pb_facility_facility_proto_rawDescGZIP() []byte {
+	file_pb_facility_facility_proto_rawDescOnce.Do(func() {
+		file_pb_facility_facility_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pb_facility_facility_proto_rawDesc), len(file_pb_facility_facility_proto_rawDesc)))
 	})
-	return file_facility_facility_proto_rawDescData
+	return file_pb_facility_facility_proto_rawDescData
 }
 
-var file_facility_facility_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_facility_facility_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_facility_facility_proto_goTypes = []any{
+var file_pb_facility_facility_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_pb_facility_facility_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_pb_facility_facility_proto_goTypes = []any{
 	(ZoneType)(0),                         // 0: jarvis.facility.ZoneType
 	(SystemType)(0),                       // 1: jarvis.facility.SystemType
 	(*Zone)(nil),                          // 2: jarvis.facility.Zone
@@ -935,7 +935,7 @@ var file_facility_facility_proto_goTypes = []any{
 	(*common.RequestMeta)(nil),            // 14: jarvis.common.RequestMeta
 	(*common.ResponseMeta)(nil),           // 15: jarvis.common.ResponseMeta
 }
-var file_facility_facility_proto_depIdxs = []int32{
+var file_pb_facility_facility_proto_depIdxs = []int32{
 	0,  // 0: jarvis.facility.Zone.type:type_name -> jarvis.facility.ZoneType
 	13, // 1: jarvis.facility.EnvironmentReading.timestamp:type_name -> google.protobuf.Timestamp
 	14, // 2: jarvis.facility.ControlSystemRequest.meta:type_name -> jarvis.common.RequestMeta
@@ -967,27 +967,27 @@ var file_facility_facility_proto_depIdxs = []int32{
 	0,  // [0:16] is the sub-list for field type_name
 }
 
-func init() { file_facility_facility_proto_init() }
-func file_facility_facility_proto_init() {
-	if File_facility_facility_proto != nil {
+func init() { file_pb_facility_facility_proto_init() }
+func file_pb_facility_facility_proto_init() {
+	if File_pb_facility_facility_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_facility_facility_proto_rawDesc), len(file_facility_facility_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_facility_facility_proto_rawDesc), len(file_pb_facility_facility_proto_rawDesc)),
 			NumEnums:      2,
 			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_facility_facility_proto_goTypes,
-		DependencyIndexes: file_facility_facility_proto_depIdxs,
-		EnumInfos:         file_facility_facility_proto_enumTypes,
-		MessageInfos:      file_facility_facility_proto_msgTypes,
+		GoTypes:           file_pb_facility_facility_proto_goTypes,
+		DependencyIndexes: file_pb_facility_facility_proto_depIdxs,
+		EnumInfos:         file_pb_facility_facility_proto_enumTypes,
+		MessageInfos:      file_pb_facility_facility_proto_msgTypes,
 	}.Build()
-	File_facility_facility_proto = out.File
-	file_facility_facility_proto_goTypes = nil
-	file_facility_facility_proto_depIdxs = nil
+	File_pb_facility_facility_proto = out.File
+	file_pb_facility_facility_proto_goTypes = nil
+	file_pb_facility_facility_proto_depIdxs = nil
 }

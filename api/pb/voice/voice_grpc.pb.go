@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             (unknown)
-// source: voice/voice.proto
+// source: pb/voice/voice.proto
 
 package voice
 
@@ -220,5 +220,5 @@ var VoiceService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "voice/voice.proto",
+	Metadata: "pb/voice/voice.proto",
 }
