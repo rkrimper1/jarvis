@@ -248,7 +248,7 @@ add the event to their calendar.
 > **Setup** — requires a Gmail App Password:
 > 1. Enable 2-Step Verification on your Google Account
 > 2. Go to **myaccount.google.com/apppasswords** → create an app password named `jarvis`
-> 3. Set env vars (store outside the repo, e.g. `/home/vagrant/credentials/jarvis/.env`):
+> 3. Set env vars (store outside the repo, e.g. `$HOME/credentials/jarvis/.env`):
 >    ```
 >    SMTP_HOST=smtp.gmail.com
 >    SMTP_PORT=587

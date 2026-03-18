@@ -8,30 +8,34 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 ## Architecture
 
 ```
-                    ┌─────────────────────────────────┐
-                    │    Client (Voice / HUD / Mobile) │
-                    └────────────┬────────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │       J.A.R.V.I.S.      │
-                    │   Single Go Binary      │
-                    │                         │
-                    │  gRPC  :50051           │
-                    │  REST  :8080            │
-                    │  (grpc-gateway)         │
-                    │                         │
-                    │  ┌─────────────────┐    │
-                    │  │  business-ops   │    │
-                    │  │  facility       │    │
-                    │  │  intelligence   │    │
-                    │  │  learning       │    │
-                    │  │  nlp ◄──► voice │    │
-                    │  │  security       │    │
-                    │  └─────────────────┘    │
-                    └─────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │                      Client Layer                           │
+  │                                                             │
+  │   Web HUD :5173          iOS / Android       Voice / STT   │
+  │   (SvelteKit)            (Swift / Kotlin)    (gRPC stream) │
+  └───────────────┬──────────────────┬───────────────┬─────────┘
+                  │  REST :8080      │               │ gRPC :50051
+                  ▼                  ▼               ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │                    J.A.R.V.I.S.                             │
+  │                  Single Go Binary                           │
+  │                                                             │
+  │   grpc-gateway (in-process REST → gRPC transcoder)         │
+  │                                                             │
+  │  ┌──────────────────────────────────────────────────────┐  │
+  │  │  business-ops │ facility │ intelligence │ learning   │  │
+  │  │  security     │ nlp ◄──► voice (in-process)          │  │
+  │  └──────────────────────────────────────────────────────┘  │
+  │                                                             │
+  │   Claude API (NLP dialogue)    SMTP (calendar invites)     │
+  │   Redis (session state)                                     │
+  └─────────────────────────────────────────────────────────────┘
 ```
 
-NLP and Voice are wired in-process — no network hop between them.
+- NLP and Voice are wired in-process — no network hop between them
+- Dialogue turns are powered by the Claude API, with session history stored in Redis
+- `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
+- The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 
 ## Services
 
