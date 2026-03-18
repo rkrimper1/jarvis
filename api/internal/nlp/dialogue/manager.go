@@ -56,6 +56,9 @@ func (m *Manager) BuildReply(
 	}
 
 	// Claude-handled intents: load history, call API, persist turn.
+	if m.claude == nil {
+		return "I seem to be having trouble connecting my thoughts at the moment. Please try again, sir.", false, nil
+	}
 	history, loadErr := m.store.Load(ctx, sessionID)
 	if loadErr != nil {
 		m.log.WarnContext(ctx, "dialogue: failed to load session history, proceeding without it",
