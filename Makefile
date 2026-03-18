@@ -5,7 +5,8 @@
 
 .PHONY: all proto proto-lint proto-breaking proto-android build run test \
         docker-build docker-up docker-down docker-logs docker-ps \
-        tidy clean ios-open ios-clean android-open help
+        tidy clean ios-open ios-clean android-open \
+        web-dev web-build web-preview help
 
 # ── Docker Compose command ────────────────────────────────────────────
 # Auto-detect Compose V2 plugin (docker compose) vs V1 standalone (docker-compose).
@@ -158,6 +159,19 @@ android-open:   ## Generate Android proto stubs then open in Android Studio
 	else \
 		echo "Android Studio not found. Install it with: sudo snap install android-studio --classic"; \
 	fi
+
+# ── Web Client ────────────────────────────────────────────────────────
+
+WEB_DIR := clients/web
+
+web-dev:        ## Start the SvelteKit HUD client in dev mode (hot reload, proxies :8080)
+	cd $(WEB_DIR) && npm run dev
+
+web-build:      ## Build the SvelteKit HUD client for production
+	cd $(WEB_DIR) && npm run build
+
+web-preview:    ## Preview the production build locally
+	cd $(WEB_DIR) && npm run preview
 
 # ── Help ──────────────────────────────────────────────────────────────
 
