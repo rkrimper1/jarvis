@@ -32,6 +32,11 @@ services:
       - DIALOGUE_SESSION_TTL=${DIALOGUE_SESSION_TTL:-30m}
       - DIALOGUE_CONFIDENCE_THRESH=${DIALOGUE_CONFIDENCE_THRESH:-0.6}
 
+      # ── Claude AI (dialogue manager) ──────────────────────────────
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
+      - CLAUDE_MAX_TOKENS=${CLAUDE_MAX_TOKENS:-1024}
+
       # ── Session store ─────────────────────────────────────────────
       # SESSION_PROVIDER=memory  → zero-dep in-process store (default)
       # SESSION_PROVIDER=redis   → Redis-backed, survives restarts

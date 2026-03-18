@@ -50,3 +50,6 @@ plugins:
 
 inputs:
   - directory: proto
+    exclude_paths:
+      - proto/pb/agent
+      - proto/pb/hardware

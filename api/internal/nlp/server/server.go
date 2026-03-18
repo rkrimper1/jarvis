@@ -6,16 +6,18 @@ import (
 	"io"
 	"log/slog"
 
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	nlpv1 "github.com/rkrimper1/jarvis/api/pb/nlp"
+	claudeclient "github.com/rkrimper1/jarvis/api/internal/integrations/claude"
 	"github.com/rkrimper1/jarvis/api/internal/nlp/config"
 	"github.com/rkrimper1/jarvis/api/internal/nlp/dialogue"
 	"github.com/rkrimper1/jarvis/api/internal/nlp/entity"
 	"github.com/rkrimper1/jarvis/api/internal/nlp/intent"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // NLPServer is the gRPC server that implements nlpv1.NLPServiceServer.
@@ -31,11 +33,19 @@ type NLPServer struct {
 
 // New creates a new NLPServer with all dependencies wired.
 func New(cfg *config.Config, log *slog.Logger) *NLPServer {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	redisStore := dialogue.NewRedisStore(rdb, cfg.Dialogue.SessionTTL)
+	claudeClient := claudeclient.New(cfg.Claude.APIKey, cfg.Claude.Model, cfg.Claude.MaxTokens)
+
 	return &NLPServer{
 		cfg:        cfg,
 		classifier: intent.New(),
 		extractor:  entity.New(),
-		dialogue:   dialogue.NewManager(cfg.Dialogue.MaxHistoryTurns, cfg.Dialogue.SessionTTL),
+		dialogue:   dialogue.NewManager(redisStore, claudeClient, cfg.Dialogue.MaxHistoryTurns, cfg.Dialogue.ConfidenceThresh, log),
 		log:        log,
 	}
 }
@@ -100,27 +110,25 @@ func (s *NLPServer) ProcessDialogueTurn(
 		slog.String("utterance", req.Utterance),
 	)
 
-	// Classify intent and build reply
 	result := s.classifier.Classify(req.Utterance, nil)
-	session := s.dialogue.GetOrCreate(sessionID, req.Meta.UserId)
 
-	reply, requiresConfirmation := s.dialogue.BuildReply(
-		session,
+	reply, requiresConfirmation, err := s.dialogue.BuildReply(
+		ctx,
+		sessionID,
 		req.Utterance,
 		result.Intent,
-		s.cfg.Dialogue.ConfidenceThresh,
 		result.Confidence,
 	)
-
-	// Persist the turn
-	s.dialogue.AppendTurn(sessionID, req.Utterance, reply)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "dialogue: %v", err)
+	}
 
 	return &nlpv1.ProcessDialogueTurnResponse{
-		Meta:                dialogue.MetaSuccess(req.Meta.RequestId),
-		ReplyText:           reply,
-		ResolvedIntent:      result.Intent,
+		Meta:                 dialogue.MetaSuccess(req.Meta.RequestId),
+		ReplyText:            reply,
+		ResolvedIntent:       result.Intent,
 		RequiresConfirmation: requiresConfirmation,
-		SessionId:           sessionID,
+		SessionId:            sessionID,
 	}, nil
 }
 
