@@ -12,6 +12,8 @@ import (
 type Config struct {
 	Server   ServerConfig
 	Dialogue DialogueConfig
+	Claude   ClaudeConfig
+	Redis    RedisConfig
 	Log      LogConfig
 }
 
@@ -26,6 +28,18 @@ type DialogueConfig struct {
 	MaxHistoryTurns  int
 	SessionTTL       time.Duration
 	ConfidenceThresh float32 // below this → requires_confirmation = true
+}
+
+type ClaudeConfig struct {
+	APIKey    string
+	Model     string
+	MaxTokens int
+}
+
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
 }
 
 type LogConfig struct {
@@ -47,6 +61,16 @@ func Load() (*Config, error) {
 			SessionTTL:       envDuration("DIALOGUE_SESSION_TTL", 30*time.Minute),
 			ConfidenceThresh: float32(envFloat("DIALOGUE_CONFIDENCE_THRESH", 0.6)),
 		},
+		Claude: ClaudeConfig{
+			APIKey:    envString("ANTHROPIC_API_KEY", ""),
+			Model:     envString("CLAUDE_MODEL", "claude-sonnet-4-6"),
+			MaxTokens: envInt("CLAUDE_MAX_TOKENS", 1024),
+		},
+		Redis: RedisConfig{
+			Addr:     envString("REDIS_ADDR", "localhost:6379"),
+			Password: envString("REDIS_PASSWORD", ""),
+			DB:       envInt("REDIS_DB", 0),
+		},
 		Log: LogConfig{
 			Level:  envString("LOG_LEVEL", "info"),
 			Format: envString("LOG_FORMAT", "json"),
@@ -65,6 +89,9 @@ func (c *Config) validate() error {
 	}
 	if c.Dialogue.ConfidenceThresh < 0 || c.Dialogue.ConfidenceThresh > 1 {
 		return fmt.Errorf("confidence_thresh must be 0.0–1.0")
+	}
+	if c.Claude.APIKey == "" {
+		return fmt.Errorf("ANTHROPIC_API_KEY is required")
 	}
 	return nil
 }

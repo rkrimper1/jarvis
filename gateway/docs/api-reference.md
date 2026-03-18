@@ -45,6 +45,17 @@ curl -X POST http://localhost:8080/v1/nlp/parse \
 ```
 
 ### Dialogue Turn
+
+`ProcessDialogueTurn` is powered by **Claude (Anthropic)**. The intent classifier routes each utterance to a persona-specific system prompt; conversation history is stored in Redis per session.
+
+| Intent routed to Claude | Persona |
+|---|---|
+| `INTENT_ANALYSIS_REQUEST` | Terse, precise, Jarvis-like |
+| `INTENT_QUERY` | Factual, conceitedly witty, wiseass but respectful |
+| `INTENT_SMALL_TALK` | Warm, witty, professional |
+| `INTENT_EMERGENCY` / `INTENT_COMMAND` | Deterministic — no Claude call |
+
+**Small talk:**
 ```bash
 curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -H "Authorization: Bearer $TOKEN" \
@@ -52,9 +63,35 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -d '{
     "meta": {"request_id": "dlg-001"},
     "session_id": "session-tony-001",
-    "utterance": "What is the current threat level?"
+    "utterance": "Good morning JARVIS"
   }'
 ```
+
+**Query (witty/factual):**
+```bash
+curl -X POST http://localhost:8080/v1/nlp/dialogue \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "dlg-002"},
+    "session_id": "session-tony-001",
+    "utterance": "What is the current threat level in Monaco?"
+  }'
+```
+
+**Analysis request:**
+```bash
+curl -X POST http://localhost:8080/v1/nlp/dialogue \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "dlg-003"},
+    "session_id": "session-tony-001",
+    "utterance": "Run a full diagnostic on the Mark VII repulsor array"
+  }'
+```
+
+Session history persists across turns for the duration of `DIALOGUE_SESSION_TTL` (default 30 min). Use a consistent `session_id` across requests to maintain context.
 
 ---
 
@@ -304,12 +341,19 @@ curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
 # List all services
 grpcurl -plaintext localhost:50051 list
 
-# Call NLP directly
+# Parse intent
 grpcurl -plaintext -d '{
   "meta": {"request_id": "grpc-001"},
   "raw_text": "Power up the Mark VII",
   "session_id": "session-001"
 }' localhost:50051 jarvis.nlp.NLPService/ParseIntent
+
+# Dialogue turn (routed to Claude based on intent)
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "grpc-dlg-001"},
+  "session_id": "session-tony-001",
+  "utterance": "What do you know about palladium toxicity?"
+}' localhost:50051 jarvis.nlp.NLPService/ProcessDialogueTurn
 
 # Schedule an event (triggers calendar invite email if SMTP is configured)
 grpcurl -plaintext -d '{
@@ -347,6 +391,13 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  business-ops  facility  intelligence     │
                   │  learning  nlp ◄──► voice  security       │
                   │                                           │
-                  │  Redis (session state)                    │
-                  └───────────────────────────────────────────┘
+                  │  nlp → Claude API (dialogue, streaming)  │
+                  │  Redis (dialogue history + sessions)      │
+                  └──────────────┬────────────────────────────┘
+                                 │
+                  ┌──────────────▼──────────────┐
+                  │  External Services           │
+                  │  Anthropic API (Claude)      │
+                  │  SMTP → iCal email invites   │
+                  └──────────────────────────────┘
 ```

@@ -37,15 +37,53 @@ NLP and Voice are wired in-process — no network hop between them.
 
 | Service | Responsibility |
 |---|---|
-| `business-ops` | Scheduling, tasks, messaging, reports |
+| `business-ops` | Scheduling, tasks, messaging, reports. `ScheduleEvent` emails iCalendar invites via SMTP. |
 | `facility` | Building systems, environment monitoring |
 | `intelligence` | Research, artifact analysis, cross-referencing |
 | `learning` | Feedback loops, behavior profiling, model metrics |
-| `nlp` | Intent parsing, dialogue, voice transcription |
+| `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
 | `security` | Auth, threat assessment, emergency protocols |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
 All 7 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+
+### NLP Dialogue — Claude AI
+
+`ProcessDialogueTurn` routes to **Claude (Anthropic)** for three intents, each with its own system prompt and tone:
+
+| Intent | Persona |
+|---|---|
+| `INTENT_ANALYSIS_REQUEST` | Terse, precise, Jarvis-like — no filler, bullet findings |
+| `INTENT_QUERY` | Factual, conceitedly witty, wiseass but respectful |
+| `INTENT_SMALL_TALK` | Warm, witty, professional |
+
+`INTENT_EMERGENCY` and `INTENT_COMMAND` remain deterministic (no Claude call).
+
+Multi-turn conversation history is stored per session in **Redis** and sent to Claude on every turn. Sessions expire after `DIALOGUE_SESSION_TTL` (default 30 min).
+
+### Business Ops — Calendar Invites
+
+When `SMTP_*` env vars are configured, `ScheduleEvent` automatically emails an iCalendar (`.ics`) invite to every address in `attendees`. Recipients can accept directly from their email client.
+
+Required env vars (store outside the repo, e.g. `$HOME/credentials/jarvis/.env`):
+```
+# ── SMTP / Calendar invites ───────────────────────────────────────
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=you@gmail.com
+SMTP_PASS=<Gmail App Password>
+SMTP_TO=you@gmail.com
+
+# ── Claude AI (NLP dialogue) ──────────────────────────────────────
+ANTHROPIC_API_KEY=sk-ant-...
+CLAUDE_MODEL=claude-sonnet-4-6        # optional — default: claude-sonnet-4-6
+CLAUDE_MAX_TOKENS=1024                # optional — default: 1024
+
+# ── Dialogue tuning ───────────────────────────────────────────────
+DIALOGUE_MAX_HISTORY=20               # optional — turns of history sent to Claude
+DIALOGUE_SESSION_TTL=30m              # optional — Redis session expiry
+DIALOGUE_CONFIDENCE_THRESH=0.6        # optional — below this → requires_confirmation
+```
 
 ## Quick Start
 
