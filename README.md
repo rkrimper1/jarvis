@@ -87,7 +87,30 @@ CLAUDE_MAX_TOKENS=1024                # optional — default: 1024
 DIALOGUE_MAX_HISTORY=20               # optional — turns of history sent to Claude
 DIALOGUE_SESSION_TTL=30m              # optional — Redis session expiry
 DIALOGUE_CONFIDENCE_THRESH=0.6        # optional — below this → requires_confirmation
+
+# ── STT (Speech-to-Text) ──────────────────────────────────────────
+STT_PROVIDER=stub                     # stub | google (default: stub)
+STT_MODEL=latest_long
+STT_AUTO_PUNCTUATION=true
+STT_WORD_TIME_OFFSETS=false
+STT_MAX_SYNC_DURATION_SEC=55
+
+# ── TTS (Text-to-Speech) ──────────────────────────────────────────
+TTS_PROVIDER=stub                     # stub | google (default: stub)
+TTS_VOICE_ID=en-US-Journey-D
+TTS_LANGUAGE_CODE=en-US
+TTS_SPEAKING_RATE=1.0
+TTS_PITCH=0.0
+TTS_AUDIO_ENCODING=pcm
+TTS_CHUNK_SIZE_BYTES=8192
+
+# ── GCP (required when STT_PROVIDER or TTS_PROVIDER = google) ─────
+GCP_PROJECT=your-project-id
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 ```
+
+> STT and TTS default to `stub` — mock responses, no cloud API required.
+> Set `STT_PROVIDER=google` / `TTS_PROVIDER=google` and supply GCP credentials to enable real speech recognition and synthesis.
 
 ## Quick Start
 
