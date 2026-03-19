@@ -30,6 +30,20 @@ html, body {
 	-webkit-font-smoothing: antialiased;
 }
 
+/* ── Cockpit HUD background ────────────────────────────────────────── */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	background:
+		url('/hud-bg.png') center center / cover no-repeat;
+	opacity: 0.50;
+	pointer-events: none;
+	z-index: 0;
+}
+
+body > * { position: relative; z-index: 1; }
+
 /* Scrollbars */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--hud-bg); }
@@ -38,7 +52,8 @@ html, body {
 
 /* ── HUD Panel ─────────────────────────────────────────────────────── */
 .hud-panel {
-	background: var(--hud-panel);
+	background: #0a0d14cc;       /* semi-transparent so bg bleeds through */
+	backdrop-filter: blur(2px);
 	border: 1px solid var(--hud-cyan);
 	box-shadow: var(--glow-cyan), inset 0 0 20px #00d4ff08;
 	position: relative;

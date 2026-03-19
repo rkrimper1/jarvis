@@ -67,7 +67,7 @@
 
 <style>
 	.hud-shell { display: grid; grid-template-rows: 48px 1fr 28px; height: 100vh; overflow: hidden; }
-	.hud-topbar { display: flex; align-items: center; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--hud-cyan); box-shadow: 0 1px 0 #00d4ff44; background: var(--hud-panel); }
+	.hud-topbar { display: flex; align-items: center; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--hud-cyan); box-shadow: 0 1px 0 #00d4ff44; background: #0a0d14cc; backdrop-filter: blur(2px); }
 	.hud-brand { font-size: 16px; font-weight: 900; letter-spacing: 0.3em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); white-space: nowrap; }
 	.hud-nav { display: flex; gap: 4px; flex: 1; }
 	.hud-nav-link { display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-family: var(--hud-font-hud); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hud-muted); text-decoration: none; border: 1px solid transparent; clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); transition: all 0.15s ease; }
@@ -75,5 +75,5 @@
 	.nav-icon { font-size: 12px; }
 	.hud-topbar-right { display: flex; align-items: center; gap: 12px; margin-left: auto; font-size: 12px; }
 	.hud-main { overflow: auto; padding: 20px; }
-	.hud-statusbar { display: flex; align-items: center; gap: 10px; padding: 0 20px; font-size: 11px; border-top: 1px solid var(--hud-dim); background: var(--hud-panel); }
+	.hud-statusbar { display: flex; align-items: center; gap: 10px; padding: 0 20px; font-size: 11px; border-top: 1px solid var(--hud-dim); background: #0a0d14cc; backdrop-filter: blur(2px); }
 </style>
