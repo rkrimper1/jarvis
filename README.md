@@ -181,42 +181,62 @@ make docker-down    # stop everything
 
 ```
 jarvis/
-├── proto/                  # Protobuf definitions (source of truth)
-│   ├── common/             # Shared types (RequestMeta, ResponseMeta, etc.)
-│   ├── business/
-│   ├── facility/
-│   ├── intelligence/
-│   ├── learning/
-│   ├── nlp/
-│   ├── security/
-│   └── voice/
-├── api/                    # Single Go module
-│   ├── cmd/grpc-server/    # Entry point (main.go, server.go, nlp_adapter.go)
-│   ├── internal/           # Service implementations (Go internal — not importable outside api/)
+├── proto/                        # Protobuf definitions (source of truth)
+│   └── pb/
+│       ├── common/               # Shared types (RequestMeta, ResponseMeta, etc.)
+│       ├── business/
+│       ├── facility/
+│       ├── intelligence/
+│       ├── learning/
+│       ├── nlp/
+│       ├── security/
+│       └── voice/
+├── api/                          # Single Go module
+│   ├── cmd/grpc-server/          # Entry point
+│   │   ├── main.go               # Listeners, env vars, graceful shutdown
+│   │   ├── server.go             # Wires all 7 services onto gRPC + grpc-gateway
+│   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
+│   ├── internal/                 # Service implementations (Go internal package)
 │   │   ├── business-ops/server/
 │   │   ├── facility/server/
 │   │   ├── intelligence/server/
+│   │   ├── integrations/
+│   │   │   ├── claude/           # Anthropic Claude API client (NLP dialogue)
+│   │   │   └── email/            # SMTP + iCalendar invite sender
 │   │   ├── learning/server/
-│   │   ├── nlp/server/
+│   │   ├── nlp/
+│   │   │   ├── config/
+│   │   │   ├── dialogue/         # Manager, Redis session store, prompts
+│   │   │   ├── entity/
+│   │   │   ├── intent/
+│   │   │   └── server/
 │   │   ├── security/server/
 │   │   └── voice/server/
-│   ├── middleware/         # Shared gRPC interceptors (logging, recovery)
-│   ├── pb/                 # Generated Go stubs — gitignored, do not edit
-│   └── rest/               # grpc-gateway error handler
+│   ├── middleware/               # Shared gRPC interceptors (logging, recovery)
+│   ├── pb/                       # Generated Go stubs — gitignored, do not edit
+│   └── rest/                     # grpc-gateway custom error handler
 ├── gen/
-│   └── swift/              # Generated Swift stubs for the iOS client
+│   └── swift/                    # Generated Swift stubs for the iOS client
 ├── clients/
-│   ├── ios/JarvisClient/   # SwiftUI iOS HUD client
-│   └── android/            # Android client
+│   ├── ios/JarvisClient/         # SwiftUI iOS HUD client
+│   ├── android/                  # Android client (Kotlin + gRPC)
+│   └── web/                      # SvelteKit HUD web client
+│       ├── src/
+│       │   ├── lib/
+│       │   │   ├── api/          # Typed fetch wrappers for all 7 REST services
+│       │   │   └── stores/       # Auth store (localStorage + derived state)
+│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security
+│       └── static/               # Static assets (hud-bg.png, etc.)
 ├── docker/
-│   ├── jarvis/Dockerfile   # Single multi-stage build
-│   └── docker-compose.yml  # jarvis + redis
+│   ├── jarvis/Dockerfile         # Single multi-stage build → distroless binary
+│   └── docker-compose.yml        # jarvis + redis
 ├── gateway/
-│   └── docs/api-reference.md
-├── buf.yaml                # Buf lint/breaking config
-├── buf.gen.yaml            # Code generation config (Go → api/pb/, Swift → gen/swift/)
+│   └── docs/api-reference.md     # REST + gRPC API reference
+├── docs/openapi/                 # Generated OpenAPI spec — gitignored
+├── buf.yaml                      # Buf lint/breaking config
+├── buf.gen.yaml                  # Code generation (Go → api/pb/, Swift → gen/swift/)
 ├── Makefile
-└── setup.sh                # First-time bootstrap script
+└── setup.sh                      # First-time bootstrap script
 ```
 
 ## Proto Conventions
