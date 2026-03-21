@@ -156,14 +156,33 @@ PROPS
   success "Android Gradle wrapper installed"
 fi
 
-# ── 6. Done ───────────────────────────────────────────────────────────
+# ── 6. Node.js + Web client deps ─────────────────────────────────────
+if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v(18|20|22)'; then
+  success "Node.js already installed: $(node --version)"
+else
+  info "Installing Node.js 22 LTS..."
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - 2>&1 | grep -E "^(##|E:)" || true
+  sudo apt-get install -y nodejs 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "Node.js installed: $(node --version)"
+fi
+
+WEB_DIR="clients/web"
+if [ -f "$WEB_DIR/package.json" ]; then
+  info "Installing web client npm dependencies..."
+  cd "$WEB_DIR" && npm install 2>&1 | tail -3
+  cd - > /dev/null
+  success "Web client dependencies installed"
+fi
+
+# ── 7. Done ───────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo ""
 echo "  Run tests:    go test ./..."
-echo "  Docker:       cd docker && sudo docker-compose build && sudo docker-compose up -d"
-echo "  With make:    sudo make docker-up"
+echo "  Docker:       make docker-up"
+echo "  Run binary:   make run"
+echo "  Web UI:       make web-dev  → http://localhost:5173"
 echo "  Android:      make proto-android  (requires Android SDK)"
 echo ""
