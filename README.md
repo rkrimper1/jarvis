@@ -121,7 +121,7 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 # 1. Bootstrap (run once after cloning)
 bash setup.sh
 
-# 2. Start with Docker
+# 2. Start with Docker for the api microservices & redis 
 make docker-up
 
 # 3. Verify it's running (gRPC health)
@@ -131,6 +131,18 @@ grpcurl -plaintext localhost:50051 list
 curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -H "Content-Type: application/json" \
   -d '{"meta":{"request_id":"r1"},"session_id":"s1","utterance":"Hello JARVIS"}'
+
+# 5. Web UI Start Up(suggest running in a separate terminal)
+make web-dev
+
+# 6. Open a browser (login: tony-stark - no password setup yet)
+http://localhost:5173/
+
+# 7. Shut Down Web UI
+Ctrl-C
+
+# 8. Shut Down for the api microserveices
+make docker-down
 ```
 
 ### Manual setup (step-by-step)
