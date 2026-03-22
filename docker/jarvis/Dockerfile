@@ -25,5 +25,4 @@ COPY --from=builder /bin/jarvis /jarvis
 COPY --from=builder /go/bin/pprof /usr/local/bin/pprof
 
 EXPOSE 50051 8080
-USER nobody:nogroup
 ENTRYPOINT ["/jarvis"]
