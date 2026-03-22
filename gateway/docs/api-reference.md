@@ -3,7 +3,7 @@
 Base URL: `http://localhost:8080`
 gRPC direct: `localhost:50051`
 
-All 7 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
+All 8 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
 ---
 
@@ -25,6 +25,41 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
 # 2. Use the token
 curl http://localhost:8080/v1/business/schedule/tony-stark \
   -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## Command Service
+
+### Request Memory Profile
+
+Triggers an immediate heap profile snapshot. Writes a `.prof` file and (if `graphviz` is installed) a `.gif` call-graph image to `PPROF_DIR` (default `./profiles/`). Returns the paths of both files.
+
+```bash
+curl -X POST http://localhost:8080/v1/command/memory-profile \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"meta": {"request_id": "cmd-001"}}'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "cmd-001", "success": true},
+  "profPath": "profiles/heap-20260322-153045.prof",
+  "gifPath":  "profiles/heap-20260322-153045.gif"
+}
+```
+
+> `gifPath` is empty if `graphviz` is not installed. The `.prof` file is always written and can be inspected manually:
+> ```bash
+> go tool pprof profiles/heap-20260322-153045.prof
+> ```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "cmd-001"}}' \
+  localhost:50051 jarvis.command.CommandService/RequestMemoryProfile
 ```
 
 ---
@@ -340,6 +375,10 @@ curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
 ```bash
 # List all services
 grpcurl -plaintext localhost:50051 list
+
+# Request a heap memory profile
+grpcurl -plaintext -d '{"meta": {"request_id": "grpc-cmd-001"}}' \
+  localhost:50051 jarvis.command.CommandService/RequestMemoryProfile
 
 # Parse intent
 grpcurl -plaintext -d '{

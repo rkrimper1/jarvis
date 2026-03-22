@@ -41,6 +41,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 
 | Service | Responsibility |
 |---|---|
+| `command` | On-demand diagnostics — `RequestMemoryProfile` captures a heap profile and renders a GIF |
 | `business-ops` | Scheduling, tasks, messaging, reports. `ScheduleEvent` emails iCalendar invites via SMTP. |
 | `facility` | Building systems, environment monitoring |
 | `intelligence` | Research, artifact analysis, cross-referencing |
@@ -49,7 +50,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `security` | Auth, threat assessment, emergency protocols |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
-All 7 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+All 8 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
 
 ### NLP Dialogue — Claude AI
 
@@ -109,6 +110,15 @@ GCP_PROJECT=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 ```
 
+# ── Heap profiler ─────────────────────────────────────────────────
+PPROF_DIR=profiles                    # optional — output directory (default: ./profiles/)
+PPROF_INTERVAL=5m                     # optional — periodic background capture interval
+```
+
+> Heap profiles are also captured on demand via `POST /v1/command/memory-profile` regardless of `PPROF_INTERVAL`.
+> GIF rendering requires `graphviz` (`sudo apt install graphviz`). `setup.sh` installs it automatically.
+
+```
 > STT and TTS default to `stub` — mock responses, no cloud API required.
 > Set `STT_PROVIDER=google` / `TTS_PROVIDER=google` and supply GCP credentials to enable real speech recognition and synthesis.
 
@@ -184,6 +194,7 @@ jarvis/
 ├── proto/                        # Protobuf definitions (source of truth)
 │   └── pb/
 │       ├── common/               # Shared types (RequestMeta, ResponseMeta, etc.)
+│       ├── command/
 │       ├── business/
 │       ├── facility/
 │       ├── intelligence/
@@ -193,10 +204,12 @@ jarvis/
 │       └── voice/
 ├── api/                          # Single Go module
 │   ├── cmd/grpc-server/          # Entry point
-│   │   ├── main.go               # Listeners, env vars, graceful shutdown
-│   │   ├── server.go             # Wires all 7 services onto gRPC + grpc-gateway
+│   │   ├── main.go               # Listeners, env vars, heap profiler, graceful shutdown
+│   │   ├── server.go             # Wires all 8 services onto gRPC + grpc-gateway
 │   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
 │   ├── internal/                 # Service implementations (Go internal package)
+│   │   ├── command/server/       # CommandService — on-demand diagnostics
+│   │   ├── profiler/             # HeapProfiler — runtime/pprof + go tool pprof GIF
 │   │   ├── business-ops/server/
 │   │   ├── facility/server/
 │   │   ├── intelligence/server/

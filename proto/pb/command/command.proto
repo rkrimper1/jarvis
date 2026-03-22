@@ -1,0 +1,22 @@
+syntax = "proto3";
+package jarvis.command;
+option go_package = "github.com/rkrimper1/jarvis/api/pb/command";
+
+import "pb/common/common.proto";
+import "google/api/annotations.proto";
+
+message RequestMemoryProfileRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message RequestMemoryProfileResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string prof_path = 2; // path to the raw .prof file
+  string gif_path  = 3; // path to the rendered .gif (empty if graphviz unavailable)
+}
+
+service CommandService {
+  rpc RequestMemoryProfile(RequestMemoryProfileRequest) returns (RequestMemoryProfileResponse) {
+    option (google.api.http) = { post: "/v1/command/memory-profile" body: "*" };
+  }
+}
