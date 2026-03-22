@@ -4,9 +4,12 @@ version: "3.8"
 #  JARVIS — Single binary, all services in one process
 #
 #  Ports:
-#    :50051  gRPC  (all 7 services)
+#    :50051  gRPC  (all 8 services)
 #    :8080   REST  (grpc-gateway HTTP transcoder)
 #    :6379   Redis (session store — opt-in via SESSION_PROVIDER=redis)
+#
+#  Volumes:
+#    ./profiles  →  /tmp/profiles  (heap profile .prof + .gif output)
 # ──────────────────────────────────────────────────────────────────────
 
 services:
@@ -81,6 +84,8 @@ services:
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
       - SMTP_TO=${SMTP_TO:-}
+    volumes:
+      - ../profiles:/tmp/profiles
     ports:
       - "50051:50051"
       - "8080:8080"

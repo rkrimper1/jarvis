@@ -33,11 +33,6 @@ type HeapProfiler struct {
 // Start launches the profiler goroutine. It returns immediately; the goroutine
 // runs until ctx is cancelled.
 func (p *HeapProfiler) Start(ctx context.Context) {
-	if err := os.MkdirAll(p.OutDir, 0o755); err != nil {
-		p.Log.Error("profiler: cannot create output dir",
-			slog.String("dir", p.OutDir), slog.Any("err", err))
-		return
-	}
 	go p.loop(ctx)
 }
 
@@ -63,6 +58,10 @@ func (p *HeapProfiler) loop(ctx context.Context) {
 // to a GIF call-graph image. It returns the paths of the files written.
 // gifPath is empty when graphviz is not available.
 func (p *HeapProfiler) Capture() (profPath, gifPath string, err error) {
+	if err := os.MkdirAll(p.OutDir, 0o755); err != nil {
+		return "", "", fmt.Errorf("profiler: create output dir: %w", err)
+	}
+
 	ts := time.Now().Format("20060102-150405")
 	profPath = filepath.Join(p.OutDir, fmt.Sprintf("heap-%s.prof", ts))
 	gifPath = filepath.Join(p.OutDir, fmt.Sprintf("heap-%s.gif", ts))
@@ -87,7 +86,7 @@ func (p *HeapProfiler) Capture() (profPath, gifPath string, err error) {
 	//
 	// go tool pprof writes the GIF to stdout when given -gif.
 	// This requires graphviz (the `dot` binary) to be installed.
-	gif, err := exec.Command("go", "tool", "pprof", "-gif", profPath).Output()
+	gif, err := exec.Command("pprof", "-gif", profPath).Output()
 	if err != nil {
 		// Non-fatal: the .prof file is still usable manually.
 		p.Log.Warn("profiler: gif generation failed (graphviz installed?)",

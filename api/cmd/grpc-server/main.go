@@ -31,7 +31,7 @@ func main() {
 	defer rootCancel()
 
 	hp := &profiler.HeapProfiler{
-		OutDir:   envString("PPROF_DIR", "profiles"),
+		OutDir:   envString("PPROF_DIR", "/tmp/profiles"),
 		Interval: envDuration("PPROF_INTERVAL", 5*time.Minute),
 		Log:      log,
 	}

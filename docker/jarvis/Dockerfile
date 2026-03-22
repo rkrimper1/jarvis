@@ -13,8 +13,17 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /bin/jarvis \
     ./api/cmd/grpc-server
 
-FROM gcr.io/distroless/static-debian12
+# Build standalone pprof binary — avoids needing the full Go toolchain at runtime
+RUN CGO_ENABLED=0 GOOS=linux go install github.com/google/pprof@latest
+
+FROM debian:12-slim
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends graphviz \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /bin/jarvis /jarvis
+COPY --from=builder /go/bin/pprof /usr/local/bin/pprof
+
 EXPOSE 50051 8080
-USER nonroot:nonroot
+USER nobody:nogroup
 ENTRYPOINT ["/jarvis"]

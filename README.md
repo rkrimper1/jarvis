@@ -23,12 +23,14 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │   grpc-gateway (in-process REST → gRPC transcoder)         │
   │                                                             │
   │  ┌──────────────────────────────────────────────────────┐  │
-  │  │  business-ops │ facility │ intelligence │ learning   │  │
-  │  │  security     │ nlp ◄──► voice (in-process)          │  │
+  │  │  command      │ business-ops │ facility               │  │
+  │  │  intelligence │ learning     │ security               │  │
+  │  │  nlp ◄──────► voice (in-process)                     │  │
   │  └──────────────────────────────────────────────────────┘  │
   │                                                             │
   │   Claude API (NLP dialogue)    SMTP (calendar invites)     │
   │   Redis (session state)                                     │
+  │   /tmp/profiles → ./profiles  (heap profile volume mount)  │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -36,6 +38,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - Dialogue turns are powered by the Claude API, with session history stored in Redis
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
+- Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
 
 ## Services
 
@@ -70,7 +73,12 @@ Multi-turn conversation history is stored per session in **Redis** and sent to C
 
 When `SMTP_*` env vars are configured, `ScheduleEvent` automatically emails an iCalendar (`.ics`) invite to every address in `attendees`. Recipients can accept directly from their email client.
 
+### Command — Heap Profiler
+
+`RequestMemoryProfile` triggers an immediate heap snapshot. The `.prof` file and rendered `.gif` call-graph are written to `PPROF_DIR` and automatically appear in `./profiles/` on the host via the Docker volume mount.
+
 Required env vars (store outside the repo, e.g. `$HOME/credentials/jarvis/.env`):
+
 ```
 # ── SMTP / Calendar invites ───────────────────────────────────────
 SMTP_HOST=smtp.gmail.com
@@ -108,19 +116,18 @@ TTS_CHUNK_SIZE_BYTES=8192
 # ── GCP (required when STT_PROVIDER or TTS_PROVIDER = google) ─────
 GCP_PROJECT=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
-```
 
 # ── Heap profiler ─────────────────────────────────────────────────
-PPROF_DIR=profiles                    # optional — output directory (default: ./profiles/)
-PPROF_INTERVAL=5m                     # optional — periodic background capture interval
+PPROF_DIR=/tmp/profiles               # optional — output dir (default: /tmp/profiles)
+PPROF_INTERVAL=5m                     # optional — background capture interval (default: 5m)
 ```
 
-> Heap profiles are also captured on demand via `POST /v1/command/memory-profile` regardless of `PPROF_INTERVAL`.
-> GIF rendering requires `graphviz` (`sudo apt install graphviz`). `setup.sh` installs it automatically.
-
-```
 > STT and TTS default to `stub` — mock responses, no cloud API required.
 > Set `STT_PROVIDER=google` / `TTS_PROVIDER=google` and supply GCP credentials to enable real speech recognition and synthesis.
+
+> Heap profiles are also captured on demand via `POST /v1/command/memory-profile` regardless of `PPROF_INTERVAL`.
+> In Docker, output files appear in `./profiles/` on the host automatically via the volume mount.
+> GIF rendering requires `graphviz` — installed automatically by `setup.sh` and baked into the Docker image.
 
 ## Quick Start
 
@@ -131,7 +138,7 @@ PPROF_INTERVAL=5m                     # optional — periodic background capture
 # 1. Bootstrap (run once after cloning)
 bash setup.sh
 
-# 2. Start with Docker for the api microservices & redis 
+# 2. Start with Docker for the api microservices & redis
 make docker-up
 
 # 3. Verify it's running (gRPC health)
@@ -142,7 +149,7 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
   -H "Content-Type: application/json" \
   -d '{"meta":{"request_id":"r1"},"session_id":"s1","utterance":"Hello JARVIS"}'
 
-# 5. Web UI Start Up(suggest running in a separate terminal)
+# 5. Web UI Start Up (suggest running in a separate terminal)
 make web-dev
 
 # 6. Open a browser (login: tony-stark - no password setup yet)
@@ -151,7 +158,7 @@ http://localhost:5173/
 # 7. Shut Down Web UI
 Ctrl-C
 
-# 8. Shut Down for the api microserveices
+# 8. Shut Down the api microservices
 make docker-down
 ```
 
@@ -194,7 +201,7 @@ jarvis/
 ├── proto/                        # Protobuf definitions (source of truth)
 │   └── pb/
 │       ├── common/               # Shared types (RequestMeta, ResponseMeta, etc.)
-│       ├── command/
+│       ├── command/              # CommandService (RequestMemoryProfile)
 │       ├── business/
 │       ├── facility/
 │       ├── intelligence/
@@ -208,8 +215,8 @@ jarvis/
 │   │   ├── server.go             # Wires all 8 services onto gRPC + grpc-gateway
 │   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
 │   ├── internal/                 # Service implementations (Go internal package)
-│   │   ├── command/server/       # CommandService — on-demand diagnostics
-│   │   ├── profiler/             # HeapProfiler — runtime/pprof + go tool pprof GIF
+│   │   ├── command/server/       # CommandService — on-demand heap profiling
+│   │   ├── profiler/             # HeapProfiler — runtime/pprof + pprof/graphviz GIF
 │   │   ├── business-ops/server/
 │   │   ├── facility/server/
 │   │   ├── intelligence/server/
@@ -236,20 +243,21 @@ jarvis/
 │   └── web/                      # SvelteKit HUD web client
 │       ├── src/
 │       │   ├── lib/
-│       │   │   ├── api/          # Typed fetch wrappers for all 7 REST services
+│       │   │   ├── api/          # Typed fetch wrappers for all 8 REST services
 │       │   │   └── stores/       # Auth store (localStorage + derived state)
 │       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security
 │       └── static/               # Static assets (hud-bg.png, etc.)
+├── profiles/                     # Heap profile output — .prof + .gif (volume-mounted from Docker)
 ├── docker/
-│   ├── jarvis/Dockerfile         # Single multi-stage build → distroless binary
-│   └── docker-compose.yml        # jarvis + redis
+│   ├── jarvis/Dockerfile         # Multi-stage build: builder (Go/Alpine) → runtime (debian:slim + graphviz)
+│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles
 ├── gateway/
 │   └── docs/api-reference.md     # REST + gRPC API reference
 ├── docs/openapi/                 # Generated OpenAPI spec — gitignored
 ├── buf.yaml                      # Buf lint/breaking config
 ├── buf.gen.yaml                  # Code generation (Go → api/pb/, Swift → gen/swift/)
 ├── Makefile
-└── setup.sh                      # First-time bootstrap script
+└── setup.sh                      # First-time bootstrap script (installs buf, graphviz, node, etc.)
 ```
 
 ## Proto Conventions
@@ -263,7 +271,7 @@ jarvis/
 
 | Pattern | Example |
 |---|---|
-| Unary | `Authenticate`, `QueryIntel`, `ScheduleEvent` |
+| Unary | `Authenticate`, `QueryIntel`, `ScheduleEvent`, `RequestMemoryProfile` |
 | Server streaming | `StreamTelemetry`, `StreamSecurityAlerts`, `StreamAdaptationEvents`, `StreamIntelUpdates`, `StreamEnvironment` |
 | Client streaming | `StreamVoiceInput` |
 | Bidirectional | `Converse` (voice) |
