@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/rkrimper1/jarvis/api/internal/profiler"
 )
 
 func main() {
@@ -25,7 +27,17 @@ func main() {
 	maxRecv         := envInt("MAX_RECV_MSG_SIZE", 8*1024*1024)
 	maxSend         := envInt("MAX_SEND_MSG_SIZE", 8*1024*1024)
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend)
+	rootCtx, rootCancel := context.WithCancel(context.Background())
+	defer rootCancel()
+
+	hp := &profiler.HeapProfiler{
+		OutDir:   envString("PPROF_DIR", "/tmp/profiles"),
+		Interval: envDuration("PPROF_INTERVAL", 5*time.Minute),
+		Log:      log,
+	}
+	hp.Start(rootCtx)
+
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -74,6 +86,7 @@ func main() {
 		log.Error("server error", slog.Any("err", err))
 	}
 
+	rootCancel()
 	markNotServing(healthSrv)
 
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
@@ -101,6 +114,13 @@ func envInt(key string, def int) int {
 		if i, err := strconv.Atoi(v); err == nil {
 			return i
 		}
+	}
+	return def
+}
+
+func envString(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
 	return def
 }

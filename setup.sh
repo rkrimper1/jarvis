@@ -22,6 +22,14 @@ else
   success "xdg-open already installed"
 fi
 
+if ! command -v dot >/dev/null 2>&1; then
+  info "Installing graphviz (required for pprof GIF rendering)..."
+  sudo apt-get install -y graphviz 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "graphviz installed"
+else
+  success "graphviz already installed"
+fi
+
 if command -v android-studio >/dev/null 2>&1 || command -v studio >/dev/null 2>&1; then
   success "Android Studio already installed"
 elif command -v snap >/dev/null 2>&1; then

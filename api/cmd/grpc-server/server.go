@@ -14,6 +14,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/middleware"
 	"github.com/rkrimper1/jarvis/api/rest"
 
+	commandv1  "github.com/rkrimper1/jarvis/api/pb/command"
 	businessv1 "github.com/rkrimper1/jarvis/api/pb/business"
 	facilityv1 "github.com/rkrimper1/jarvis/api/pb/facility"
 	intelligv1 "github.com/rkrimper1/jarvis/api/pb/intelligence"
@@ -22,6 +23,7 @@ import (
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
 	voicev1    "github.com/rkrimper1/jarvis/api/pb/voice"
 
+	commandserver  "github.com/rkrimper1/jarvis/api/internal/command/server"
 	businessserver "github.com/rkrimper1/jarvis/api/internal/business-ops/server"
 	facilityserver "github.com/rkrimper1/jarvis/api/internal/facility/server"
 	intelligserver "github.com/rkrimper1/jarvis/api/internal/intelligence/server"
@@ -30,6 +32,7 @@ import (
 	securityserver "github.com/rkrimper1/jarvis/api/internal/security/server"
 	voiceserver    "github.com/rkrimper1/jarvis/api/internal/voice/server"
 
+	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	nlpconfig      "github.com/rkrimper1/jarvis/api/internal/nlp/config"
 	securityconfig "github.com/rkrimper1/jarvis/api/internal/security/config"
 	voiceconfig    "github.com/rkrimper1/jarvis/api/internal/voice/config"
@@ -39,6 +42,7 @@ import (
 // with the health server. Used to mark all services SERVING / NOT_SERVING
 // on startup and shutdown.
 var serviceNames = []string{
+	"jarvis.command.CommandService",
 	"jarvis.business.BusinessOpsService",
 	"jarvis.facility.FacilityService",
 	"jarvis.intelligence.IntelligenceService",
@@ -50,7 +54,7 @@ var serviceNames = []string{
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -66,6 +70,10 @@ func newServer(log *slog.Logger, maxRecv, maxSend int) (*grpc.Server, *health.Se
 			middleware.StreamLogger(log),
 		),
 	)
+
+	// ── Service: command ──────────────────────────────────────────────
+	cmdSrv := commandserver.New(hp, log)
+	commandv1.RegisterCommandServiceServer(grpcSrv, cmdSrv)
 
 	// ── Service: business-ops ─────────────────────────────────────────
 	businessv1.RegisterBusinessOpsServiceServer(grpcSrv, businessserver.New(log))
@@ -121,6 +129,9 @@ func newServer(log *slog.Logger, maxRecv, maxSend int) (*grpc.Server, *health.Se
 	gwMux := runtime.NewServeMux(
 		runtime.WithErrorHandler(rest.CustomErrorHandler),
 	)
+	if err := commandv1.RegisterCommandServiceHandlerServer(ctx, gwMux, cmdSrv); err != nil {
+		return nil, nil, nil, fmt.Errorf("gateway command: %w", err)
+	}
 	if err := businessv1.RegisterBusinessOpsServiceHandlerServer(ctx, gwMux, businessserver.New(log)); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway business-ops: %w", err)
 	}

@@ -3,7 +3,7 @@
 Base URL: `http://localhost:8080`
 gRPC direct: `localhost:50051`
 
-All 7 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
+All 8 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
 ---
 
@@ -25,6 +25,43 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
 # 2. Use the token
 curl http://localhost:8080/v1/business/schedule/tony-stark \
   -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## Command Service
+
+### Request Memory Profile
+
+Triggers an immediate heap profile snapshot. Writes a `.prof` file and (if graphviz is available) a `.gif` call-graph image to `PPROF_DIR` (default `/tmp/profiles`). In Docker, both files are automatically available on the host at `./profiles/` via the volume mount.
+
+```bash
+curl -X POST http://localhost:8080/v1/command/memory-profile \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"meta": {"request_id": "cmd-001"}}'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "cmd-001", "success": true},
+  "profPath": "/tmp/profiles/heap-20260322-153045.prof",
+  "gifPath":  "/tmp/profiles/heap-20260322-153045.gif"
+}
+```
+
+> `gifPath` is empty if graphviz is not available. The `.prof` file is always written and can be inspected manually:
+> ```bash
+> go tool pprof /tmp/profiles/heap-20260322-153045.prof
+> ```
+
+> A background snapshot is also taken automatically every `PPROF_INTERVAL` (default `5m`).
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "cmd-001"}}' \
+  localhost:50051 jarvis.command.CommandService/RequestMemoryProfile
 ```
 
 ---
@@ -341,6 +378,10 @@ curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
 # List all services
 grpcurl -plaintext localhost:50051 list
 
+# Request a heap memory profile
+grpcurl -plaintext -d '{"meta": {"request_id": "grpc-cmd-001"}}' \
+  localhost:50051 jarvis.command.CommandService/RequestMemoryProfile
+
 # Parse intent
 grpcurl -plaintext -d '{
   "meta": {"request_id": "grpc-001"},
@@ -384,20 +425,23 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                     REST :8080   │   gRPC :50051
                   ┌──────────────▼──────────────────────────┐
                   │            J.A.R.V.I.S.                  │
-                  │          Single Go Binary                 │
+                  │    Single Go Binary · debian:slim         │
                   │                                           │
                   │  grpc-gateway (in-process REST → gRPC)   │
                   │                                           │
-                  │  business-ops  facility  intelligence     │
-                  │  learning  nlp ◄──► voice  security       │
+                  │  command      business-ops  facility      │
+                  │  intelligence learning      security      │
+                  │  nlp ◄──────► voice (in-process)         │
                   │                                           │
                   │  nlp → Claude API (dialogue, streaming)  │
                   │  Redis (dialogue history + sessions)      │
-                  └──────────────┬────────────────────────────┘
-                                 │
-                  ┌──────────────▼──────────────┐
-                  │  External Services           │
-                  │  Anthropic API (Claude)      │
-                  │  SMTP → iCal email invites   │
-                  └──────────────────────────────┘
+                  │                                           │
+                  │  /tmp/profiles ──────────────────────┐   │
+                  └──────────────┬───────────────────────┼───┘
+                                 │                        │ volume mount
+                  ┌──────────────▼──────────────┐   ┌────▼────────────┐
+                  │  External Services           │   │  Host           │
+                  │  Anthropic API (Claude)      │   │  ./profiles/    │
+                  │  SMTP → iCal email invites   │   │  *.prof  *.gif  │
+                  └──────────────────────────────┘   └─────────────────┘
 ```
