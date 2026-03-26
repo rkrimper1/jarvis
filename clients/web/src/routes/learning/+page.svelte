@@ -155,7 +155,13 @@
 
 		<!-- ── Results ────────────────────────────────────── -->
 		<div class="hud-panel result-panel">
-			{#if error}
+			{#if loading}
+				<div class="panel-title hud-label">SCANNING</div>
+				<div class="scan-wrap">
+					<div class="scan-bar"></div>
+					<div class="scan-label hud-label">QUERYING KNOWLEDGE BASE...</div>
+				</div>
+			{:else if error}
 				<div class="panel-title hud-label">RESULTS</div>
 				<div class="text-red" style="font-size:12px">{error}</div>
 			{:else if results.length > 0}
@@ -279,6 +285,21 @@
 	.radio-option input[type="radio"] { accent-color: var(--hud-cyan); }
 
 	.searches-remaining { font-size: 10px; margin-top: 14px; opacity: 0.6; }
+
+	.scan-wrap { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+	.scan-bar {
+		height: 2px;
+		background: var(--hud-cyan);
+		animation: scan-sweep 1.2s ease-in-out infinite;
+		transform-origin: left;
+	}
+	@keyframes scan-sweep {
+		0%   { transform: scaleX(0); opacity: 1; }
+		60%  { transform: scaleX(1); opacity: 1; }
+		100% { transform: scaleX(1); opacity: 0; }
+	}
+	.scan-label { font-size: 10px; opacity: 0.6; animation: blink 1.2s step-end infinite; }
+	@keyframes blink { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.2; } }
 
 	.result-panel { overflow: auto; }
 	.result-list { display: flex; flex-direction: column; gap: 12px; }
