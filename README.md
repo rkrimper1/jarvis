@@ -28,17 +28,20 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │  │  nlp ◄──────► voice (in-process)                     │  │
   │  └──────────────────────────────────────────────────────┘  │
   │                                                             │
-  │   Claude API (NLP dialogue)    SMTP (calendar invites)     │
+  │   Claude API (NLP · knowledge search)   SMTP (invites)     │
   │   Redis (session state)                                     │
-  │   /tmp/profiles → ./profiles  (heap profile volume mount)  │
+  │   /tmp/profiles  → ./profiles/        (heap profile mount) │
+  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge DB mount) │
   └─────────────────────────────────────────────────────────────┘
 ```
 
 - NLP and Voice are wired in-process — no network hop between them
 - Dialogue turns are powered by the Claude API, with session history stored in Redis
+- `SearchKnowledge` uses the Claude API (and optionally web search) as a fallback when no local SQLite result is found
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
+- The SQLite knowledge DB at `~/.jarvis/knowledge.db` is mounted read/write so the container persists learned entries to the host
 
 ## Services
 
@@ -257,7 +260,7 @@ jarvis/
 ├── profiles/                     # Heap profile output — .prof + .gif (volume-mounted from Docker)
 ├── docker/
 │   ├── jarvis/Dockerfile         # Multi-stage build: builder (Go/Alpine) → runtime (debian:slim + graphviz)
-│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles
+│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles, ~/.jarvis → /home/vagrant/.jarvis
 ├── gateway/
 │   └── docs/api-reference.md     # REST + gRPC API reference
 ├── docs/openapi/                 # Generated OpenAPI spec — gitignored
@@ -286,16 +289,46 @@ jarvis/
 ## Make Targets
 
 ```bash
-make build          # compile the jarvis binary (bin/jarvis)
-make test           # run all tests with race detector
-make proto          # regenerate Go stubs from proto files (→ api/pb/)
-make proto-lint     # lint proto files
-make proto-android  # generate Kotlin/gRPC stubs via Gradle
-make docker-up      # build image and start all services
-make docker-down    # stop all services
-make docker-logs    # tail all container logs
-make logs-<svc>     # tail a specific service, e.g. make logs-jarvis
-make ios-open       # generate protos and open the Xcode project
-make android-open   # generate Android stubs and open Android Studio
-make help           # list all available targets
+# ── Proto ────────────────────────────────────────────────────
+make proto              # regenerate Go stubs from proto files (→ api/pb/)
+make proto-lint         # lint proto files
+make proto-breaking     # check for breaking proto changes vs main branch
+make proto-android      # generate Kotlin/gRPC stubs via Gradle
+
+# ── Build & Run ──────────────────────────────────────────────
+make build              # compile the jarvis binary (bin/jarvis)
+make run                # build then run locally (loads ENV_PATH if present)
+
+# ── Test ─────────────────────────────────────────────────────
+make test               # run all tests with race detector
+make test-short         # run tests without -v (faster CI output)
+make test-voice         # run voice tests only
+
+# ── Docker ───────────────────────────────────────────────────
+make docker-build       # build the Jarvis Docker image (no start)
+make docker-up          # build image and start jarvis + redis in background
+make docker-up-fg       # build image and start in foreground (shows logs)
+make docker-down        # stop and remove all containers
+make docker-down-v      # stop containers and remove volumes
+make docker-logs        # tail all container logs
+make docker-ps          # show running container status
+make docker-restart     # restart containers without rebuilding
+make logs-<svc>         # tail logs for a specific service, e.g. make logs-jarvis
+make restart-<svc>      # restart a specific service, e.g. make restart-jarvis
+
+# ── Utilities ────────────────────────────────────────────────
+make setup              # first-time bootstrap: buf, graphviz, node, proto stubs
+make tidy               # generate protos then tidy Go modules
+make clean              # remove compiled binaries and generated code (bin/, api/pb/)
+make compose-version    # show which Docker Compose version is being used
+
+# ── Clients ──────────────────────────────────────────────────
+make ios-open           # generate protos and open the Xcode project
+make ios-clean          # remove Swift generated stubs (gen/swift/)
+make android-open       # generate Android stubs and open Android Studio
+make web-dev            # start the SvelteKit HUD client in dev mode (hot reload, proxies :8080)
+make web-build          # build the SvelteKit HUD client for production
+make web-preview        # preview the production build locally
+
+make help               # list all available targets
 ```

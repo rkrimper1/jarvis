@@ -501,14 +501,18 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  nlp ◄──────► voice (in-process)         │
                   │                                           │
                   │  nlp → Claude API (dialogue, streaming)  │
+                  │  learning → Claude API (knowledge search) │
                   │  Redis (dialogue history + sessions)      │
                   │                                           │
                   │  /tmp/profiles ──────────────────────┐   │
+                  │  ~/.jarvis (knowledge DB) ────────────┤   │
                   └──────────────┬───────────────────────┼───┘
-                                 │                        │ volume mount
-                  ┌──────────────▼──────────────┐   ┌────▼────────────┐
-                  │  External Services           │   │  Host           │
-                  │  Anthropic API (Claude)      │   │  ./profiles/    │
-                  │  SMTP → iCal email invites   │   │  *.prof  *.gif  │
-                  └──────────────────────────────┘   └─────────────────┘
+                                 │                        │ volume mounts
+                  ┌──────────────▼──────────────┐   ┌────▼──────────────────┐
+                  │  External Services           │   │  Host                 │
+                  │  Anthropic API (Claude)      │   │  ./profiles/          │
+                  │  · NLP dialogue              │   │  *.prof  *.gif        │
+                  │  · knowledge search          │   │  ~/.jarvis/           │
+                  │  SMTP → iCal email invites   │   │  knowledge.db         │
+                  └──────────────────────────────┘   └───────────────────────┘
 ```

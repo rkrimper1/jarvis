@@ -85,6 +85,10 @@ services:
       - SMTP_PASS=${SMTP_PASS:-}
       - SMTP_TO=${SMTP_TO:-}
 
+      # ── Heap profiler ─────────────────────────────────────────────
+      - PPROF_DIR=${PPROF_DIR:-/tmp/profiles}
+      - PPROF_INTERVAL=${PPROF_INTERVAL:-5m}
+
       # ── Knowledge base (Learning service) ────────────────────────
       - KNOWLEDGE_DB_PATH=${KNOWLEDGE_DB_PATH:-}
       - KNOWLEDGE_STALE_DAYS=${KNOWLEDGE_STALE_DAYS:-30}
