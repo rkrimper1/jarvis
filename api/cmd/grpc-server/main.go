@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
+	learningserver "github.com/rkrimper1/jarvis/api/internal/learning/server"
 )
 
 func main() {
@@ -37,7 +38,15 @@ func main() {
 	}
 	hp.Start(rootCtx)
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp)
+	learningCfg := learningserver.Config{
+		KnowledgeDBPath:    envString("KNOWLEDGE_DB_PATH", ""),
+		KnowledgeStaleDays: envInt("KNOWLEDGE_STALE_DAYS", 30),
+		WebSearchMaxUses:   envInt("KNOWLEDGE_WEB_SEARCH_MAX_USES", 10),
+		AnthropicAPIKey:    envString("ANTHROPIC_API_KEY", ""),
+		ClaudeModel:        envString("CLAUDE_MODEL", "claude-sonnet-4-6"),
+	}
+
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)

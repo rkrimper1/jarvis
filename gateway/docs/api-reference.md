@@ -370,6 +370,65 @@ curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### Search Knowledge
+
+Searches the local SQLite knowledge base (FTS5 + fuzzy). Returns `needs_confirmation: true` when no fresh result exists and an external search is available. Re-send with `confirmed: true` and your chosen `preferred_source` to execute the search, save the result, and return it.
+
+**First call (DB lookup):**
+```bash
+curl -X POST http://localhost:8080/v1/learning/knowledge/search \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "know-001"},
+    "query": "arc reactor palladium toxicity",
+    "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API"
+  }'
+```
+
+**Confirmed external search:**
+```bash
+curl -X POST http://localhost:8080/v1/learning/knowledge/search \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "know-002"},
+    "query": "arc reactor palladium toxicity",
+    "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+    "confirmed": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "know-002", "success": true},
+  "results": [{
+    "id": "1",
+    "query": "arc reactor palladium toxicity",
+    "summary": "Palladium poisoning from arc reactor use causes...",
+    "source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+    "confidence": 0.85,
+    "updatedAt": "2026-03-25T00:00:00Z"
+  }],
+  "searchesRemaining": 9
+}
+```
+
+> `preferred_source` accepts `KNOWLEDGE_SOURCE_CLAUDE_API` or `KNOWLEDGE_SOURCE_WEB_SEARCH`.
+> `KNOWLEDGE_WEB_SEARCH_MAX_USES` (default `10`) controls how many external searches are allowed per session.
+> Entries older than `KNOWLEDGE_STALE_DAYS` (default `30`) are excluded from DB results.
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "know-001"},
+  "query": "arc reactor palladium toxicity",
+  "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+  "confirmed": true
+}' localhost:50051 jarvis.learning.LearningService/SearchKnowledge
+```
+
 ---
 
 ## gRPC Direct Access
@@ -407,6 +466,14 @@ grpcurl -plaintext -d '{
   "end":   "2026-04-01T15:00:00Z",
   "high_priority": true
 }' localhost:50051 jarvis.business.BusinessOpsService/ScheduleEvent
+
+# Search knowledge base (confirmed external search)
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "grpc-know-001"},
+  "query": "vibranium tensile strength",
+  "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+  "confirmed": true
+}' localhost:50051 jarvis.learning.LearningService/SearchKnowledge
 
 # Health check
 grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check

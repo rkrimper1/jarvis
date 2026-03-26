@@ -83,6 +83,46 @@ message StreamAdaptationEventsResponse {
   AdaptationEvent event           = 2;
 }
 
+enum KnowledgeSource {
+  KNOWLEDGE_SOURCE_UNSPECIFIED = 0;
+  KNOWLEDGE_SOURCE_WEB_SEARCH  = 1;
+  KNOWLEDGE_SOURCE_CLAUDE_API  = 2;
+  KNOWLEDGE_SOURCE_MANUAL      = 3;
+}
+
+message KnowledgeEntry {
+  int64  id         = 1;
+  string query      = 2;
+  string summary    = 3;
+  KnowledgeSource source = 4;
+  float  confidence = 5;
+  string tags       = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message SearchKnowledgeRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string query                   = 2;
+  // preferred_source is used when needs_confirmation is true and the
+  // user has chosen a source in the UI. Omit on the first call.
+  KnowledgeSource preferred_source = 3;
+  // confirmed signals the user approved an external search after
+  // receiving needs_confirmation = true on a prior call.
+  bool confirmed = 4;
+}
+
+message SearchKnowledgeResponse {
+  jarvis.common.ResponseMeta meta        = 1;
+  repeated KnowledgeEntry    results     = 2;
+  // needs_confirmation is true when no fresh DB results exist and an
+  // external search is available but has not yet been approved.
+  bool             needs_confirmation    = 3;
+  KnowledgeSource  suggested_source      = 4;
+  // searches_remaining is the number of external searches left in this session.
+  int32            searches_remaining    = 5;
+}
+
 service LearningService {
   rpc SubmitFeedback(SubmitFeedbackRequest) returns (SubmitFeedbackResponse) {
     option (google.api.http) = { post: "/v1/learning/feedback" body: "*" };
@@ -94,4 +134,7 @@ service LearningService {
     option (google.api.http) = { get: "/v1/learning/performance" };
   }
   rpc StreamAdaptationEvents(StreamAdaptationEventsRequest) returns (stream StreamAdaptationEventsResponse);
+  rpc SearchKnowledge(SearchKnowledgeRequest) returns (SearchKnowledgeResponse) {
+    option (google.api.http) = { post: "/v1/learning/knowledge/search" body: "*" };
+  }
 }

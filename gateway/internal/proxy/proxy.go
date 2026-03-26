@@ -16,10 +16,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	agentgw    "github.com/rkrimper1/jarvis/api/pb/agent"
 	businessgw "github.com/rkrimper1/jarvis/api/pb/business"
 	facilitygw "github.com/rkrimper1/jarvis/api/pb/facility"
-	hardwaregw "github.com/rkrimper1/jarvis/api/pb/hardware"
 	intelliggw "github.com/rkrimper1/jarvis/api/pb/intelligence"
 	learninggw "github.com/rkrimper1/jarvis/api/pb/learning"
 	nlpgw      "github.com/rkrimper1/jarvis/api/pb/nlp"
@@ -78,20 +76,6 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*Proxy, err
 			addr: cfg.Upstreams.SecurityService,
 			register: func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 				return securitygw.RegisterSecurityServiceHandler(ctx, mux, conn)
-			},
-		},
-		{
-			name: "agent-coordinator",
-			addr: cfg.Upstreams.AgentCoordinator,
-			register: func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-				return agentgw.RegisterAgentCoordinatorServiceHandler(ctx, mux, conn)
-			},
-		},
-		{
-			name: "hardware-service",
-			addr: cfg.Upstreams.HardwareService,
-			register: func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-				return hardwaregw.RegisterHardwareServiceHandler(ctx, mux, conn)
 			},
 		},
 		{

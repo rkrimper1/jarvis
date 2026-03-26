@@ -164,7 +164,53 @@ PROPS
   success "Android Gradle wrapper installed"
 fi
 
-# ── 6. Node.js + Web client deps ─────────────────────────────────────
+# ── 6. JARVIS knowledge database ─────────────────────────────────────
+JARVIS_DIR="$HOME/.jarvis"
+KNOWLEDGE_DB="${KNOWLEDGE_DB_PATH:-$JARVIS_DIR/knowledge.db}"
+mkdir -p "$JARVIS_DIR"
+
+if [ -f "$KNOWLEDGE_DB" ]; then
+  success "Knowledge DB already exists at $KNOWLEDGE_DB"
+else
+  info "Creating knowledge DB at $KNOWLEDGE_DB..."
+  sqlite3 "$KNOWLEDGE_DB" <<'SQL'
+CREATE TABLE IF NOT EXISTS knowledge (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    query        TEXT NOT NULL,
+    summary      TEXT NOT NULL,
+    source       TEXT NOT NULL CHECK(source IN ('web_search','claude_api','manual')),
+    confidence   REAL DEFAULT 1.0,
+    tags         TEXT DEFAULT '',
+    created_at   DATETIME DEFAULT (datetime('now')),
+    updated_at   DATETIME DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_query ON knowledge(query);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts
+    USING fts5(query, summary, tags, content=knowledge, content_rowid=id);
+
+CREATE TRIGGER IF NOT EXISTS knowledge_ai AFTER INSERT ON knowledge BEGIN
+    INSERT INTO knowledge_fts(rowid, query, summary, tags)
+    VALUES (new.id, new.query, new.summary, new.tags);
+END;
+
+CREATE TRIGGER IF NOT EXISTS knowledge_au AFTER UPDATE ON knowledge BEGIN
+    INSERT INTO knowledge_fts(knowledge_fts, rowid, query, summary, tags)
+    VALUES ('delete', old.id, old.query, old.summary, old.tags);
+    INSERT INTO knowledge_fts(rowid, query, summary, tags)
+    VALUES (new.id, new.query, new.summary, new.tags);
+END;
+
+CREATE TRIGGER IF NOT EXISTS knowledge_ad AFTER DELETE ON knowledge BEGIN
+    INSERT INTO knowledge_fts(knowledge_fts, rowid, query, summary, tags)
+    VALUES ('delete', old.id, old.query, old.summary, old.tags);
+END;
+SQL
+  success "Knowledge DB created at $KNOWLEDGE_DB"
+fi
+
+# ── 7. Node.js + Web client deps ─────────────────────────────────────
 if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v(18|20|22)'; then
   success "Node.js already installed: $(node --version)"
 else
@@ -182,7 +228,7 @@ if [ -f "$WEB_DIR/package.json" ]; then
   success "Web client dependencies installed"
 fi
 
-# ── 7. Done ───────────────────────────────────────────────────────────
+# ── 8. Done ───────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"

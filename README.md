@@ -48,7 +48,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `business-ops` | Scheduling, tasks, messaging, reports. `ScheduleEvent` emails iCalendar invites via SMTP. |
 | `facility` | Building systems, environment monitoring |
 | `intelligence` | Research, artifact analysis, cross-referencing |
-| `learning` | Feedback loops, behavior profiling, model metrics |
+| `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
 | `security` | Auth, threat assessment, emergency protocols |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
@@ -120,6 +120,11 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 # ── Heap profiler ─────────────────────────────────────────────────
 PPROF_DIR=/tmp/profiles               # optional — output dir (default: /tmp/profiles)
 PPROF_INTERVAL=5m                     # optional — background capture interval (default: 5m)
+
+# ── Knowledge base (Learning service) ─────────────────────────────
+KNOWLEDGE_DB_PATH=$HOME/.jarvis/knowledge.db  # optional — SQLite DB path (created by setup.sh)
+KNOWLEDGE_STALE_DAYS=30               # optional — exclude entries older than N days (default: 30)
+KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per session (default: 10)
 ```
 
 > STT and TTS default to `stub` — mock responses, no cloud API required.
@@ -223,7 +228,9 @@ jarvis/
 │   │   ├── integrations/
 │   │   │   ├── claude/           # Anthropic Claude API client (NLP dialogue)
 │   │   │   └── email/            # SMTP + iCalendar invite sender
-│   │   ├── learning/server/
+│   │   ├── learning/
+│   │   │   ├── knowledge/            # SQLite + FTS5 knowledge store + Claude/web-search fallback
+│   │   │   └── server/
 │   │   ├── nlp/
 │   │   │   ├── config/
 │   │   │   ├── dialogue/         # Manager, Redis session store, prompts

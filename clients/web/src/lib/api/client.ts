@@ -194,6 +194,31 @@ export const facility = {
 
 // ── Learning ─────────────────────────────────────────────────────────
 
+export type KnowledgeSource =
+	| 'KNOWLEDGE_SOURCE_UNSPECIFIED'
+	| 'KNOWLEDGE_SOURCE_WEB_SEARCH'
+	| 'KNOWLEDGE_SOURCE_CLAUDE_API'
+	| 'KNOWLEDGE_SOURCE_MANUAL';
+
+export interface KnowledgeEntry {
+	id: string;
+	query: string;
+	summary: string;
+	source: KnowledgeSource;
+	confidence: number;
+	tags: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface SearchKnowledgeResponse {
+	meta: ResponseMeta;
+	results: KnowledgeEntry[];
+	needsConfirmation: boolean;
+	suggestedSource: KnowledgeSource;
+	searchesRemaining: number;
+}
+
 export const learning = {
 	getProfile(userId: string) {
 		return call('GET', `/learning/profile/${userId}`);
@@ -205,6 +230,18 @@ export const learning = {
 			feedback_type: 'FEEDBACK_TYPE_CORRECTION',
 			correction,
 			rating
+		});
+	},
+	searchKnowledge(
+		query: string,
+		preferredSource: KnowledgeSource = 'KNOWLEDGE_SOURCE_UNSPECIFIED',
+		confirmed = false
+	): Promise<SearchKnowledgeResponse> {
+		return call('POST', '/learning/knowledge/search', {
+			meta: { request_id: reqId() },
+			query,
+			preferred_source: preferredSource,
+			confirmed
 		});
 	}
 };

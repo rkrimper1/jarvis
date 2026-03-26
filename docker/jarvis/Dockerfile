@@ -18,7 +18,7 @@ RUN CGO_ENABLED=0 GOOS=linux go install github.com/google/pprof@latest
 
 FROM debian:12-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends graphviz \
+ && apt-get install -y --no-install-recommends ca-certificates graphviz \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /bin/jarvis /jarvis

@@ -16,6 +16,7 @@
 		{ path: '/schedule', label: 'Schedule', icon: '◷' },
 		{ path: '/tasks',    label: 'Tasks',    icon: '◧' },
 		{ path: '/intel',    label: 'Intel',    icon: '◎' },
+		{ path: '/learning', label: 'Learning', icon: '◈' },
 		{ path: '/security', label: 'Security', icon: '◬' },
 	];
 

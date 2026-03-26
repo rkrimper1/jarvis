@@ -54,7 +54,7 @@ var serviceNames = []string{
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -85,7 +85,8 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	intelligv1.RegisterIntelligenceServiceServer(grpcSrv, intelligserver.New(log))
 
 	// ── Service: learning ─────────────────────────────────────────────
-	learningv1.RegisterLearningServiceServer(grpcSrv, learningserver.New(log))
+	learnSrv := learningserver.New(log, learningCfg)
+	learningv1.RegisterLearningServiceServer(grpcSrv, learnSrv)
 
 	// ── Service: nlp ──────────────────────────────────────────────────
 	nlpCfg, err := nlpconfig.Load()
@@ -141,7 +142,7 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	if err := intelligv1.RegisterIntelligenceServiceHandlerServer(ctx, gwMux, intelligserver.New(log)); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway intelligence: %w", err)
 	}
-	if err := learningv1.RegisterLearningServiceHandlerServer(ctx, gwMux, learningserver.New(log)); err != nil {
+	if err := learningv1.RegisterLearningServiceHandlerServer(ctx, gwMux, learnSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway learning: %w", err)
 	}
 	if err := nlpv1.RegisterNLPServiceHandlerServer(ctx, gwMux, nlpSrv); err != nil {
