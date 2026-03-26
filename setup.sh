@@ -235,7 +235,25 @@ SQL
   success "Users DB created at $USERS_DB"
 fi
 
-# ── 8. Node.js + Web client deps ─────────────────────────────────────
+# ── 8. Face analysis — cascade file + output dir ─────────────────────
+FACE_CASCADE="${FACE_CASCADE_PATH:-$JARVIS_DIR/facefinder}"
+FACE_DIR="${FACE_OUTPUT_DIR:-$JARVIS_DIR/faces}"
+
+mkdir -p "$FACE_DIR"
+success "Face output dir ready at $FACE_DIR"
+
+if [ -f "$FACE_CASCADE" ]; then
+  success "pigo face cascade already exists at $FACE_CASCADE"
+else
+  info "Downloading pigo facefinder cascade to $FACE_CASCADE..."
+  curl -fsSL \
+    "https://raw.githubusercontent.com/esimov/pigo/master/cascade/facefinder" \
+    -o "$FACE_CASCADE" \
+    && success "pigo cascade downloaded" \
+    || warn "Failed to download pigo cascade — face analysis will be unavailable until $FACE_CASCADE exists"
+fi
+
+# ── 9. Node.js + Web client deps ─────────────────────────────────────
 if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v(18|20|22)'; then
   success "Node.js already installed: $(node --version)"
 else
@@ -253,7 +271,7 @@ if [ -f "$WEB_DIR/package.json" ]; then
   success "Web client dependencies installed"
 fi
 
-# ── 9. Done ───────────────────────────────────────────────────────────
+# ── 10. Done ──────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"

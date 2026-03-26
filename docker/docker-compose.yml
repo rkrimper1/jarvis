@@ -4,7 +4,7 @@ version: "3.8"
 #  JARVIS — Single binary, all services in one process
 #
 #  Ports:
-#    :50051  gRPC  (all 8 services)
+#    :50051  gRPC  (all 9 services)
 #    :8080   REST  (grpc-gateway HTTP transcoder)
 #    :6379   Redis (session store — opt-in via SESSION_PROVIDER=redis)
 #
@@ -100,6 +100,11 @@ services:
       - KNOWLEDGE_DB_PATH=${KNOWLEDGE_DB_PATH:-}
       - KNOWLEDGE_STALE_DAYS=${KNOWLEDGE_STALE_DAYS:-30}
       - KNOWLEDGE_WEB_SEARCH_MAX_USES=${KNOWLEDGE_WEB_SEARCH_MAX_USES:-10}
+
+      # ── Face analysis (Security service) ─────────────────────────
+      # Cascade is downloaded by setup.sh to ~/.jarvis/facefinder
+      - FACE_CASCADE_PATH=${FACE_CASCADE_PATH:-/home/vagrant/.jarvis/facefinder}
+      - FACE_OUTPUT_DIR=${FACE_OUTPUT_DIR:-/home/vagrant/.jarvis/faces}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis

@@ -1008,6 +1008,270 @@ func (x *StreamSecurityAlertsResponse) GetAlert() *SecurityAlert {
 	return nil
 }
 
+type BoundingBox struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	X             int32                  `protobuf:"varint,1,opt,name=x,proto3" json:"x,omitempty"`
+	Y             int32                  `protobuf:"varint,2,opt,name=y,proto3" json:"y,omitempty"`
+	Width         int32                  `protobuf:"varint,3,opt,name=width,proto3" json:"width,omitempty"`
+	Height        int32                  `protobuf:"varint,4,opt,name=height,proto3" json:"height,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BoundingBox) Reset() {
+	*x = BoundingBox{}
+	mi := &file_pb_security_security_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BoundingBox) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BoundingBox) ProtoMessage() {}
+
+func (x *BoundingBox) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_security_security_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BoundingBox.ProtoReflect.Descriptor instead.
+func (*BoundingBox) Descriptor() ([]byte, []int) {
+	return file_pb_security_security_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *BoundingBox) GetX() int32 {
+	if x != nil {
+		return x.X
+	}
+	return 0
+}
+
+func (x *BoundingBox) GetY() int32 {
+	if x != nil {
+		return x.Y
+	}
+	return 0
+}
+
+func (x *BoundingBox) GetWidth() int32 {
+	if x != nil {
+		return x.Width
+	}
+	return 0
+}
+
+func (x *BoundingBox) GetHeight() int32 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+type FaceAnalysis struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FaceIndex     int32                  `protobuf:"varint,1,opt,name=face_index,json=faceIndex,proto3" json:"face_index,omitempty"`
+	Sentiment     string                 `protobuf:"bytes,2,opt,name=sentiment,proto3" json:"sentiment,omitempty"`
+	Commentary    string                 `protobuf:"bytes,3,opt,name=commentary,proto3" json:"commentary,omitempty"`
+	BoundingBox   *BoundingBox           `protobuf:"bytes,4,opt,name=bounding_box,json=boundingBox,proto3" json:"bounding_box,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FaceAnalysis) Reset() {
+	*x = FaceAnalysis{}
+	mi := &file_pb_security_security_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FaceAnalysis) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FaceAnalysis) ProtoMessage() {}
+
+func (x *FaceAnalysis) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_security_security_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FaceAnalysis.ProtoReflect.Descriptor instead.
+func (*FaceAnalysis) Descriptor() ([]byte, []int) {
+	return file_pb_security_security_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *FaceAnalysis) GetFaceIndex() int32 {
+	if x != nil {
+		return x.FaceIndex
+	}
+	return 0
+}
+
+func (x *FaceAnalysis) GetSentiment() string {
+	if x != nil {
+		return x.Sentiment
+	}
+	return ""
+}
+
+func (x *FaceAnalysis) GetCommentary() string {
+	if x != nil {
+		return x.Commentary
+	}
+	return ""
+}
+
+func (x *FaceAnalysis) GetBoundingBox() *BoundingBox {
+	if x != nil {
+		return x.BoundingBox
+	}
+	return nil
+}
+
+type AnalyzeFacesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	ImageData     []byte                 `protobuf:"bytes,2,opt,name=image_data,json=imageData,proto3" json:"image_data,omitempty"` // raw image bytes (JPEG or PNG)
+	Filename      string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`                    // original filename hint
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnalyzeFacesRequest) Reset() {
+	*x = AnalyzeFacesRequest{}
+	mi := &file_pb_security_security_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalyzeFacesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalyzeFacesRequest) ProtoMessage() {}
+
+func (x *AnalyzeFacesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_security_security_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalyzeFacesRequest.ProtoReflect.Descriptor instead.
+func (*AnalyzeFacesRequest) Descriptor() ([]byte, []int) {
+	return file_pb_security_security_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AnalyzeFacesRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *AnalyzeFacesRequest) GetImageData() []byte {
+	if x != nil {
+		return x.ImageData
+	}
+	return nil
+}
+
+func (x *AnalyzeFacesRequest) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+type AnalyzeFacesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	ImageUrl      string                 `protobuf:"bytes,2,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"` // e.g. /faces/annotated_xxx.png
+	FaceCount     int32                  `protobuf:"varint,3,opt,name=face_count,json=faceCount,proto3" json:"face_count,omitempty"`
+	Faces         []*FaceAnalysis        `protobuf:"bytes,4,rep,name=faces,proto3" json:"faces,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnalyzeFacesResponse) Reset() {
+	*x = AnalyzeFacesResponse{}
+	mi := &file_pb_security_security_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalyzeFacesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalyzeFacesResponse) ProtoMessage() {}
+
+func (x *AnalyzeFacesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_security_security_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalyzeFacesResponse.ProtoReflect.Descriptor instead.
+func (*AnalyzeFacesResponse) Descriptor() ([]byte, []int) {
+	return file_pb_security_security_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *AnalyzeFacesResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *AnalyzeFacesResponse) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *AnalyzeFacesResponse) GetFaceCount() int32 {
+	if x != nil {
+		return x.FaceCount
+	}
+	return 0
+}
+
+func (x *AnalyzeFacesResponse) GetFaces() []*FaceAnalysis {
+	if x != nil {
+		return x.Faces
+	}
+	return nil
+}
+
 var File_pb_security_security_proto protoreflect.FileDescriptor
 
 const file_pb_security_security_proto_rawDesc = "" +
@@ -1081,7 +1345,31 @@ const file_pb_security_security_proto_rawDesc = "" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x85\x01\n" +
 	"\x1cStreamSecurityAlertsResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x124\n" +
-	"\x05alert\x18\x02 \x01(\v2\x1e.jarvis.security.SecurityAlertR\x05alert*\xb0\x01\n" +
+	"\x05alert\x18\x02 \x01(\v2\x1e.jarvis.security.SecurityAlertR\x05alert\"W\n" +
+	"\vBoundingBox\x12\f\n" +
+	"\x01x\x18\x01 \x01(\x05R\x01x\x12\f\n" +
+	"\x01y\x18\x02 \x01(\x05R\x01y\x12\x14\n" +
+	"\x05width\x18\x03 \x01(\x05R\x05width\x12\x16\n" +
+	"\x06height\x18\x04 \x01(\x05R\x06height\"\xac\x01\n" +
+	"\fFaceAnalysis\x12\x1d\n" +
+	"\n" +
+	"face_index\x18\x01 \x01(\x05R\tfaceIndex\x12\x1c\n" +
+	"\tsentiment\x18\x02 \x01(\tR\tsentiment\x12\x1e\n" +
+	"\n" +
+	"commentary\x18\x03 \x01(\tR\n" +
+	"commentary\x12?\n" +
+	"\fbounding_box\x18\x04 \x01(\v2\x1c.jarvis.security.BoundingBoxR\vboundingBox\"\x80\x01\n" +
+	"\x13AnalyzeFacesRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x1d\n" +
+	"\n" +
+	"image_data\x18\x02 \x01(\fR\timageData\x12\x1a\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xb8\x01\n" +
+	"\x14AnalyzeFacesResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12\x1b\n" +
+	"\timage_url\x18\x02 \x01(\tR\bimageUrl\x12\x1d\n" +
+	"\n" +
+	"face_count\x18\x03 \x01(\x05R\tfaceCount\x123\n" +
+	"\x05faces\x18\x04 \x03(\v2\x1d.jarvis.security.FaceAnalysisR\x05faces*\xb0\x01\n" +
 	"\n" +
 	"AuthMethod\x12\x1b\n" +
 	"\x17AUTH_METHOD_UNSPECIFIED\x10\x00\x12\x1b\n" +
@@ -1101,12 +1389,13 @@ const file_pb_security_security_proto_rawDesc = "" +
 	"\x16PROTOCOL_TYPE_LOCKDOWN\x10\x01\x12\x1c\n" +
 	"\x18PROTOCOL_TYPE_EVACUATION\x10\x02\x12\x1d\n" +
 	"\x19PROTOCOL_TYPE_CLEAN_SLATE\x10\x03\x12\x1a\n" +
-	"\x16PROTOCOL_TYPE_BLACKOUT\x10\x042\x88\x05\n" +
+	"\x16PROTOCOL_TYPE_BLACKOUT\x10\x042\x84\x06\n" +
 	"\x0fSecurityService\x12\x81\x01\n" +
 	"\fAuthenticate\x12$.jarvis.security.AuthenticateRequest\x1a%.jarvis.security.AuthenticateResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/security/authenticate\x12{\n" +
 	"\fAssessThreat\x12$.jarvis.security.AssessThreatRequest\x1a%.jarvis.security.AssessThreatResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/security/threat\x12\x86\x01\n" +
 	"\x0fExecuteProtocol\x12'.jarvis.security.ExecuteProtocolRequest\x1a(.jarvis.security.ExecuteProtocolResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/security/protocol\x12t\n" +
-	"\vGetAuditLog\x12#.jarvis.security.GetAuditLogRequest\x1a$.jarvis.security.GetAuditLogResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/security/audit\x12u\n" +
+	"\vGetAuditLog\x12#.jarvis.security.GetAuditLogRequest\x1a$.jarvis.security.GetAuditLogResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/security/audit\x12z\n" +
+	"\fAnalyzeFaces\x12$.jarvis.security.AnalyzeFacesRequest\x1a%.jarvis.security.AnalyzeFacesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/security/faces\x12u\n" +
 	"\x14StreamSecurityAlerts\x12,.jarvis.security.StreamSecurityAlertsRequest\x1a-.jarvis.security.StreamSecurityAlertsResponse0\x01B\xae\x01\n" +
 	"\x13com.jarvis.securityB\rSecurityProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/security\xa2\x02\x03JSX\xaa\x02\x0fJarvis.Security\xca\x02\x0fJarvis\\Security\xe2\x02\x1bJarvis\\Security\\GPBMetadata\xea\x02\x10Jarvis::Securityb\x06proto3"
 
@@ -1123,7 +1412,7 @@ func file_pb_security_security_proto_rawDescGZIP() []byte {
 }
 
 var file_pb_security_security_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_pb_security_security_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_pb_security_security_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_pb_security_security_proto_goTypes = []any{
 	(AuthMethod)(0),                      // 0: jarvis.security.AuthMethod
 	(ThreatLevel)(0),                     // 1: jarvis.security.ThreatLevel
@@ -1140,48 +1429,58 @@ var file_pb_security_security_proto_goTypes = []any{
 	(*SecurityAlert)(nil),                // 12: jarvis.security.SecurityAlert
 	(*StreamSecurityAlertsRequest)(nil),  // 13: jarvis.security.StreamSecurityAlertsRequest
 	(*StreamSecurityAlertsResponse)(nil), // 14: jarvis.security.StreamSecurityAlertsResponse
-	(*common.RequestMeta)(nil),           // 15: jarvis.common.RequestMeta
-	(*common.ResponseMeta)(nil),          // 16: jarvis.common.ResponseMeta
-	(*timestamppb.Timestamp)(nil),        // 17: google.protobuf.Timestamp
+	(*BoundingBox)(nil),                  // 15: jarvis.security.BoundingBox
+	(*FaceAnalysis)(nil),                 // 16: jarvis.security.FaceAnalysis
+	(*AnalyzeFacesRequest)(nil),          // 17: jarvis.security.AnalyzeFacesRequest
+	(*AnalyzeFacesResponse)(nil),         // 18: jarvis.security.AnalyzeFacesResponse
+	(*common.RequestMeta)(nil),           // 19: jarvis.common.RequestMeta
+	(*common.ResponseMeta)(nil),          // 20: jarvis.common.ResponseMeta
+	(*timestamppb.Timestamp)(nil),        // 21: google.protobuf.Timestamp
 }
 var file_pb_security_security_proto_depIdxs = []int32{
-	15, // 0: jarvis.security.AuthenticateRequest.meta:type_name -> jarvis.common.RequestMeta
+	19, // 0: jarvis.security.AuthenticateRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.security.AuthenticateRequest.method:type_name -> jarvis.security.AuthMethod
-	16, // 2: jarvis.security.AuthenticateResponse.meta:type_name -> jarvis.common.ResponseMeta
-	17, // 3: jarvis.security.AuthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
-	15, // 4: jarvis.security.AssessThreatRequest.meta:type_name -> jarvis.common.RequestMeta
-	16, // 5: jarvis.security.AssessThreatResponse.meta:type_name -> jarvis.common.ResponseMeta
+	20, // 2: jarvis.security.AuthenticateResponse.meta:type_name -> jarvis.common.ResponseMeta
+	21, // 3: jarvis.security.AuthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
+	19, // 4: jarvis.security.AssessThreatRequest.meta:type_name -> jarvis.common.RequestMeta
+	20, // 5: jarvis.security.AssessThreatResponse.meta:type_name -> jarvis.common.ResponseMeta
 	1,  // 6: jarvis.security.AssessThreatResponse.level:type_name -> jarvis.security.ThreatLevel
-	15, // 7: jarvis.security.ExecuteProtocolRequest.meta:type_name -> jarvis.common.RequestMeta
+	19, // 7: jarvis.security.ExecuteProtocolRequest.meta:type_name -> jarvis.common.RequestMeta
 	2,  // 8: jarvis.security.ExecuteProtocolRequest.protocol:type_name -> jarvis.security.ProtocolType
-	16, // 9: jarvis.security.ExecuteProtocolResponse.meta:type_name -> jarvis.common.ResponseMeta
+	20, // 9: jarvis.security.ExecuteProtocolResponse.meta:type_name -> jarvis.common.ResponseMeta
 	2,  // 10: jarvis.security.ExecuteProtocolResponse.protocol_executed:type_name -> jarvis.security.ProtocolType
-	15, // 11: jarvis.security.GetAuditLogRequest.meta:type_name -> jarvis.common.RequestMeta
-	17, // 12: jarvis.security.GetAuditLogRequest.from:type_name -> google.protobuf.Timestamp
-	17, // 13: jarvis.security.GetAuditLogRequest.to:type_name -> google.protobuf.Timestamp
-	17, // 14: jarvis.security.AuditEntry.timestamp:type_name -> google.protobuf.Timestamp
-	16, // 15: jarvis.security.GetAuditLogResponse.meta:type_name -> jarvis.common.ResponseMeta
+	19, // 11: jarvis.security.GetAuditLogRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 12: jarvis.security.GetAuditLogRequest.from:type_name -> google.protobuf.Timestamp
+	21, // 13: jarvis.security.GetAuditLogRequest.to:type_name -> google.protobuf.Timestamp
+	21, // 14: jarvis.security.AuditEntry.timestamp:type_name -> google.protobuf.Timestamp
+	20, // 15: jarvis.security.GetAuditLogResponse.meta:type_name -> jarvis.common.ResponseMeta
 	10, // 16: jarvis.security.GetAuditLogResponse.entries:type_name -> jarvis.security.AuditEntry
 	1,  // 17: jarvis.security.SecurityAlert.level:type_name -> jarvis.security.ThreatLevel
-	17, // 18: jarvis.security.SecurityAlert.timestamp:type_name -> google.protobuf.Timestamp
-	15, // 19: jarvis.security.StreamSecurityAlertsRequest.meta:type_name -> jarvis.common.RequestMeta
-	16, // 20: jarvis.security.StreamSecurityAlertsResponse.meta:type_name -> jarvis.common.ResponseMeta
+	21, // 18: jarvis.security.SecurityAlert.timestamp:type_name -> google.protobuf.Timestamp
+	19, // 19: jarvis.security.StreamSecurityAlertsRequest.meta:type_name -> jarvis.common.RequestMeta
+	20, // 20: jarvis.security.StreamSecurityAlertsResponse.meta:type_name -> jarvis.common.ResponseMeta
 	12, // 21: jarvis.security.StreamSecurityAlertsResponse.alert:type_name -> jarvis.security.SecurityAlert
-	3,  // 22: jarvis.security.SecurityService.Authenticate:input_type -> jarvis.security.AuthenticateRequest
-	5,  // 23: jarvis.security.SecurityService.AssessThreat:input_type -> jarvis.security.AssessThreatRequest
-	7,  // 24: jarvis.security.SecurityService.ExecuteProtocol:input_type -> jarvis.security.ExecuteProtocolRequest
-	9,  // 25: jarvis.security.SecurityService.GetAuditLog:input_type -> jarvis.security.GetAuditLogRequest
-	13, // 26: jarvis.security.SecurityService.StreamSecurityAlerts:input_type -> jarvis.security.StreamSecurityAlertsRequest
-	4,  // 27: jarvis.security.SecurityService.Authenticate:output_type -> jarvis.security.AuthenticateResponse
-	6,  // 28: jarvis.security.SecurityService.AssessThreat:output_type -> jarvis.security.AssessThreatResponse
-	8,  // 29: jarvis.security.SecurityService.ExecuteProtocol:output_type -> jarvis.security.ExecuteProtocolResponse
-	11, // 30: jarvis.security.SecurityService.GetAuditLog:output_type -> jarvis.security.GetAuditLogResponse
-	14, // 31: jarvis.security.SecurityService.StreamSecurityAlerts:output_type -> jarvis.security.StreamSecurityAlertsResponse
-	27, // [27:32] is the sub-list for method output_type
-	22, // [22:27] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	15, // 22: jarvis.security.FaceAnalysis.bounding_box:type_name -> jarvis.security.BoundingBox
+	19, // 23: jarvis.security.AnalyzeFacesRequest.meta:type_name -> jarvis.common.RequestMeta
+	20, // 24: jarvis.security.AnalyzeFacesResponse.meta:type_name -> jarvis.common.ResponseMeta
+	16, // 25: jarvis.security.AnalyzeFacesResponse.faces:type_name -> jarvis.security.FaceAnalysis
+	3,  // 26: jarvis.security.SecurityService.Authenticate:input_type -> jarvis.security.AuthenticateRequest
+	5,  // 27: jarvis.security.SecurityService.AssessThreat:input_type -> jarvis.security.AssessThreatRequest
+	7,  // 28: jarvis.security.SecurityService.ExecuteProtocol:input_type -> jarvis.security.ExecuteProtocolRequest
+	9,  // 29: jarvis.security.SecurityService.GetAuditLog:input_type -> jarvis.security.GetAuditLogRequest
+	17, // 30: jarvis.security.SecurityService.AnalyzeFaces:input_type -> jarvis.security.AnalyzeFacesRequest
+	13, // 31: jarvis.security.SecurityService.StreamSecurityAlerts:input_type -> jarvis.security.StreamSecurityAlertsRequest
+	4,  // 32: jarvis.security.SecurityService.Authenticate:output_type -> jarvis.security.AuthenticateResponse
+	6,  // 33: jarvis.security.SecurityService.AssessThreat:output_type -> jarvis.security.AssessThreatResponse
+	8,  // 34: jarvis.security.SecurityService.ExecuteProtocol:output_type -> jarvis.security.ExecuteProtocolResponse
+	11, // 35: jarvis.security.SecurityService.GetAuditLog:output_type -> jarvis.security.GetAuditLogResponse
+	18, // 36: jarvis.security.SecurityService.AnalyzeFaces:output_type -> jarvis.security.AnalyzeFacesResponse
+	14, // 37: jarvis.security.SecurityService.StreamSecurityAlerts:output_type -> jarvis.security.StreamSecurityAlertsResponse
+	32, // [32:38] is the sub-list for method output_type
+	26, // [26:32] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_pb_security_security_proto_init() }
@@ -1195,7 +1494,7 @@ func file_pb_security_security_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_security_security_proto_rawDesc), len(file_pb_security_security_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   12,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

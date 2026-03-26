@@ -2,8 +2,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"log/slog"
 
 	"google.golang.org/grpc/codes"
@@ -16,6 +20,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
 	authpkg "github.com/rkrimper1/jarvis/api/internal/security/auth"
 	"github.com/rkrimper1/jarvis/api/internal/security/config"
+	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	"github.com/rkrimper1/jarvis/api/internal/security/protocol"
 	"github.com/rkrimper1/jarvis/api/internal/security/threat"
 	"github.com/rkrimper1/jarvis/api/internal/security/token"
@@ -39,6 +44,19 @@ type SecurityServer struct {
 	auditLog  *audit.Store
 	users     UserStore // nil if user store not configured
 	log       *slog.Logger
+
+	// face analysis
+	faceAnalyzer    *faceanalysis.Analyzer
+	faceCascadePath string
+	faceOutputDir   string
+}
+
+// FaceConfig holds optional face-analysis configuration.
+type FaceConfig struct {
+	CascadePath   string
+	OutputDir     string
+	AnthropicKey  string
+	ClaudeModel   string
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -48,6 +66,11 @@ func New(cfg *config.Config, log *slog.Logger) *SecurityServer {
 
 // NewWithUserStore wires all dependencies including the optional user store.
 func NewWithUserStore(cfg *config.Config, log *slog.Logger, users UserStore) *SecurityServer {
+	return NewWithUserStoreFace(cfg, log, users, FaceConfig{})
+}
+
+// NewWithUserStoreFace wires all dependencies including user store and face analysis config.
+func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore, face FaceConfig) *SecurityServer {
 	assessor := threat.New()
 	broadcaster := threat.NewBroadcaster()
 
@@ -56,15 +79,18 @@ func NewWithUserStore(cfg *config.Config, log *slog.Logger, users UserStore) *Se
 	broadcaster.SimulatePatrolScan(assessor, cfg.Threat.AlertBroadcastInterval)
 
 	return &SecurityServer{
-		cfg:       cfg,
-		auth:      authpkg.New(),
-		tokens:    token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
-		assessor:  assessor,
-		broadcast: broadcaster,
-		protocols: protocol.New(log),
-		auditLog:  audit.New(),
-		users:     users,
-		log:       log,
+		cfg:             cfg,
+		auth:            authpkg.New(),
+		tokens:          token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
+		assessor:        assessor,
+		broadcast:       broadcaster,
+		protocols:       protocol.New(log),
+		auditLog:        audit.New(),
+		users:           users,
+		log:             log,
+		faceAnalyzer:    faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
+		faceCascadePath: face.CascadePath,
+		faceOutputDir:   face.OutputDir,
 	}
 }
 
@@ -302,6 +328,78 @@ func (s *SecurityServer) StreamSecurityAlerts(
 			}
 		}
 	}
+}
+
+// ── AnalyzeFaces ──────────────────────────────────────────────────────
+
+func (s *SecurityServer) AnalyzeFaces(
+	ctx context.Context,
+	req *securityv1.AnalyzeFacesRequest,
+) (*securityv1.AnalyzeFacesResponse, error) {
+
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if len(req.ImageData) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "image_data is required")
+	}
+	if s.faceCascadePath == "" || s.faceOutputDir == "" {
+		return nil, status.Error(codes.FailedPrecondition,
+			"face analysis not configured (set FACE_CASCADE_PATH and FACE_OUTPUT_DIR)")
+	}
+
+	// Decode image (preserve raw bytes for EXIF orientation correction)
+	img, _, err := image.Decode(bytes.NewReader(req.ImageData))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "decode image: %v", err)
+	}
+	img = faceanalysis.ApplyOrientation(img, req.ImageData)
+
+	// Detect faces
+	dets, err := faceanalysis.Detect(img, s.faceCascadePath)
+	if err != nil {
+		s.log.ErrorContext(ctx, "face detect failed", slog.Any("err", err))
+		return nil, status.Errorf(codes.Internal, "face detection: %v", err)
+	}
+
+	s.log.InfoContext(ctx, "AnalyzeFaces",
+		slog.Int("faces_detected", len(dets)),
+		slog.String("request_id", req.Meta.RequestId),
+	)
+
+	// Analyze each face via Claude
+	results := make([]faceanalysis.FaceResult, len(dets))
+	for i, det := range dets {
+		results[i] = s.faceAnalyzer.Analyze(ctx, img, det)
+	}
+
+	// Annotate and save
+	filename, err := faceanalysis.Annotate(img, dets, results, s.faceOutputDir)
+	if err != nil {
+		s.log.ErrorContext(ctx, "face annotate failed", slog.Any("err", err))
+		return nil, status.Errorf(codes.Internal, "annotate image: %v", err)
+	}
+
+	// Build response
+	faces := make([]*securityv1.FaceAnalysis, len(dets))
+	for i, det := range dets {
+		faces[i] = &securityv1.FaceAnalysis{
+			FaceIndex:  int32(i + 1),
+			Sentiment:  results[i].Sentiment,
+			Commentary: results[i].Commentary,
+			BoundingBox: &securityv1.BoundingBox{
+				X: int32(det.X), Y: int32(det.Y),
+				Width: int32(det.W), Height: int32(det.H),
+			},
+		}
+	}
+
+	return &securityv1.AnalyzeFacesResponse{
+		Meta:      metaOK(req.Meta.RequestId),
+		ImageUrl:  "/faces/" + filename,
+		FaceCount: int32(len(dets)),
+		Faces:     faces,
+	}, nil
 }
 
 // ── helpers ───────────────────────────────────────────────────────────

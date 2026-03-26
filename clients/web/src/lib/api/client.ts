@@ -1,4 +1,4 @@
-// Typed REST client for all 7 JARVIS services via grpc-gateway (:8080)
+// Typed REST client for all 9 JARVIS services via grpc-gateway (:8080)
 
 let _token: string | null = null;
 
@@ -61,8 +61,36 @@ export const security = {
 	},
 	auditLog(pageSize = 20) {
 		return call('GET', `/security/audit?page_size=${pageSize}`);
+	},
+	analyzeFaces(imageData: string, filename: string): Promise<AnalyzeFacesResponse> {
+		return call('POST', '/security/faces', {
+			meta: { request_id: reqId() },
+			image_data: imageData,
+			filename
+		});
 	}
 };
+
+export interface BoundingBox {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+export interface FaceAnalysis {
+	faceIndex: number;
+	sentiment: string;
+	commentary: string;
+	boundingBox: BoundingBox;
+}
+
+export interface AnalyzeFacesResponse {
+	meta: ResponseMeta;
+	imageUrl: string;
+	faceCount: number;
+	faces: FaceAnalysis[];
+}
 
 // ── NLP ─────────────────────────────────────────────────────────────
 

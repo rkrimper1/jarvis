@@ -48,7 +48,10 @@ func main() {
 
 	usersDBPath := envString("USERS_DB_PATH", "")
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath)
+	faceOutputDir   := envString("FACE_OUTPUT_DIR", "")
+	faceCascadePath := envString("FACE_CASCADE_PATH", "")
+
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, faceOutputDir, faceCascadePath)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -62,11 +65,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// ── HTTP/REST listener (grpc-gateway) ─────────────────────────────
+	// ── HTTP/REST listener (grpc-gateway + static face images) ───────
 	httpAddr := fmt.Sprintf(":%d", httpPort)
+	httpMux := http.NewServeMux()
+	httpMux.Handle("/v1/", gwMux)
+	if faceOutputDir != "" {
+		httpMux.Handle("/faces/", http.StripPrefix("/faces/", http.FileServer(http.Dir(faceOutputDir))))
+	}
+	// Fallback: anything else goes to the gateway (health, etc.)
+	httpMux.Handle("/", gwMux)
 	httpSrv := &http.Server{
 		Addr:    httpAddr,
-		Handler: gwMux,
+		Handler: httpMux,
 	}
 
 	log.Info("JARVIS starting",

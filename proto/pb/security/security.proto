@@ -115,6 +115,35 @@ message StreamSecurityAlertsResponse {
   SecurityAlert alert             = 2;
 }
 
+// ── Face analysis ─────────────────────────────────────────────────────────────
+
+message BoundingBox {
+  int32 x      = 1;
+  int32 y      = 2;
+  int32 width  = 3;
+  int32 height = 4;
+}
+
+message FaceAnalysis {
+  int32       face_index   = 1;
+  string      sentiment    = 2;
+  string      commentary   = 3;
+  BoundingBox bounding_box = 4;
+}
+
+message AnalyzeFacesRequest {
+  jarvis.common.RequestMeta meta = 1;
+  bytes  image_data              = 2; // raw image bytes (JPEG or PNG)
+  string filename                = 3; // original filename hint
+}
+
+message AnalyzeFacesResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string         image_url        = 2; // e.g. /faces/annotated_xxx.png
+  int32          face_count       = 3;
+  repeated FaceAnalysis faces     = 4;
+}
+
 service SecurityService {
   rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
     option (google.api.http) = { post: "/v1/security/authenticate" body: "*" };
@@ -127,6 +156,9 @@ service SecurityService {
   }
   rpc GetAuditLog(GetAuditLogRequest) returns (GetAuditLogResponse) {
     option (google.api.http) = { get: "/v1/security/audit" };
+  }
+  rpc AnalyzeFaces(AnalyzeFacesRequest) returns (AnalyzeFacesResponse) {
+    option (google.api.http) = { post: "/v1/security/faces" body: "*" };
   }
   rpc StreamSecurityAlerts(StreamSecurityAlertsRequest) returns (stream StreamSecurityAlertsResponse);
 }
