@@ -2,7 +2,7 @@
 	import { learning, type KnowledgeEntry, type KnowledgeSource, type SearchKnowledgeResponse } from '$lib/api/client';
 
 	let query = $state('');
-	let preferredSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_CLAUDE_API');
+	let preferredSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_UNSPECIFIED');
 	let loading = $state(false);
 	let error = $state('');
 	let results = $state<KnowledgeEntry[]>([]);
@@ -11,7 +11,7 @@
 	// Modal state
 	let showModal = $state(false);
 	let pendingQuery = $state('');
-	let suggestedSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_CLAUDE_API');
+	let suggestedSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_UNSPECIFIED');
 
 	async function handleSearch(e: Event) {
 		e.preventDefault();
