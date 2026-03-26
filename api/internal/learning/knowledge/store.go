@@ -127,6 +127,23 @@ func (s *Store) Search(ctx context.Context, query string) ([]*learningv1.Knowled
 	return entries, len(entries) > 0, nil
 }
 
+// List returns the most recently updated knowledge entries, up to limit.
+func (s *Store) List(ctx context.Context, limit int) ([]*learningv1.KnowledgeEntry, error) {
+	if limit <= 0 {
+		limit = 5
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, query, summary, source, confidence, tags, created_at, updated_at
+		FROM knowledge
+		ORDER BY updated_at DESC
+		LIMIT ?
+	`, limit)
+	if err != nil {
+		return nil, fmt.Errorf("knowledge: list: %w", err)
+	}
+	return scanEntries(rows)
+}
+
 // SearchWithClaude calls the Claude API with web_search tool, saves the
 // result, and returns the new entry.
 func (s *Store) SearchWithClaude(ctx context.Context, query string, src learningv1.KnowledgeSource) (*learningv1.KnowledgeEntry, error) {

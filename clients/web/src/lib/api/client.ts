@@ -211,6 +211,16 @@ export interface KnowledgeEntry {
 	updatedAt: string;
 }
 
+export interface AddKnowledgeResponse {
+	meta: ResponseMeta;
+	entry: KnowledgeEntry;
+}
+
+export interface ListKnowledgeResponse {
+	meta: ResponseMeta;
+	entries: KnowledgeEntry[];
+}
+
 export interface SearchKnowledgeResponse {
 	meta: ResponseMeta;
 	results: KnowledgeEntry[];
@@ -230,6 +240,18 @@ export const learning = {
 			feedback_type: 'FEEDBACK_TYPE_CORRECTION',
 			correction,
 			rating
+		});
+	},
+	addKnowledge(query: string, summary: string, tags: string, confidence: number): Promise<AddKnowledgeResponse> {
+		return call('POST', '/learning/knowledge', {
+			meta: { request_id: reqId() },
+			query, summary, tags, confidence
+		});
+	},
+	listKnowledge(limit = 5): Promise<ListKnowledgeResponse> {
+		return call('POST', '/learning/knowledge/list', {
+			meta: { request_id: reqId() },
+			limit
 		});
 	},
 	searchKnowledge(

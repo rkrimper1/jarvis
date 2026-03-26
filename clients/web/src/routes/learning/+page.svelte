@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { learning, type KnowledgeEntry, type KnowledgeSource, type SearchKnowledgeResponse } from '$lib/api/client';
+	import { onMount } from 'svelte';
 
 	let query = $state('');
 	let preferredSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_UNSPECIFIED');
@@ -8,13 +9,42 @@
 	let results = $state<KnowledgeEntry[]>([]);
 	let searchesRemaining = $state<number | null>(null);
 
-	// Modal state
+	let recentEntries = $state<KnowledgeEntry[]>([]);
+	let recentLoading = $state(true);
+
+	onMount(async () => {
+		try {
+			const res = await learning.listKnowledge(5);
+			recentEntries = res.entries ?? [];
+		} catch {
+			// silently skip — store may not be configured yet
+		} finally {
+			recentLoading = false;
+		}
+	});
+
+	// ── Confirmation modal (external search) ─────────────────────────
 	let showModal = $state(false);
 	let pendingQuery = $state('');
 	let suggestedSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_UNSPECIFIED');
 
+	// ── Add-entry modal (secret-add trigger) ──────────────────────────
+	let showAddModal = $state(false);
+	let addQuery = $state('');
+	let addSummary = $state('');
+	let addTags = $state('');
+	let addConfidence = $state(1.0);
+	let addLoading = $state(false);
+	let addError = $state('');
+
 	async function handleSearch(e: Event) {
 		e.preventDefault();
+		if (query.toLowerCase().startsWith('secret-add')) {
+			addQuery = query.slice('secret-add'.length).trimStart();
+			addSummary = ''; addTags = ''; addConfidence = 1.0; addError = '';
+			showAddModal = true;
+			return;
+		}
 		error = ''; results = []; loading = true;
 		try {
 			const res = await learning.searchKnowledge(query, preferredSource, false);
@@ -24,6 +54,25 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	async function submitAdd() {
+		addError = '';
+		addLoading = true;
+		try {
+			const res = await learning.addKnowledge(addQuery, addSummary, addTags, addConfidence);
+			recentEntries = [res.entry, ...recentEntries].slice(0, 5);
+			showAddModal = false;
+			query = '';
+		} catch (err: unknown) {
+			addError = err instanceof Error ? err.message : 'Save failed';
+		} finally {
+			addLoading = false;
+		}
+	}
+
+	function cancelAdd() {
+		showAddModal = false;
 	}
 
 	function handleResponse(res: SearchKnowledgeResponse, q: string) {
@@ -106,10 +155,11 @@
 
 		<!-- ── Results ────────────────────────────────────── -->
 		<div class="hud-panel result-panel">
-			<div class="panel-title hud-label">RESULTS</div>
 			{#if error}
+				<div class="panel-title hud-label">RESULTS</div>
 				<div class="text-red" style="font-size:12px">{error}</div>
 			{:else if results.length > 0}
+				<div class="panel-title hud-label">RESULTS</div>
 				<div class="result-list">
 					{#each results as entry}
 						<div class="result-entry">
@@ -129,11 +179,71 @@
 					{/each}
 				</div>
 			{:else if !loading}
-				<div class="text-muted" style="font-size:12px">Awaiting query...</div>
+				<div class="panel-title hud-label">RECENT KNOWLEDGE</div>
+				{#if recentLoading}
+					<div class="text-muted" style="font-size:12px">Loading...</div>
+				{:else if recentEntries.length > 0}
+					<div class="result-list">
+						{#each recentEntries as entry}
+							<div class="result-entry">
+								<div class="result-header">
+									<span class="result-query">{entry.query}</span>
+									<span class="result-badge">{sourceLabel(entry.source)}</span>
+									<span class="result-confidence">{Math.round(entry.confidence * 100)}%</span>
+								</div>
+								<div class="result-summary">{entry.summary}</div>
+								{#if entry.tags}
+									<div class="result-tags">{entry.tags}</div>
+								{/if}
+								<div class="result-date hud-label">
+									UPDATED: {new Date(entry.updatedAt).toLocaleDateString()}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="text-muted" style="font-size:12px">No knowledge stored yet. Run a search to populate.</div>
+				{/if}
 			{/if}
 		</div>
 	</div>
 </div>
+
+<!-- ── Add-entry modal ────────────────────────────────────────────── -->
+{#if showAddModal}
+	<div class="modal-overlay">
+		<div class="modal hud-panel" style="max-width:500px">
+			<div class="hud-label" style="font-size:13px;margin-bottom:16px">ADD KNOWLEDGE ENTRY</div>
+			<div class="add-form">
+				<div class="field">
+					<label class="hud-label" for="add-query">QUERY *</label>
+					<input id="add-query" class="hud-input" bind:value={addQuery} placeholder="Topic or question" />
+				</div>
+				<div class="field">
+					<label class="hud-label" for="add-summary">SUMMARY *</label>
+					<textarea id="add-summary" class="hud-input hud-textarea" bind:value={addSummary} placeholder="What do you know about this?" rows="5"></textarea>
+				</div>
+				<div class="field">
+					<label class="hud-label" for="add-tags">TAGS</label>
+					<input id="add-tags" class="hud-input" bind:value={addTags} placeholder="comma-separated tags (optional)" />
+				</div>
+				<div class="field">
+					<label class="hud-label" for="add-conf">CONFIDENCE: {Math.round(addConfidence * 100)}%</label>
+					<input id="add-conf" type="range" min="0" max="1" step="0.05" bind:value={addConfidence} class="hud-range" />
+				</div>
+				{#if addError}
+					<div class="text-red" style="font-size:11px">{addError}</div>
+				{/if}
+			</div>
+			<div class="modal-actions" style="margin-top:16px">
+				<button class="hud-btn" onclick={submitAdd} disabled={addLoading || !addQuery || !addSummary}>
+					{addLoading ? 'SAVING...' : 'SAVE ENTRY'}
+				</button>
+				<button class="hud-btn btn-cancel" onclick={cancelAdd}>CANCEL</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- ── Confirmation modal ──────────────────────────────────────────── -->
 {#if showModal}
@@ -180,6 +290,10 @@
 	.result-summary { font-size: 12px; color: var(--hud-text); line-height: 1.5; }
 	.result-tags { font-size: 10px; color: var(--hud-cyan); opacity: 0.7; margin-top: 6px; }
 	.result-date { font-size: 9px; margin-top: 8px; opacity: 0.5; }
+
+	.hud-textarea { resize: vertical; font-family: inherit; font-size: 12px; min-height: 80px; }
+	.hud-range { width: 100%; accent-color: var(--hud-cyan); cursor: pointer; }
+	.add-form { display: flex; flex-direction: column; gap: 12px; }
 
 	/* Modal */
 	.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }

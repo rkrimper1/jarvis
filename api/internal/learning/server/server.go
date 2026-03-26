@@ -160,6 +160,57 @@ func (s *LearningServer) StreamAdaptationEvents(req *learningv1.StreamAdaptation
 	}
 }
 
+// AddKnowledge manually inserts an entry into the knowledge store.
+func (s *LearningServer) AddKnowledge(ctx context.Context, req *learningv1.AddKnowledgeRequest) (*learningv1.AddKnowledgeResponse, error) {
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if req.Query == "" {
+		return nil, status.Error(codes.InvalidArgument, "query is required")
+	}
+	if req.Summary == "" {
+		return nil, status.Error(codes.InvalidArgument, "summary is required")
+	}
+	if s.knowledge == nil {
+		return nil, status.Error(codes.FailedPrecondition, "knowledge store not configured (set KNOWLEDGE_DB_PATH)")
+	}
+	confidence := float64(req.Confidence)
+	if confidence <= 0 {
+		confidence = 1.0
+	}
+	entry, err := s.knowledge.Save(ctx, req.Query, req.Summary, "manual", confidence, req.Tags)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "add knowledge: %v", err)
+	}
+	s.log.InfoContext(ctx, "AddKnowledge: entry saved", slog.String("query", req.Query))
+	return &learningv1.AddKnowledgeResponse{
+		Meta:  metaOK(req.Meta.RequestId),
+		Entry: entry,
+	}, nil
+}
+
+// ListKnowledge returns the most recently updated knowledge entries.
+func (s *LearningServer) ListKnowledge(ctx context.Context, req *learningv1.ListKnowledgeRequest) (*learningv1.ListKnowledgeResponse, error) {
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if s.knowledge == nil {
+		return nil, status.Error(codes.FailedPrecondition, "knowledge store not configured (set KNOWLEDGE_DB_PATH)")
+	}
+	limit := int(req.Limit)
+	if limit <= 0 {
+		limit = 5
+	}
+	entries, err := s.knowledge.List(ctx, limit)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list knowledge: %v", err)
+	}
+	return &learningv1.ListKnowledgeResponse{
+		Meta:    metaOK(req.Meta.RequestId),
+		Entries: entries,
+	}, nil
+}
+
 // SearchKnowledge searches the local knowledge DB. When nothing fresh is found
 // it returns needs_confirmation=true so the caller can prompt the user.
 // On a confirmed call with a preferred_source it executes the external search,

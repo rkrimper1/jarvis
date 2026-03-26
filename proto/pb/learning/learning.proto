@@ -101,6 +101,29 @@ message KnowledgeEntry {
   google.protobuf.Timestamp updated_at = 8;
 }
 
+message AddKnowledgeRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string query      = 2;
+  string summary    = 3;
+  string tags       = 4;
+  float  confidence = 5; // 0.0–1.0; default 1.0 if omitted
+}
+
+message AddKnowledgeResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  KnowledgeEntry entry            = 2;
+}
+
+message ListKnowledgeRequest {
+  jarvis.common.RequestMeta meta = 1;
+  int32 limit                    = 2; // default 5 if omitted
+}
+
+message ListKnowledgeResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  repeated KnowledgeEntry    entries = 2;
+}
+
 message SearchKnowledgeRequest {
   jarvis.common.RequestMeta meta = 1;
   string query                   = 2;
@@ -134,6 +157,12 @@ service LearningService {
     option (google.api.http) = { get: "/v1/learning/performance" };
   }
   rpc StreamAdaptationEvents(StreamAdaptationEventsRequest) returns (stream StreamAdaptationEventsResponse);
+  rpc AddKnowledge(AddKnowledgeRequest) returns (AddKnowledgeResponse) {
+    option (google.api.http) = { post: "/v1/learning/knowledge" body: "*" };
+  }
+  rpc ListKnowledge(ListKnowledgeRequest) returns (ListKnowledgeResponse) {
+    option (google.api.http) = { post: "/v1/learning/knowledge/list" body: "*" };
+  }
   rpc SearchKnowledge(SearchKnowledgeRequest) returns (SearchKnowledgeResponse) {
     option (google.api.http) = { post: "/v1/learning/knowledge/search" body: "*" };
   }

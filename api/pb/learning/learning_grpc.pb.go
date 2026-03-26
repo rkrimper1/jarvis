@@ -23,6 +23,8 @@ const (
 	LearningService_GetBehaviorProfile_FullMethodName     = "/jarvis.learning.LearningService/GetBehaviorProfile"
 	LearningService_GetModelPerformance_FullMethodName    = "/jarvis.learning.LearningService/GetModelPerformance"
 	LearningService_StreamAdaptationEvents_FullMethodName = "/jarvis.learning.LearningService/StreamAdaptationEvents"
+	LearningService_AddKnowledge_FullMethodName           = "/jarvis.learning.LearningService/AddKnowledge"
+	LearningService_ListKnowledge_FullMethodName          = "/jarvis.learning.LearningService/ListKnowledge"
 	LearningService_SearchKnowledge_FullMethodName        = "/jarvis.learning.LearningService/SearchKnowledge"
 )
 
@@ -34,6 +36,8 @@ type LearningServiceClient interface {
 	GetBehaviorProfile(ctx context.Context, in *GetBehaviorProfileRequest, opts ...grpc.CallOption) (*GetBehaviorProfileResponse, error)
 	GetModelPerformance(ctx context.Context, in *GetModelPerformanceRequest, opts ...grpc.CallOption) (*GetModelPerformanceResponse, error)
 	StreamAdaptationEvents(ctx context.Context, in *StreamAdaptationEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamAdaptationEventsResponse], error)
+	AddKnowledge(ctx context.Context, in *AddKnowledgeRequest, opts ...grpc.CallOption) (*AddKnowledgeResponse, error)
+	ListKnowledge(ctx context.Context, in *ListKnowledgeRequest, opts ...grpc.CallOption) (*ListKnowledgeResponse, error)
 	SearchKnowledge(ctx context.Context, in *SearchKnowledgeRequest, opts ...grpc.CallOption) (*SearchKnowledgeResponse, error)
 }
 
@@ -94,6 +98,26 @@ func (c *learningServiceClient) StreamAdaptationEvents(ctx context.Context, in *
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type LearningService_StreamAdaptationEventsClient = grpc.ServerStreamingClient[StreamAdaptationEventsResponse]
 
+func (c *learningServiceClient) AddKnowledge(ctx context.Context, in *AddKnowledgeRequest, opts ...grpc.CallOption) (*AddKnowledgeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddKnowledgeResponse)
+	err := c.cc.Invoke(ctx, LearningService_AddKnowledge_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learningServiceClient) ListKnowledge(ctx context.Context, in *ListKnowledgeRequest, opts ...grpc.CallOption) (*ListKnowledgeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListKnowledgeResponse)
+	err := c.cc.Invoke(ctx, LearningService_ListKnowledge_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *learningServiceClient) SearchKnowledge(ctx context.Context, in *SearchKnowledgeRequest, opts ...grpc.CallOption) (*SearchKnowledgeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchKnowledgeResponse)
@@ -112,6 +136,8 @@ type LearningServiceServer interface {
 	GetBehaviorProfile(context.Context, *GetBehaviorProfileRequest) (*GetBehaviorProfileResponse, error)
 	GetModelPerformance(context.Context, *GetModelPerformanceRequest) (*GetModelPerformanceResponse, error)
 	StreamAdaptationEvents(*StreamAdaptationEventsRequest, grpc.ServerStreamingServer[StreamAdaptationEventsResponse]) error
+	AddKnowledge(context.Context, *AddKnowledgeRequest) (*AddKnowledgeResponse, error)
+	ListKnowledge(context.Context, *ListKnowledgeRequest) (*ListKnowledgeResponse, error)
 	SearchKnowledge(context.Context, *SearchKnowledgeRequest) (*SearchKnowledgeResponse, error)
 	mustEmbedUnimplementedLearningServiceServer()
 }
@@ -134,6 +160,12 @@ func (UnimplementedLearningServiceServer) GetModelPerformance(context.Context, *
 }
 func (UnimplementedLearningServiceServer) StreamAdaptationEvents(*StreamAdaptationEventsRequest, grpc.ServerStreamingServer[StreamAdaptationEventsResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamAdaptationEvents not implemented")
+}
+func (UnimplementedLearningServiceServer) AddKnowledge(context.Context, *AddKnowledgeRequest) (*AddKnowledgeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddKnowledge not implemented")
+}
+func (UnimplementedLearningServiceServer) ListKnowledge(context.Context, *ListKnowledgeRequest) (*ListKnowledgeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListKnowledge not implemented")
 }
 func (UnimplementedLearningServiceServer) SearchKnowledge(context.Context, *SearchKnowledgeRequest) (*SearchKnowledgeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchKnowledge not implemented")
@@ -224,6 +256,42 @@ func _LearningService_StreamAdaptationEvents_Handler(srv interface{}, stream grp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type LearningService_StreamAdaptationEventsServer = grpc.ServerStreamingServer[StreamAdaptationEventsResponse]
 
+func _LearningService_AddKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddKnowledgeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).AddKnowledge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearningService_AddKnowledge_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).AddKnowledge(ctx, req.(*AddKnowledgeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearningService_ListKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListKnowledgeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearningServiceServer).ListKnowledge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearningService_ListKnowledge_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearningServiceServer).ListKnowledge(ctx, req.(*ListKnowledgeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LearningService_SearchKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchKnowledgeRequest)
 	if err := dec(in); err != nil {
@@ -260,6 +328,14 @@ var LearningService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetModelPerformance",
 			Handler:    _LearningService_GetModelPerformance_Handler,
+		},
+		{
+			MethodName: "AddKnowledge",
+			Handler:    _LearningService_AddKnowledge_Handler,
+		},
+		{
+			MethodName: "ListKnowledge",
+			Handler:    _LearningService_ListKnowledge_Handler,
 		},
 		{
 			MethodName: "SearchKnowledge",
