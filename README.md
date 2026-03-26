@@ -24,14 +24,14 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │                                                             │
   │  ┌──────────────────────────────────────────────────────┐  │
   │  │  command      │ business-ops │ facility               │  │
-  │  │  intelligence │ learning     │ security               │  │
+  │  │  intelligence │ learning     │ security  │ user       │  │
   │  │  nlp ◄──────► voice (in-process)                     │  │
   │  └──────────────────────────────────────────────────────┘  │
   │                                                             │
   │   Claude API (NLP · knowledge search)   SMTP (invites)     │
   │   Redis (session state)                                     │
   │   /tmp/profiles  → ./profiles/        (heap profile mount) │
-  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge DB mount) │
+  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge + users)  │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -41,7 +41,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
-- The SQLite knowledge DB at `~/.jarvis/knowledge.db` is mounted read/write so the container persists learned entries to the host
+- The SQLite knowledge DB at `~/.jarvis/knowledge.db` and users DB at `~/.jarvis/users.db` are mounted read/write so the container persists data to the host
 
 ## Services
 
@@ -54,9 +54,10 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
 | `security` | Auth, threat assessment, emergency protocols |
+| `user` | User CRUD, profile management, password change, role-based access (SQLite + bcrypt) |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
-All 8 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+All 9 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
 
 ### NLP Dialogue — Claude AI
 
@@ -128,6 +129,11 @@ PPROF_INTERVAL=5m                     # optional — background capture interval
 KNOWLEDGE_DB_PATH=$HOME/.jarvis/knowledge.db  # optional — SQLite DB path (created by setup.sh)
 KNOWLEDGE_STALE_DAYS=30               # optional — exclude entries older than N days (default: 30)
 KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per session (default: 10)
+
+# ── User store ────────────────────────────────────────────────────
+USERS_DB_PATH=$HOME/.jarvis/users.db  # optional — SQLite DB path (created by setup.sh)
+SEED_TONY_USER=tony-stark             # optional — seeded admin username (default: tony-stark)
+SEED_TONY_PASSWORD=tony-stark         # optional — seeded admin password (default: tony-stark)
 ```
 
 > STT and TTS default to `stub` — mock responses, no cloud API required.
@@ -160,7 +166,7 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
 # 5. Web UI Start Up (suggest running in a separate terminal)
 make web-dev
 
-# 6. Open a browser (login: tony-stark - no password setup yet)
+# 6. Open a browser (login: tony-stark / tony-stark  or  rob-krimper / rob-krimper)
 http://localhost:5173/
 
 # 7. Shut Down Web UI
@@ -216,11 +222,12 @@ jarvis/
 │       ├── learning/
 │       ├── nlp/
 │       ├── security/
+│       ├── user/
 │       └── voice/
 ├── api/                          # Single Go module
 │   ├── cmd/grpc-server/          # Entry point
 │   │   ├── main.go               # Listeners, env vars, heap profiler, graceful shutdown
-│   │   ├── server.go             # Wires all 8 services onto gRPC + grpc-gateway
+│   │   ├── server.go             # Wires all 9 services onto gRPC + grpc-gateway
 │   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
 │   ├── internal/                 # Service implementations (Go internal package)
 │   │   ├── command/server/       # CommandService — on-demand heap profiling
@@ -241,6 +248,9 @@ jarvis/
 │   │   │   ├── intent/
 │   │   │   └── server/
 │   │   ├── security/server/
+│   │   ├── user/
+│   │   │   ├── server/           # UserService — CRUD, profile, password, entitlements
+│   │   │   └── store/            # SQLite store (bcrypt, seed users, UUID ids)
 │   │   └── voice/server/
 │   ├── middleware/               # Shared gRPC interceptors (logging, recovery)
 │   ├── pb/                       # Generated Go stubs — gitignored, do not edit
@@ -253,14 +263,14 @@ jarvis/
 │   └── web/                      # SvelteKit HUD web client
 │       ├── src/
 │       │   ├── lib/
-│       │   │   ├── api/          # Typed fetch wrappers for all 8 REST services
-│       │   │   └── stores/       # Auth store (localStorage + derived state)
-│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security
+│       │   │   ├── api/          # Typed fetch wrappers for all 9 REST services
+│       │   │   └── stores/       # Auth store (localStorage + derived state, role, isAdmin)
+│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security, profile, admin/users
 │       └── static/               # Static assets (hud-bg.png, etc.)
 ├── profiles/                     # Heap profile output — .prof + .gif (volume-mounted from Docker)
 ├── docker/
 │   ├── jarvis/Dockerfile         # Multi-stage build: builder (Go/Alpine) → runtime (debian:slim + graphviz)
-│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles, ~/.jarvis → /home/vagrant/.jarvis
+│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles, ~/.jarvis → /home/vagrant/.jarvis (knowledge + users DBs)
 ├── gateway/
 │   └── docs/api-reference.md     # REST + gRPC API reference
 ├── docs/openapi/                 # Generated OpenAPI spec — gitignored

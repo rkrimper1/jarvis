@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { auth, isAuthenticated, subjectId } from '$lib/stores/auth';
+	import { auth, isAuthenticated, subjectId, isAdmin } from '$lib/stores/auth';
 	import { setToken } from '$lib/api/client';
 
 	let { children } = $props();
@@ -49,7 +49,16 @@
 			{/each}
 		</nav>
 		<div class="hud-topbar-right">
-			<span class="text-muted">{$subjectId}</span>
+			{#if $isAdmin}
+				<a href="/admin/users" class="hud-nav-link" class:active={$page.url.pathname.startsWith('/admin')}>
+					<span class="nav-icon">◫</span>
+					<span class="nav-label">ADMIN</span>
+				</a>
+			{/if}
+			<a href="/profile" class="hud-topbar-user" title="Profile">
+				<span class="user-icon">◉</span>
+				<span class="text-muted">{$subjectId}</span>
+			</a>
 			<button class="hud-btn" onclick={handleLogout}>LOGOUT</button>
 		</div>
 	</header>
@@ -75,6 +84,9 @@
 	.hud-nav-link:hover, .hud-nav-link.active { color: var(--hud-cyan); border-color: var(--hud-cyan); background: #00d4ff0a; text-shadow: var(--glow-cyan); }
 	.nav-icon { font-size: 12px; }
 	.hud-topbar-right { display: flex; align-items: center; gap: 12px; margin-left: auto; font-size: 12px; }
+	.hud-topbar-user { display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--hud-muted); font-size: 11px; padding: 4px 8px; border: 1px solid transparent; transition: all 0.15s; }
+	.hud-topbar-user:hover { color: var(--hud-cyan); border-color: var(--hud-cyan); }
+	.user-icon { font-size: 14px; color: var(--hud-cyan); }
 	.hud-main { overflow: auto; padding: 20px; }
 	.hud-statusbar { display: flex; align-items: center; gap: 10px; padding: 0 20px; font-size: 11px; border-top: 1px solid var(--hud-dim); background: #0a0d14cc; backdrop-filter: blur(2px); }
 </style>

@@ -19,6 +19,7 @@ import (
 type Claims struct {
 	Subject   string    `json:"sub"`
 	Scopes    []string  `json:"scopes"`
+	Role      string    `json:"role"`
 	IssuedAt  time.Time `json:"iat"`
 	ExpiresAt time.Time `json:"exp"`
 	Issuer    string    `json:"iss"`
@@ -40,14 +41,15 @@ func New(secret string, ttl time.Duration, issuer string) *Manager {
 	}
 }
 
-// Issue creates a signed access token for the given subject and scopes.
-func (m *Manager) Issue(subjectID string, scopes []string) (string, time.Time, error) {
+// Issue creates a signed access token for the given subject, scopes, and role.
+func (m *Manager) Issue(subjectID string, scopes []string, role string) (string, time.Time, error) {
 	now := time.Now().UTC()
 	expiresAt := now.Add(m.ttl)
 
 	claims := Claims{
 		Subject:   subjectID,
 		Scopes:    scopes,
+		Role:      role,
 		IssuedAt:  now,
 		ExpiresAt: expiresAt,
 		Issuer:    m.issuer,

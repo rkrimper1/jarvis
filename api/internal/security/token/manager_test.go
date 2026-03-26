@@ -11,7 +11,7 @@ func TestIssueAndValidate(t *testing.T) {
 	m := token.New("test-secret", time.Hour, "jarvis.test")
 
 	scopes := []string{"admin", "suit:control"}
-	tok, expiresAt, err := m.Issue("tony-stark", scopes)
+	tok, expiresAt, err := m.Issue("tony-stark", scopes, "")
 	if err != nil {
 		t.Fatalf("Issue: %v", err)
 	}
@@ -36,7 +36,7 @@ func TestIssueAndValidate(t *testing.T) {
 
 func TestValidate_ExpiredToken(t *testing.T) {
 	m := token.New("test-secret", -time.Second, "jarvis.test") // already expired
-	tok, _, err := m.Issue("tony-stark", nil)
+	tok, _, err := m.Issue("tony-stark", nil, "")
 	if err != nil {
 		t.Fatalf("Issue: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestValidate_ExpiredToken(t *testing.T) {
 
 func TestValidate_TamperedToken(t *testing.T) {
 	m := token.New("test-secret", time.Hour, "jarvis.test")
-	tok, _, _ := m.Issue("tony-stark", nil)
+	tok, _, _ := m.Issue("tony-stark", nil, "")
 
 	tampered := tok[:len(tok)-4] + "xxxx"
 	_, err := m.Validate(tampered)
@@ -62,7 +62,7 @@ func TestValidate_WrongSecret(t *testing.T) {
 	m1 := token.New("secret-A", time.Hour, "jarvis.test")
 	m2 := token.New("secret-B", time.Hour, "jarvis.test")
 
-	tok, _, _ := m1.Issue("tony-stark", nil)
+	tok, _, _ := m1.Issue("tony-stark", nil, "")
 	_, err := m2.Validate(tok)
 	if err == nil {
 		t.Fatal("expected error when validating with wrong secret")

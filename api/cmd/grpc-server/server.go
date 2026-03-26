@@ -21,6 +21,7 @@ import (
 	learningv1 "github.com/rkrimper1/jarvis/api/pb/learning"
 	nlpv1      "github.com/rkrimper1/jarvis/api/pb/nlp"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
+	userv1     "github.com/rkrimper1/jarvis/api/pb/user"
 	voicev1    "github.com/rkrimper1/jarvis/api/pb/voice"
 
 	commandserver  "github.com/rkrimper1/jarvis/api/internal/command/server"
@@ -30,6 +31,8 @@ import (
 	learningserver "github.com/rkrimper1/jarvis/api/internal/learning/server"
 	nlpserver      "github.com/rkrimper1/jarvis/api/internal/nlp/server"
 	securityserver "github.com/rkrimper1/jarvis/api/internal/security/server"
+	userserver     "github.com/rkrimper1/jarvis/api/internal/user/server"
+	userstore      "github.com/rkrimper1/jarvis/api/internal/user/store"
 	voiceserver    "github.com/rkrimper1/jarvis/api/internal/voice/server"
 
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
@@ -49,12 +52,13 @@ var serviceNames = []string{
 	"jarvis.learning.LearningService",
 	"jarvis.nlp.NLPService",
 	"jarvis.security.SecurityService",
+	"jarvis.user.UserService",
 	"jarvis.voice.VoiceService",
 }
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -70,6 +74,17 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 			middleware.StreamLogger(log),
 		),
 	)
+
+	// ── User store (shared by user service + security auth) ───────────
+	var uStore *userstore.Store
+	if usersDBPath != "" {
+		var err error
+		uStore, err = userstore.New(usersDBPath, log)
+		if err != nil {
+			log.Error("user store init failed", slog.Any("err", err))
+			// non-fatal — fall back to hardcoded auth engine
+		}
+	}
 
 	// ── Service: command ──────────────────────────────────────────────
 	cmdSrv := commandserver.New(hp, log)
@@ -101,8 +116,12 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("security config: %w", err)
 	}
-	secSrv := securityserver.New(secCfg, log)
+	secSrv := securityserver.NewWithUserStore(secCfg, log, uStore)
 	securityv1.RegisterSecurityServiceServer(grpcSrv, secSrv)
+
+	// ── Service: user ─────────────────────────────────────────────────
+	userSrv := userserver.New(uStore, log)
+	userv1.RegisterUserServiceServer(grpcSrv, userSrv)
 
 	// ── Service: voice ────────────────────────────────────────────────
 	// NLP is wired in-process via the adapter — no network hop.
@@ -150,6 +169,9 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	}
 	if err := securityv1.RegisterSecurityServiceHandlerServer(ctx, gwMux, secSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway security: %w", err)
+	}
+	if err := userv1.RegisterUserServiceHandlerServer(ctx, gwMux, userSrv); err != nil {
+		return nil, nil, nil, fmt.Errorf("gateway user: %w", err)
 	}
 	if err := voicev1.RegisterVoiceServiceHandlerServer(ctx, gwMux, voiceSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway voice: %w", err)

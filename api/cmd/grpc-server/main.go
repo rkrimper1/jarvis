@@ -46,7 +46,9 @@ func main() {
 		ClaudeModel:        envString("CLAUDE_MODEL", "claude-sonnet-4-6"),
 	}
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg)
+	usersDBPath := envString("USERS_DB_PATH", "")
+
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
