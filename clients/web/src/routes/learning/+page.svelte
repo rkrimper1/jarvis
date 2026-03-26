@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { learning, type KnowledgeEntry, type KnowledgeSource, type SearchKnowledgeResponse } from '$lib/api/client';
 	import { onMount } from 'svelte';
+	import { marked } from 'marked';
+
+	function md(text: string): string {
+		return marked.parse(text, { async: false }) as string;
+	}
 
 	let query = $state('');
 	let preferredSource = $state<KnowledgeSource>('KNOWLEDGE_SOURCE_UNSPECIFIED');
@@ -174,7 +179,7 @@
 								<span class="result-badge">{sourceLabel(entry.source)}</span>
 								<span class="result-confidence">{Math.round(entry.confidence * 100)}%</span>
 							</div>
-							<div class="result-summary">{entry.summary}</div>
+							<div class="result-summary">{@html md(entry.summary)}</div>
 							{#if entry.tags}
 								<div class="result-tags">{entry.tags}</div>
 							{/if}
@@ -197,7 +202,7 @@
 									<span class="result-badge">{sourceLabel(entry.source)}</span>
 									<span class="result-confidence">{Math.round(entry.confidence * 100)}%</span>
 								</div>
-								<div class="result-summary">{entry.summary}</div>
+								<div class="result-summary">{@html md(entry.summary)}</div>
 								{#if entry.tags}
 									<div class="result-tags">{entry.tags}</div>
 								{/if}
@@ -308,7 +313,15 @@
 	.result-query { font-size: 12px; color: var(--hud-cyan); font-weight: bold; flex: 1; }
 	.result-badge { font-size: 9px; background: var(--hud-cyan); color: var(--hud-bg); padding: 2px 6px; }
 	.result-confidence { font-size: 10px; color: var(--hud-text); opacity: 0.7; }
-	.result-summary { font-size: 12px; color: var(--hud-text); line-height: 1.5; }
+	.result-summary { font-size: 12px; color: var(--hud-text); line-height: 1.6; }
+	.result-summary :global(p)  { margin: 0 0 8px; }
+	.result-summary :global(p:last-child) { margin-bottom: 0; }
+	.result-summary :global(ul), .result-summary :global(ol) { margin: 0 0 8px 16px; padding: 0; }
+	.result-summary :global(li) { margin-bottom: 2px; }
+	.result-summary :global(strong) { color: var(--hud-cyan); font-weight: 600; }
+	.result-summary :global(em) { opacity: 0.8; }
+	.result-summary :global(code) { font-family: inherit; background: rgba(0,255,255,0.08); padding: 1px 4px; }
+	.result-summary :global(h1), .result-summary :global(h2), .result-summary :global(h3) { font-size: 12px; color: var(--hud-cyan); margin: 8px 0 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 	.result-tags { font-size: 10px; color: var(--hud-cyan); opacity: 0.7; margin-top: 6px; }
 	.result-date { font-size: 9px; margin-top: 8px; opacity: 0.5; }
 
