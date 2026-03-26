@@ -30,6 +30,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 export interface AuthResponse {
 	accessToken: string;
 	expiresAt: string;
+	grantedScopes: string[];
 	meta: ResponseMeta;
 }
 
@@ -41,12 +42,13 @@ export interface ResponseMeta {
 }
 
 export const security = {
-	authenticate(subjectId: string, credential?: string): Promise<AuthResponse> {
+	authenticate(subjectId: string, credential = ''): Promise<AuthResponse> {
 		return call('POST', '/security/authenticate', {
 			meta: { request_id: reqId() },
 			subject_id: subjectId,
 			method: 'AUTH_METHOD_TOKEN',
-			credential_payload: credential ?? ''
+			// bytes field — must be base64-encoded so grpc-gateway decodes back to raw password bytes
+			credential_payload: btoa(credential)
 		});
 	},
 	assessThreat(subjectId: string, location: string, signals: string[]) {
@@ -194,6 +196,41 @@ export const facility = {
 
 // ── Learning ─────────────────────────────────────────────────────────
 
+export type KnowledgeSource =
+	| 'KNOWLEDGE_SOURCE_UNSPECIFIED'
+	| 'KNOWLEDGE_SOURCE_WEB_SEARCH'
+	| 'KNOWLEDGE_SOURCE_CLAUDE_API'
+	| 'KNOWLEDGE_SOURCE_MANUAL';
+
+export interface KnowledgeEntry {
+	id: string;
+	query: string;
+	summary: string;
+	source: KnowledgeSource;
+	confidence: number;
+	tags: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface AddKnowledgeResponse {
+	meta: ResponseMeta;
+	entry: KnowledgeEntry;
+}
+
+export interface ListKnowledgeResponse {
+	meta: ResponseMeta;
+	entries: KnowledgeEntry[];
+}
+
+export interface SearchKnowledgeResponse {
+	meta: ResponseMeta;
+	results: KnowledgeEntry[];
+	needsConfirmation: boolean;
+	suggestedSource: KnowledgeSource;
+	searchesRemaining: number;
+}
+
 export const learning = {
 	getProfile(userId: string) {
 		return call('GET', `/learning/profile/${userId}`);
@@ -206,5 +243,69 @@ export const learning = {
 			correction,
 			rating
 		});
+	},
+	addKnowledge(query: string, summary: string, tags: string, confidence: number): Promise<AddKnowledgeResponse> {
+		return call('POST', '/learning/knowledge', {
+			meta: { request_id: reqId() },
+			query, summary, tags, confidence
+		});
+	},
+	listKnowledge(limit = 5): Promise<ListKnowledgeResponse> {
+		return call('POST', '/learning/knowledge/list', {
+			meta: { request_id: reqId() },
+			limit
+		});
+	},
+	searchKnowledge(
+		query: string,
+		preferredSource: KnowledgeSource = 'KNOWLEDGE_SOURCE_UNSPECIFIED',
+		confirmed = false
+	): Promise<SearchKnowledgeResponse> {
+		return call('POST', '/learning/knowledge/search', {
+			meta: { request_id: reqId() },
+			query,
+			preferred_source: preferredSource,
+			confirmed
+		});
+	}
+};
+
+// ── Users ─────────────────────────────────────────────────────────────
+
+export type UserRole = 'ROLE_UNSPECIFIED' | 'ROLE_ADMIN' | 'ROLE_EDITOR' | 'ROLE_VIEWER';
+
+export interface User {
+	id: string;
+	username: string;
+	email: string;
+	displayName: string;
+	role: UserRole;
+	isActive: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export const users = {
+	getMe(username: string): Promise<{ user: User }> {
+		return call('GET', `/users/me?username=${encodeURIComponent(username)}`);
+	},
+	updateProfile(id: string, email: string, displayName: string): Promise<{ user: User }> {
+		return call('POST', '/users/me/profile', { id, email, display_name: displayName });
+	},
+	changePassword(id: string, currentPassword: string, newPassword: string): Promise<Record<string, never>> {
+		return call('POST', '/users/me/password', {
+			id,
+			current_password: currentPassword,
+			new_password: newPassword
+		});
+	},
+	list(): Promise<{ users: User[]; totalCount: number }> {
+		return call('GET', '/users');
+	},
+	create(username: string, email: string, displayName: string, password: string, role: UserRole): Promise<{ user: User }> {
+		return call('POST', '/users', { username, email, display_name: displayName, password, role });
+	},
+	delete(id: string): Promise<{ id: string }> {
+		return call('DELETE', `/users/${id}`);
 	}
 };

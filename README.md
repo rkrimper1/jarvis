@@ -24,21 +24,24 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │                                                             │
   │  ┌──────────────────────────────────────────────────────┐  │
   │  │  command      │ business-ops │ facility               │  │
-  │  │  intelligence │ learning     │ security               │  │
+  │  │  intelligence │ learning     │ security  │ user       │  │
   │  │  nlp ◄──────► voice (in-process)                     │  │
   │  └──────────────────────────────────────────────────────┘  │
   │                                                             │
-  │   Claude API (NLP dialogue)    SMTP (calendar invites)     │
+  │   Claude API (NLP · knowledge search)   SMTP (invites)     │
   │   Redis (session state)                                     │
-  │   /tmp/profiles → ./profiles  (heap profile volume mount)  │
+  │   /tmp/profiles  → ./profiles/        (heap profile mount) │
+  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge + users)  │
   └─────────────────────────────────────────────────────────────┘
 ```
 
 - NLP and Voice are wired in-process — no network hop between them
 - Dialogue turns are powered by the Claude API, with session history stored in Redis
+- `SearchKnowledge` uses the Claude API (and optionally web search) as a fallback when no local SQLite result is found
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
+- The SQLite knowledge DB at `~/.jarvis/knowledge.db` and users DB at `~/.jarvis/users.db` are mounted read/write so the container persists data to the host
 
 ## Services
 
@@ -48,12 +51,13 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `business-ops` | Scheduling, tasks, messaging, reports. `ScheduleEvent` emails iCalendar invites via SMTP. |
 | `facility` | Building systems, environment monitoring |
 | `intelligence` | Research, artifact analysis, cross-referencing |
-| `learning` | Feedback loops, behavior profiling, model metrics |
+| `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
 | `security` | Auth, threat assessment, emergency protocols |
+| `user` | User CRUD, profile management, password change, role-based access (SQLite + bcrypt) |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
-All 8 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+All 9 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
 
 ### NLP Dialogue — Claude AI
 
@@ -120,6 +124,16 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
 # ── Heap profiler ─────────────────────────────────────────────────
 PPROF_DIR=/tmp/profiles               # optional — output dir (default: /tmp/profiles)
 PPROF_INTERVAL=5m                     # optional — background capture interval (default: 5m)
+
+# ── Knowledge base (Learning service) ─────────────────────────────
+KNOWLEDGE_DB_PATH=$HOME/.jarvis/knowledge.db  # optional — SQLite DB path (created by setup.sh)
+KNOWLEDGE_STALE_DAYS=30               # optional — exclude entries older than N days (default: 30)
+KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per session (default: 10)
+
+# ── User store ────────────────────────────────────────────────────
+USERS_DB_PATH=$HOME/.jarvis/users.db  # optional — SQLite DB path (created by setup.sh)
+SEED_TONY_USER=tony-stark             # optional — seeded admin username (default: tony-stark)
+SEED_TONY_PASSWORD=tony-stark         # optional — seeded admin password (default: tony-stark)
 ```
 
 > STT and TTS default to `stub` — mock responses, no cloud API required.
@@ -152,7 +166,7 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
 # 5. Web UI Start Up (suggest running in a separate terminal)
 make web-dev
 
-# 6. Open a browser (login: tony-stark - no password setup yet)
+# 6. Open a browser (login: tony-stark / tony-stark  or  rob-krimper / rob-krimper)
 http://localhost:5173/
 
 # 7. Shut Down Web UI
@@ -208,11 +222,12 @@ jarvis/
 │       ├── learning/
 │       ├── nlp/
 │       ├── security/
+│       ├── user/
 │       └── voice/
 ├── api/                          # Single Go module
 │   ├── cmd/grpc-server/          # Entry point
 │   │   ├── main.go               # Listeners, env vars, heap profiler, graceful shutdown
-│   │   ├── server.go             # Wires all 8 services onto gRPC + grpc-gateway
+│   │   ├── server.go             # Wires all 9 services onto gRPC + grpc-gateway
 │   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
 │   ├── internal/                 # Service implementations (Go internal package)
 │   │   ├── command/server/       # CommandService — on-demand heap profiling
@@ -223,7 +238,9 @@ jarvis/
 │   │   ├── integrations/
 │   │   │   ├── claude/           # Anthropic Claude API client (NLP dialogue)
 │   │   │   └── email/            # SMTP + iCalendar invite sender
-│   │   ├── learning/server/
+│   │   ├── learning/
+│   │   │   ├── knowledge/            # SQLite + FTS5 knowledge store + Claude/web-search fallback
+│   │   │   └── server/
 │   │   ├── nlp/
 │   │   │   ├── config/
 │   │   │   ├── dialogue/         # Manager, Redis session store, prompts
@@ -231,6 +248,9 @@ jarvis/
 │   │   │   ├── intent/
 │   │   │   └── server/
 │   │   ├── security/server/
+│   │   ├── user/
+│   │   │   ├── server/           # UserService — CRUD, profile, password, entitlements
+│   │   │   └── store/            # SQLite store (bcrypt, seed users, UUID ids)
 │   │   └── voice/server/
 │   ├── middleware/               # Shared gRPC interceptors (logging, recovery)
 │   ├── pb/                       # Generated Go stubs — gitignored, do not edit
@@ -243,14 +263,14 @@ jarvis/
 │   └── web/                      # SvelteKit HUD web client
 │       ├── src/
 │       │   ├── lib/
-│       │   │   ├── api/          # Typed fetch wrappers for all 8 REST services
-│       │   │   └── stores/       # Auth store (localStorage + derived state)
-│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security
+│       │   │   ├── api/          # Typed fetch wrappers for all 9 REST services
+│       │   │   └── stores/       # Auth store (localStorage + derived state, role, isAdmin)
+│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security, profile, admin/users
 │       └── static/               # Static assets (hud-bg.png, etc.)
 ├── profiles/                     # Heap profile output — .prof + .gif (volume-mounted from Docker)
 ├── docker/
 │   ├── jarvis/Dockerfile         # Multi-stage build: builder (Go/Alpine) → runtime (debian:slim + graphviz)
-│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles
+│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles, ~/.jarvis → /home/vagrant/.jarvis (knowledge + users DBs)
 ├── gateway/
 │   └── docs/api-reference.md     # REST + gRPC API reference
 ├── docs/openapi/                 # Generated OpenAPI spec — gitignored
@@ -279,16 +299,46 @@ jarvis/
 ## Make Targets
 
 ```bash
-make build          # compile the jarvis binary (bin/jarvis)
-make test           # run all tests with race detector
-make proto          # regenerate Go stubs from proto files (→ api/pb/)
-make proto-lint     # lint proto files
-make proto-android  # generate Kotlin/gRPC stubs via Gradle
-make docker-up      # build image and start all services
-make docker-down    # stop all services
-make docker-logs    # tail all container logs
-make logs-<svc>     # tail a specific service, e.g. make logs-jarvis
-make ios-open       # generate protos and open the Xcode project
-make android-open   # generate Android stubs and open Android Studio
-make help           # list all available targets
+# ── Proto ────────────────────────────────────────────────────
+make proto              # regenerate Go stubs from proto files (→ api/pb/)
+make proto-lint         # lint proto files
+make proto-breaking     # check for breaking proto changes vs main branch
+make proto-android      # generate Kotlin/gRPC stubs via Gradle
+
+# ── Build & Run ──────────────────────────────────────────────
+make build              # compile the jarvis binary (bin/jarvis)
+make run                # build then run locally (loads ENV_PATH if present)
+
+# ── Test ─────────────────────────────────────────────────────
+make test               # run all tests with race detector
+make test-short         # run tests without -v (faster CI output)
+make test-voice         # run voice tests only
+
+# ── Docker ───────────────────────────────────────────────────
+make docker-build       # build the Jarvis Docker image (no start)
+make docker-up          # build image and start jarvis + redis in background
+make docker-up-fg       # build image and start in foreground (shows logs)
+make docker-down        # stop and remove all containers
+make docker-down-v      # stop containers and remove volumes
+make docker-logs        # tail all container logs
+make docker-ps          # show running container status
+make docker-restart     # restart containers without rebuilding
+make logs-<svc>         # tail logs for a specific service, e.g. make logs-jarvis
+make restart-<svc>      # restart a specific service, e.g. make restart-jarvis
+
+# ── Utilities ────────────────────────────────────────────────
+make setup              # first-time bootstrap: buf, graphviz, node, proto stubs
+make tidy               # generate protos then tidy Go modules
+make clean              # remove compiled binaries and generated code (bin/, api/pb/)
+make compose-version    # show which Docker Compose version is being used
+
+# ── Clients ──────────────────────────────────────────────────
+make ios-open           # generate protos and open the Xcode project
+make ios-clean          # remove Swift generated stubs (gen/swift/)
+make android-open       # generate Android stubs and open Android Studio
+make web-dev            # start the SvelteKit HUD client in dev mode (hot reload, proxies :8080)
+make web-build          # build the SvelteKit HUD client for production
+make web-preview        # preview the production build locally
+
+make help               # list all available targets
 ```

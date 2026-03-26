@@ -84,8 +84,25 @@ services:
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
       - SMTP_TO=${SMTP_TO:-}
+
+      # ── Heap profiler ─────────────────────────────────────────────
+      - PPROF_DIR=${PPROF_DIR:-/tmp/profiles}
+      - PPROF_INTERVAL=${PPROF_INTERVAL:-5m}
+
+      # ── User store ────────────────────────────────────────────────
+      - USERS_DB_PATH=${USERS_DB_PATH:-}
+      - SEED_TONY_USER=${SEED_TONY_USER:-tony-stark}
+      - SEED_TONY_PASSWORD=${SEED_TONY_PASSWORD:-tony-stark}
+      - SEED_ADMIN_USER=${SEED_ADMIN_USER:-rob-krimper}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD:-rob-krimper}
+
+      # ── Knowledge base (Learning service) ────────────────────────
+      - KNOWLEDGE_DB_PATH=${KNOWLEDGE_DB_PATH:-}
+      - KNOWLEDGE_STALE_DAYS=${KNOWLEDGE_STALE_DAYS:-30}
+      - KNOWLEDGE_WEB_SEARCH_MAX_USES=${KNOWLEDGE_WEB_SEARCH_MAX_USES:-10}
     volumes:
       - ../profiles:/tmp/profiles
+      - /home/vagrant/.jarvis:/home/vagrant/.jarvis
     ports:
       - "50051:50051"
       - "8080:8080"

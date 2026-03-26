@@ -1,0 +1,231 @@
+syntax = "proto3";
+
+package jarvis.user;
+
+option go_package = "github.com/rkrimper1/jarvis/api/pb/user";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+// ── Enums ─────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_ADMIN       = 1;
+  ROLE_EDITOR      = 2;
+  ROLE_VIEWER      = 3;
+}
+
+enum AccessLevel {
+  ACCESS_LEVEL_UNSPECIFIED = 0;
+  ACCESS_LEVEL_READ        = 1; // view configs only
+  ACCESS_LEVEL_WRITE       = 2; // edit and promote configs
+  ACCESS_LEVEL_ADMIN       = 3; // full control including delete
+}
+
+// ── Entitlement ───────────────────────────────────────────────────────────────
+
+message Entitlement {
+  string      application  = 1; // application name, e.g. "myapp"
+  AccessLevel access_level = 2;
+}
+
+// ── Core message ──────────────────────────────────────────────────────────────
+
+message User {
+  string                    id           = 1;
+  string                    username     = 2;
+  string                    email        = 3;
+  string                    display_name = 4;
+  Role                      role         = 5;
+  bool                      is_active    = 6;
+  string                    password_hash  = 7;  // bcrypt/argon2 hash; never returned in API responses
+  repeated Entitlement      entitlements   = 11; // per-application access grants
+  google.protobuf.Timestamp created_at    = 8;
+  google.protobuf.Timestamp updated_at    = 9;
+  google.protobuf.Timestamp last_login_at = 10;
+  string                    created_by    = 12; // username of the actor who created this user
+  string                    updated_by    = 13; // username of the actor who last modified this user
+}
+
+// ── Create ────────────────────────────────────────────────────────────────────
+
+message CreateUserRequest {
+  string username     = 1;
+  string email        = 2;
+  string display_name = 3;
+  Role   role         = 4;
+  string password     = 5; // plain-text; service hashes before storing
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+// ── Read (single) ─────────────────────────────────────────────────────────────
+
+message GetUserRequest {
+  // Exactly one of the following must be set.
+  oneof lookup {
+    string id       = 1;
+    string username = 2;
+    string email    = 3;
+  }
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+// ── Read (list) ───────────────────────────────────────────────────────────────
+
+message ListUsersRequest {
+  // Optional filters
+  Role   role      = 1; // ROLE_UNSPECIFIED means "all roles"
+  bool   active_only = 2;
+
+  // Pagination
+  int32  page_size  = 3; // default 50, max 200
+  string page_token = 4;
+}
+
+message ListUsersResponse {
+  repeated User users          = 1;
+  string        next_page_token = 2;
+  int32         total_count    = 3;
+}
+
+// ── Update ────────────────────────────────────────────────────────────────────
+
+message UpdateUserRequest {
+  string id           = 1; // required — identifies the user to update
+
+  // Optional fields; omitted fields are left unchanged.
+  string email        = 2;
+  string display_name = 3;
+  Role   role         = 4;
+  bool   is_active    = 5;
+
+  // Entitlement mutations (applied independently; both may be set).
+  repeated Entitlement grant_entitlements  = 6; // add or replace per-app access
+  repeated string      revoke_applications = 7; // remove access by application name
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {
+  string id = 1; // echoes the deleted user's id
+}
+
+// ── Password management ───────────────────────────────────────────────────────
+
+message ChangePasswordRequest {
+  string id               = 1;
+  string current_password = 2;
+  string new_password     = 3;
+}
+
+message ChangePasswordResponse {}
+
+// ── Self-service profile update ───────────────────────────────────────────────
+
+message UpdateProfileRequest {
+  string id           = 1; // user id — must match the calling user
+  string email        = 2;
+  string display_name = 3;
+}
+
+message UpdateProfileResponse {
+  User user = 1;
+}
+
+// ── GetMe ─────────────────────────────────────────────────────────────────────
+
+message GetMeRequest {
+  string username = 1;
+}
+
+message GetMeResponse {
+  User user = 1;
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
+// ── Entitlement RPCs ──────────────────────────────────────────────────────────
+
+message GrantEntitlementRequest {
+  string      user_id     = 1;
+  Entitlement entitlement = 2;
+}
+
+message GrantEntitlementResponse {
+  User user = 1; // full updated user
+}
+
+message RevokeEntitlementRequest {
+  string user_id     = 1;
+  string application = 2; // removes access to this application entirely
+}
+
+message RevokeEntitlementResponse {
+  User user = 1;
+}
+
+message ListEntitlementsRequest {
+  string user_id = 1;
+}
+
+message ListEntitlementsResponse {
+  repeated Entitlement entitlements = 1;
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
+service UserService {
+  // Current user
+  rpc GetMe (GetMeRequest) returns (GetMeResponse) {
+    option (google.api.http) = { get: "/v1/users/me" };
+  }
+  rpc UpdateProfile (UpdateProfileRequest) returns (UpdateProfileResponse) {
+    option (google.api.http) = { post: "/v1/users/me/profile" body: "*" };
+  }
+  rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (google.api.http) = { post: "/v1/users/me/password" body: "*" };
+  }
+
+  // CRUD (admin)
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = { post: "/v1/users" body: "*" };
+  }
+  rpc GetUser (GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = { post: "/v1/users/lookup" body: "*" };
+  }
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = { get: "/v1/users" };
+  }
+  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = { patch: "/v1/users/{id}" body: "*" };
+  }
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = { delete: "/v1/users/{id}" };
+  }
+
+  // Entitlements
+  rpc GrantEntitlement  (GrantEntitlementRequest)  returns (GrantEntitlementResponse) {
+    option (google.api.http) = { post: "/v1/users/{user_id}/entitlements" body: "*" };
+  }
+  rpc RevokeEntitlement (RevokeEntitlementRequest) returns (RevokeEntitlementResponse) {
+    option (google.api.http) = { delete: "/v1/users/{user_id}/entitlements/{application}" };
+  }
+  rpc ListEntitlements  (ListEntitlementsRequest)  returns (ListEntitlementsResponse) {
+    option (google.api.http) = { get: "/v1/users/{user_id}/entitlements" };
+  }
+}

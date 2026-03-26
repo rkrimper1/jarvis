@@ -3,7 +3,7 @@
 Base URL: `http://localhost:8080`
 gRPC direct: `localhost:50051`
 
-All 8 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
+All 9 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
 ---
 
@@ -19,7 +19,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
     "meta": {"request_id": "auth-001"},
     "subject_id": "tony-stark",
     "method": "AUTH_METHOD_TOKEN",
-    "credential_payload": ""
+    "credential_payload": "'"$(echo -n 'tony-stark' | base64)"'"
   }' | jq -r '.accessToken')
 
 # 2. Use the token
@@ -370,6 +370,136 @@ curl "http://localhost:8080/v1/learning/performance?domain=MODEL_DOMAIN_NLP" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### Search Knowledge
+
+Searches the local SQLite knowledge base (FTS5 + fuzzy). Returns `needs_confirmation: true` when no fresh result exists and an external search is available. Re-send with `confirmed: true` and your chosen `preferred_source` to execute the search, save the result, and return it.
+
+**First call (DB lookup):**
+```bash
+curl -X POST http://localhost:8080/v1/learning/knowledge/search \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "know-001"},
+    "query": "arc reactor palladium toxicity",
+    "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API"
+  }'
+```
+
+**Confirmed external search:**
+```bash
+curl -X POST http://localhost:8080/v1/learning/knowledge/search \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "know-002"},
+    "query": "arc reactor palladium toxicity",
+    "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+    "confirmed": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "know-002", "success": true},
+  "results": [{
+    "id": "1",
+    "query": "arc reactor palladium toxicity",
+    "summary": "Palladium poisoning from arc reactor use causes...",
+    "source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+    "confidence": 0.85,
+    "updatedAt": "2026-03-25T00:00:00Z"
+  }],
+  "searchesRemaining": 9
+}
+```
+
+> `preferred_source` accepts `KNOWLEDGE_SOURCE_CLAUDE_API` or `KNOWLEDGE_SOURCE_WEB_SEARCH`.
+> `KNOWLEDGE_WEB_SEARCH_MAX_USES` (default `10`) controls how many external searches are allowed per session.
+> Entries older than `KNOWLEDGE_STALE_DAYS` (default `30`) are excluded from DB results.
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "know-001"},
+  "query": "arc reactor palladium toxicity",
+  "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+  "confirmed": true
+}' localhost:50051 jarvis.learning.LearningService/SearchKnowledge
+```
+
+---
+
+## User Service
+
+Users are stored in a SQLite DB (`USERS_DB_PATH`). Passwords are bcrypt-hashed. Two users are seeded on first start: `tony-stark` (ROLE_VIEWER) and `rob-krimper` (ROLE_ADMIN). The role is encoded in the JWT `granted_scopes` on every `Authenticate` call.
+
+### Get Current User
+```bash
+curl "http://localhost:8080/v1/users/me?username=tony-stark" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Update Profile
+```bash
+curl -X POST http://localhost:8080/v1/users/me/profile \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "<user-uuid>",
+    "email": "tony@stark.industries",
+    "display_name": "Tony Stark"
+  }'
+```
+
+### Change Password
+```bash
+curl -X POST http://localhost:8080/v1/users/me/password \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "<user-uuid>",
+    "current_password": "tony-stark",
+    "new_password": "new-secret"
+  }'
+```
+
+### List Users (admin only)
+```bash
+curl http://localhost:8080/v1/users \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Create User (admin only)
+```bash
+curl -X POST http://localhost:8080/v1/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "pepper-potts",
+    "email": "pepper@stark.industries",
+    "display_name": "Pepper Potts",
+    "password": "secure-pass",
+    "role": "ROLE_EDITOR"
+  }'
+```
+
+### Delete User (admin only)
+```bash
+curl -X DELETE http://localhost:8080/v1/users/<user-uuid> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"username": "tony-stark"}' \
+  localhost:50051 jarvis.user.UserService/GetMe
+
+grpcurl -plaintext -d '{}' \
+  localhost:50051 jarvis.user.UserService/ListUsers
+```
+
 ---
 
 ## gRPC Direct Access
@@ -408,6 +538,14 @@ grpcurl -plaintext -d '{
   "high_priority": true
 }' localhost:50051 jarvis.business.BusinessOpsService/ScheduleEvent
 
+# Search knowledge base (confirmed external search)
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "grpc-know-001"},
+  "query": "vibranium tensile strength",
+  "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
+  "confirmed": true
+}' localhost:50051 jarvis.learning.LearningService/SearchKnowledge
+
 # Health check
 grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
 ```
@@ -431,17 +569,23 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │                                           │
                   │  command      business-ops  facility      │
                   │  intelligence learning      security      │
-                  │  nlp ◄──────► voice (in-process)         │
+                  │  user         nlp ◄────────► voice        │
+                  │               (nlp↔voice in-process)      │
                   │                                           │
                   │  nlp → Claude API (dialogue, streaming)  │
+                  │  learning → Claude API (knowledge search) │
                   │  Redis (dialogue history + sessions)      │
                   │                                           │
                   │  /tmp/profiles ──────────────────────┐   │
+                  │  ~/.jarvis (knowledge + users DBs) ───┤   │
                   └──────────────┬───────────────────────┼───┘
-                                 │                        │ volume mount
-                  ┌──────────────▼──────────────┐   ┌────▼────────────┐
-                  │  External Services           │   │  Host           │
-                  │  Anthropic API (Claude)      │   │  ./profiles/    │
-                  │  SMTP → iCal email invites   │   │  *.prof  *.gif  │
-                  └──────────────────────────────┘   └─────────────────┘
+                                 │                        │ volume mounts
+                  ┌──────────────▼──────────────┐   ┌────▼──────────────────┐
+                  │  External Services           │   │  Host                 │
+                  │  Anthropic API (Claude)      │   │  ./profiles/          │
+                  │  · NLP dialogue              │   │  *.prof  *.gif        │
+                  │  · knowledge search          │   │  ~/.jarvis/           │
+                  │  SMTP → iCal email invites   │   │  knowledge.db         │
+                  └──────────────────────────────┘   │  users.db             │
+                                                      └───────────────────────┘
 ```

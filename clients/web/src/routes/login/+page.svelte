@@ -2,9 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
 	import { auth } from '$lib/stores/auth';
-	import { security } from '$lib/api/client';
+	import { security, users } from '$lib/api/client';
 
-	let subjectId = $state('tony-stark');
+	let subjectId = $state('');
 	let credential = $state('');
 	let error = $state('');
 	let loading = $state(false);
@@ -15,7 +15,15 @@
 		loading = true;
 		try {
 			const res = await security.authenticate(subjectId, credential);
-			auth.login(res.accessToken, subjectId);
+			// Extract role from granted_scopes (e.g. ["ROLE_ADMIN"])
+			const roleScope = res.grantedScopes?.find((s: string) => s.startsWith('ROLE_')) ?? '';
+			// Fetch the user record to get the UUID
+			let uid = '';
+			try {
+				const me = await users.getMe(subjectId);
+				uid = me.user?.id ?? '';
+			} catch { /* non-fatal — profile page handles missing id */ }
+			auth.login(res.accessToken, subjectId, uid, roleScope);
 			await tick();
 			goto('/');
 		} catch (err: unknown) {
@@ -40,7 +48,7 @@
 			</div>
 			<div class="field">
 				<label class="hud-label" for="cred">CREDENTIAL</label>
-				<input id="cred" type="password" class="hud-input" bind:value={credential} autocomplete="current-password" placeholder="optional" />
+				<input id="cred" type="password" class="hud-input" bind:value={credential} autocomplete="current-password" placeholder="password" required />
 			</div>
 
 			{#if error}

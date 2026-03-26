@@ -12,6 +12,7 @@ import (
 
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
+	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
 	authpkg "github.com/rkrimper1/jarvis/api/internal/security/auth"
 	"github.com/rkrimper1/jarvis/api/internal/security/config"
@@ -19,6 +20,11 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/security/threat"
 	"github.com/rkrimper1/jarvis/api/internal/security/token"
 )
+
+// UserStore is the minimal interface the security server needs to verify passwords.
+type UserStore interface {
+	CheckPassword(ctx context.Context, username string, password []byte) (*userv1.User, error)
+}
 
 // SecurityServer implements securityv1.SecurityServiceServer.
 type SecurityServer struct {
@@ -31,11 +37,17 @@ type SecurityServer struct {
 	broadcast *threat.AlertBroadcaster
 	protocols *protocol.Executor
 	auditLog  *audit.Store
+	users     UserStore // nil if user store not configured
 	log       *slog.Logger
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
 func New(cfg *config.Config, log *slog.Logger) *SecurityServer {
+	return NewWithUserStore(cfg, log, nil)
+}
+
+// NewWithUserStore wires all dependencies including the optional user store.
+func NewWithUserStore(cfg *config.Config, log *slog.Logger, users UserStore) *SecurityServer {
 	assessor := threat.New()
 	broadcaster := threat.NewBroadcaster()
 
@@ -51,6 +63,7 @@ func New(cfg *config.Config, log *slog.Logger) *SecurityServer {
 		broadcast: broadcaster,
 		protocols: protocol.New(log),
 		auditLog:  audit.New(),
+		users:     users,
 		log:       log,
 	}
 }
@@ -75,7 +88,22 @@ func (s *SecurityServer) Authenticate(
 		slog.String("method", req.Method.String()),
 	)
 
-	result := s.auth.Verify(req.SubjectId, req.Method, req.CredentialPayload)
+	// ── Try users DB first (bcrypt password check) ───────────────────
+	var role string
+	var result authpkg.VerifyResult
+	if s.users != nil {
+		u, err := s.users.CheckPassword(ctx, req.SubjectId, req.CredentialPayload)
+		if err == nil {
+			// DB user authenticated successfully
+			role = u.Role.String()
+			result = authpkg.VerifyResult{Valid: true, GrantedScopes: []string{role}}
+		} else {
+			result = authpkg.VerifyResult{Valid: false, Reason: err.Error()}
+		}
+	} else {
+		// Fall back to hardcoded auth engine
+		result = s.auth.Verify(req.SubjectId, req.Method, req.CredentialPayload)
+	}
 
 	s.auditLog.Append(req.SubjectId, "authenticate:"+req.Method.String(), "security/auth", result.Valid)
 
@@ -90,7 +118,7 @@ func (s *SecurityServer) Authenticate(
 		}, nil
 	}
 
-	accessToken, expiresAt, err := s.tokens.Issue(req.SubjectId, result.GrantedScopes)
+	accessToken, expiresAt, err := s.tokens.Issue(req.SubjectId, result.GrantedScopes, role)
 	if err != nil {
 		s.log.ErrorContext(ctx, "token issue failed", slog.Any("err", err))
 		return nil, status.Errorf(codes.Internal, "token generation failed")

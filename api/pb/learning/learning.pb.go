@@ -131,6 +131,58 @@ func (ModelDomain) EnumDescriptor() ([]byte, []int) {
 	return file_pb_learning_learning_proto_rawDescGZIP(), []int{1}
 }
 
+type KnowledgeSource int32
+
+const (
+	KnowledgeSource_KNOWLEDGE_SOURCE_UNSPECIFIED KnowledgeSource = 0
+	KnowledgeSource_KNOWLEDGE_SOURCE_WEB_SEARCH  KnowledgeSource = 1
+	KnowledgeSource_KNOWLEDGE_SOURCE_CLAUDE_API  KnowledgeSource = 2
+	KnowledgeSource_KNOWLEDGE_SOURCE_MANUAL      KnowledgeSource = 3
+)
+
+// Enum value maps for KnowledgeSource.
+var (
+	KnowledgeSource_name = map[int32]string{
+		0: "KNOWLEDGE_SOURCE_UNSPECIFIED",
+		1: "KNOWLEDGE_SOURCE_WEB_SEARCH",
+		2: "KNOWLEDGE_SOURCE_CLAUDE_API",
+		3: "KNOWLEDGE_SOURCE_MANUAL",
+	}
+	KnowledgeSource_value = map[string]int32{
+		"KNOWLEDGE_SOURCE_UNSPECIFIED": 0,
+		"KNOWLEDGE_SOURCE_WEB_SEARCH":  1,
+		"KNOWLEDGE_SOURCE_CLAUDE_API":  2,
+		"KNOWLEDGE_SOURCE_MANUAL":      3,
+	}
+)
+
+func (x KnowledgeSource) Enum() *KnowledgeSource {
+	p := new(KnowledgeSource)
+	*p = x
+	return p
+}
+
+func (x KnowledgeSource) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (KnowledgeSource) Descriptor() protoreflect.EnumDescriptor {
+	return file_pb_learning_learning_proto_enumTypes[2].Descriptor()
+}
+
+func (KnowledgeSource) Type() protoreflect.EnumType {
+	return &file_pb_learning_learning_proto_enumTypes[2]
+}
+
+func (x KnowledgeSource) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use KnowledgeSource.Descriptor instead.
+func (KnowledgeSource) EnumDescriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{2}
+}
+
 type SubmitFeedbackRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
@@ -735,6 +787,489 @@ func (x *StreamAdaptationEventsResponse) GetEvent() *AdaptationEvent {
 	return nil
 }
 
+type KnowledgeEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Query         string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	Summary       string                 `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	Source        KnowledgeSource        `protobuf:"varint,4,opt,name=source,proto3,enum=jarvis.learning.KnowledgeSource" json:"source,omitempty"`
+	Confidence    float32                `protobuf:"fixed32,5,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	Tags          string                 `protobuf:"bytes,6,opt,name=tags,proto3" json:"tags,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KnowledgeEntry) Reset() {
+	*x = KnowledgeEntry{}
+	mi := &file_pb_learning_learning_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KnowledgeEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KnowledgeEntry) ProtoMessage() {}
+
+func (x *KnowledgeEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KnowledgeEntry.ProtoReflect.Descriptor instead.
+func (*KnowledgeEntry) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *KnowledgeEntry) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *KnowledgeEntry) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *KnowledgeEntry) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *KnowledgeEntry) GetSource() KnowledgeSource {
+	if x != nil {
+		return x.Source
+	}
+	return KnowledgeSource_KNOWLEDGE_SOURCE_UNSPECIFIED
+}
+
+func (x *KnowledgeEntry) GetConfidence() float32 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+func (x *KnowledgeEntry) GetTags() string {
+	if x != nil {
+		return x.Tags
+	}
+	return ""
+}
+
+func (x *KnowledgeEntry) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *KnowledgeEntry) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type AddKnowledgeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Query         string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	Summary       string                 `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	Tags          string                 `protobuf:"bytes,4,opt,name=tags,proto3" json:"tags,omitempty"`
+	Confidence    float32                `protobuf:"fixed32,5,opt,name=confidence,proto3" json:"confidence,omitempty"` // 0.0–1.0; default 1.0 if omitted
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddKnowledgeRequest) Reset() {
+	*x = AddKnowledgeRequest{}
+	mi := &file_pb_learning_learning_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddKnowledgeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddKnowledgeRequest) ProtoMessage() {}
+
+func (x *AddKnowledgeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddKnowledgeRequest.ProtoReflect.Descriptor instead.
+func (*AddKnowledgeRequest) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *AddKnowledgeRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *AddKnowledgeRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *AddKnowledgeRequest) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *AddKnowledgeRequest) GetTags() string {
+	if x != nil {
+		return x.Tags
+	}
+	return ""
+}
+
+func (x *AddKnowledgeRequest) GetConfidence() float32 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+type AddKnowledgeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Entry         *KnowledgeEntry        `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddKnowledgeResponse) Reset() {
+	*x = AddKnowledgeResponse{}
+	mi := &file_pb_learning_learning_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddKnowledgeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddKnowledgeResponse) ProtoMessage() {}
+
+func (x *AddKnowledgeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddKnowledgeResponse.ProtoReflect.Descriptor instead.
+func (*AddKnowledgeResponse) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AddKnowledgeResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *AddKnowledgeResponse) GetEntry() *KnowledgeEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+type ListKnowledgeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"` // default 5 if omitted
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKnowledgeRequest) Reset() {
+	*x = ListKnowledgeRequest{}
+	mi := &file_pb_learning_learning_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKnowledgeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKnowledgeRequest) ProtoMessage() {}
+
+func (x *ListKnowledgeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKnowledgeRequest.ProtoReflect.Descriptor instead.
+func (*ListKnowledgeRequest) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListKnowledgeRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ListKnowledgeRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListKnowledgeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Entries       []*KnowledgeEntry      `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListKnowledgeResponse) Reset() {
+	*x = ListKnowledgeResponse{}
+	mi := &file_pb_learning_learning_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListKnowledgeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListKnowledgeResponse) ProtoMessage() {}
+
+func (x *ListKnowledgeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListKnowledgeResponse.ProtoReflect.Descriptor instead.
+func (*ListKnowledgeResponse) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListKnowledgeResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ListKnowledgeResponse) GetEntries() []*KnowledgeEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type SearchKnowledgeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Meta  *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Query string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	// preferred_source is used when needs_confirmation is true and the
+	// user has chosen a source in the UI. Omit on the first call.
+	PreferredSource KnowledgeSource `protobuf:"varint,3,opt,name=preferred_source,json=preferredSource,proto3,enum=jarvis.learning.KnowledgeSource" json:"preferred_source,omitempty"`
+	// confirmed signals the user approved an external search after
+	// receiving needs_confirmation = true on a prior call.
+	Confirmed     bool `protobuf:"varint,4,opt,name=confirmed,proto3" json:"confirmed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchKnowledgeRequest) Reset() {
+	*x = SearchKnowledgeRequest{}
+	mi := &file_pb_learning_learning_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchKnowledgeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchKnowledgeRequest) ProtoMessage() {}
+
+func (x *SearchKnowledgeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchKnowledgeRequest.ProtoReflect.Descriptor instead.
+func (*SearchKnowledgeRequest) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SearchKnowledgeRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *SearchKnowledgeRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *SearchKnowledgeRequest) GetPreferredSource() KnowledgeSource {
+	if x != nil {
+		return x.PreferredSource
+	}
+	return KnowledgeSource_KNOWLEDGE_SOURCE_UNSPECIFIED
+}
+
+func (x *SearchKnowledgeRequest) GetConfirmed() bool {
+	if x != nil {
+		return x.Confirmed
+	}
+	return false
+}
+
+type SearchKnowledgeResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Meta    *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Results []*KnowledgeEntry      `protobuf:"bytes,2,rep,name=results,proto3" json:"results,omitempty"`
+	// needs_confirmation is true when no fresh DB results exist and an
+	// external search is available but has not yet been approved.
+	NeedsConfirmation bool            `protobuf:"varint,3,opt,name=needs_confirmation,json=needsConfirmation,proto3" json:"needs_confirmation,omitempty"`
+	SuggestedSource   KnowledgeSource `protobuf:"varint,4,opt,name=suggested_source,json=suggestedSource,proto3,enum=jarvis.learning.KnowledgeSource" json:"suggested_source,omitempty"`
+	// searches_remaining is the number of external searches left in this session.
+	SearchesRemaining int32 `protobuf:"varint,5,opt,name=searches_remaining,json=searchesRemaining,proto3" json:"searches_remaining,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *SearchKnowledgeResponse) Reset() {
+	*x = SearchKnowledgeResponse{}
+	mi := &file_pb_learning_learning_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchKnowledgeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchKnowledgeResponse) ProtoMessage() {}
+
+func (x *SearchKnowledgeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_learning_learning_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchKnowledgeResponse.ProtoReflect.Descriptor instead.
+func (*SearchKnowledgeResponse) Descriptor() ([]byte, []int) {
+	return file_pb_learning_learning_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SearchKnowledgeResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *SearchKnowledgeResponse) GetResults() []*KnowledgeEntry {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+func (x *SearchKnowledgeResponse) GetNeedsConfirmation() bool {
+	if x != nil {
+		return x.NeedsConfirmation
+	}
+	return false
+}
+
+func (x *SearchKnowledgeResponse) GetSuggestedSource() KnowledgeSource {
+	if x != nil {
+		return x.SuggestedSource
+	}
+	return KnowledgeSource_KNOWLEDGE_SOURCE_UNSPECIFIED
+}
+
+func (x *SearchKnowledgeResponse) GetSearchesRemaining() int32 {
+	if x != nil {
+		return x.SearchesRemaining
+	}
+	return 0
+}
+
 var File_pb_learning_learning_proto protoreflect.FileDescriptor
 
 const file_pb_learning_learning_proto_rawDesc = "" +
@@ -791,7 +1326,48 @@ const file_pb_learning_learning_proto_rawDesc = "" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x89\x01\n" +
 	"\x1eStreamAdaptationEventsResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x126\n" +
-	"\x05event\x18\x02 \x01(\v2 .jarvis.learning.AdaptationEventR\x05event*\x83\x01\n" +
+	"\x05event\x18\x02 \x01(\v2 .jarvis.learning.AdaptationEventR\x05event\"\xb4\x02\n" +
+	"\x0eKnowledgeEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
+	"\x05query\x18\x02 \x01(\tR\x05query\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x128\n" +
+	"\x06source\x18\x04 \x01(\x0e2 .jarvis.learning.KnowledgeSourceR\x06source\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\x05 \x01(\x02R\n" +
+	"confidence\x12\x12\n" +
+	"\x04tags\x18\x06 \x01(\tR\x04tags\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa9\x01\n" +
+	"\x13AddKnowledgeRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x14\n" +
+	"\x05query\x18\x02 \x01(\tR\x05query\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x12\x12\n" +
+	"\x04tags\x18\x04 \x01(\tR\x04tags\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\x05 \x01(\x02R\n" +
+	"confidence\"~\n" +
+	"\x14AddKnowledgeResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x125\n" +
+	"\x05entry\x18\x02 \x01(\v2\x1f.jarvis.learning.KnowledgeEntryR\x05entry\"\\\n" +
+	"\x14ListKnowledgeRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"\x83\x01\n" +
+	"\x15ListKnowledgeResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x129\n" +
+	"\aentries\x18\x02 \x03(\v2\x1f.jarvis.learning.KnowledgeEntryR\aentries\"\xc9\x01\n" +
+	"\x16SearchKnowledgeRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x14\n" +
+	"\x05query\x18\x02 \x01(\tR\x05query\x12K\n" +
+	"\x10preferred_source\x18\x03 \x01(\x0e2 .jarvis.learning.KnowledgeSourceR\x0fpreferredSource\x12\x1c\n" +
+	"\tconfirmed\x18\x04 \x01(\bR\tconfirmed\"\xb0\x02\n" +
+	"\x17SearchKnowledgeResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x129\n" +
+	"\aresults\x18\x02 \x03(\v2\x1f.jarvis.learning.KnowledgeEntryR\aresults\x12-\n" +
+	"\x12needs_confirmation\x18\x03 \x01(\bR\x11needsConfirmation\x12K\n" +
+	"\x10suggested_source\x18\x04 \x01(\x0e2 .jarvis.learning.KnowledgeSourceR\x0fsuggestedSource\x12-\n" +
+	"\x12searches_remaining\x18\x05 \x01(\x05R\x11searchesRemaining*\x83\x01\n" +
 	"\fFeedbackType\x12\x1d\n" +
 	"\x19FEEDBACK_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FEEDBACK_TYPE_POSITIVE\x10\x01\x12\x1a\n" +
@@ -802,12 +1378,20 @@ const file_pb_learning_learning_proto_rawDesc = "" +
 	"\x10MODEL_DOMAIN_NLP\x10\x01\x12\x17\n" +
 	"\x13MODEL_DOMAIN_THREAT\x10\x02\x12\x19\n" +
 	"\x15MODEL_DOMAIN_HARDWARE\x10\x03\x12\x19\n" +
-	"\x15MODEL_DOMAIN_BEHAVIOR\x10\x042\xc4\x04\n" +
+	"\x15MODEL_DOMAIN_BEHAVIOR\x10\x04*\x92\x01\n" +
+	"\x0fKnowledgeSource\x12 \n" +
+	"\x1cKNOWLEDGE_SOURCE_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bKNOWLEDGE_SOURCE_WEB_SEARCH\x10\x01\x12\x1f\n" +
+	"\x1bKNOWLEDGE_SOURCE_CLAUDE_API\x10\x02\x12\x1b\n" +
+	"\x17KNOWLEDGE_SOURCE_MANUAL\x10\x032\xde\a\n" +
 	"\x0fLearningService\x12\x83\x01\n" +
 	"\x0eSubmitFeedback\x12&.jarvis.learning.SubmitFeedbackRequest\x1a'.jarvis.learning.SubmitFeedbackResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/learning/feedback\x12\x98\x01\n" +
 	"\x12GetBehaviorProfile\x12*.jarvis.learning.GetBehaviorProfileRequest\x1a+.jarvis.learning.GetBehaviorProfileResponse\")\x82\xd3\xe4\x93\x02#\x12!/v1/learning/profile/{subject_id}\x12\x92\x01\n" +
 	"\x13GetModelPerformance\x12+.jarvis.learning.GetModelPerformanceRequest\x1a,.jarvis.learning.GetModelPerformanceResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/learning/performance\x12{\n" +
-	"\x16StreamAdaptationEvents\x12..jarvis.learning.StreamAdaptationEventsRequest\x1a/.jarvis.learning.StreamAdaptationEventsResponse0\x01B\xae\x01\n" +
+	"\x16StreamAdaptationEvents\x12..jarvis.learning.StreamAdaptationEventsRequest\x1a/.jarvis.learning.StreamAdaptationEventsResponse0\x01\x12~\n" +
+	"\fAddKnowledge\x12$.jarvis.learning.AddKnowledgeRequest\x1a%.jarvis.learning.AddKnowledgeResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/v1/learning/knowledge\x12\x86\x01\n" +
+	"\rListKnowledge\x12%.jarvis.learning.ListKnowledgeRequest\x1a&.jarvis.learning.ListKnowledgeResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/v1/learning/knowledge/list\x12\x8e\x01\n" +
+	"\x0fSearchKnowledge\x12'.jarvis.learning.SearchKnowledgeRequest\x1a(.jarvis.learning.SearchKnowledgeResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/v1/learning/knowledge/searchB\xae\x01\n" +
 	"\x13com.jarvis.learningB\rLearningProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/learning\xa2\x02\x03JLX\xaa\x02\x0fJarvis.Learning\xca\x02\x0fJarvis\\Learning\xe2\x02\x1bJarvis\\Learning\\GPBMetadata\xea\x02\x10Jarvis::Learningb\x06proto3"
 
 var (
@@ -822,57 +1406,85 @@ func file_pb_learning_learning_proto_rawDescGZIP() []byte {
 	return file_pb_learning_learning_proto_rawDescData
 }
 
-var file_pb_learning_learning_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_pb_learning_learning_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_pb_learning_learning_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_pb_learning_learning_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_pb_learning_learning_proto_goTypes = []any{
 	(FeedbackType)(0),                      // 0: jarvis.learning.FeedbackType
 	(ModelDomain)(0),                       // 1: jarvis.learning.ModelDomain
-	(*SubmitFeedbackRequest)(nil),          // 2: jarvis.learning.SubmitFeedbackRequest
-	(*SubmitFeedbackResponse)(nil),         // 3: jarvis.learning.SubmitFeedbackResponse
-	(*GetBehaviorProfileRequest)(nil),      // 4: jarvis.learning.GetBehaviorProfileRequest
-	(*GetBehaviorProfileResponse)(nil),     // 5: jarvis.learning.GetBehaviorProfileResponse
-	(*GetModelPerformanceRequest)(nil),     // 6: jarvis.learning.GetModelPerformanceRequest
-	(*GetModelPerformanceResponse)(nil),    // 7: jarvis.learning.GetModelPerformanceResponse
-	(*AdaptationEvent)(nil),                // 8: jarvis.learning.AdaptationEvent
-	(*StreamAdaptationEventsRequest)(nil),  // 9: jarvis.learning.StreamAdaptationEventsRequest
-	(*StreamAdaptationEventsResponse)(nil), // 10: jarvis.learning.StreamAdaptationEventsResponse
-	nil,                                    // 11: jarvis.learning.GetBehaviorProfileResponse.TraitScoresEntry
-	(*common.RequestMeta)(nil),             // 12: jarvis.common.RequestMeta
-	(*common.ResponseMeta)(nil),            // 13: jarvis.common.ResponseMeta
-	(*timestamppb.Timestamp)(nil),          // 14: google.protobuf.Timestamp
+	(KnowledgeSource)(0),                   // 2: jarvis.learning.KnowledgeSource
+	(*SubmitFeedbackRequest)(nil),          // 3: jarvis.learning.SubmitFeedbackRequest
+	(*SubmitFeedbackResponse)(nil),         // 4: jarvis.learning.SubmitFeedbackResponse
+	(*GetBehaviorProfileRequest)(nil),      // 5: jarvis.learning.GetBehaviorProfileRequest
+	(*GetBehaviorProfileResponse)(nil),     // 6: jarvis.learning.GetBehaviorProfileResponse
+	(*GetModelPerformanceRequest)(nil),     // 7: jarvis.learning.GetModelPerformanceRequest
+	(*GetModelPerformanceResponse)(nil),    // 8: jarvis.learning.GetModelPerformanceResponse
+	(*AdaptationEvent)(nil),                // 9: jarvis.learning.AdaptationEvent
+	(*StreamAdaptationEventsRequest)(nil),  // 10: jarvis.learning.StreamAdaptationEventsRequest
+	(*StreamAdaptationEventsResponse)(nil), // 11: jarvis.learning.StreamAdaptationEventsResponse
+	(*KnowledgeEntry)(nil),                 // 12: jarvis.learning.KnowledgeEntry
+	(*AddKnowledgeRequest)(nil),            // 13: jarvis.learning.AddKnowledgeRequest
+	(*AddKnowledgeResponse)(nil),           // 14: jarvis.learning.AddKnowledgeResponse
+	(*ListKnowledgeRequest)(nil),           // 15: jarvis.learning.ListKnowledgeRequest
+	(*ListKnowledgeResponse)(nil),          // 16: jarvis.learning.ListKnowledgeResponse
+	(*SearchKnowledgeRequest)(nil),         // 17: jarvis.learning.SearchKnowledgeRequest
+	(*SearchKnowledgeResponse)(nil),        // 18: jarvis.learning.SearchKnowledgeResponse
+	nil,                                    // 19: jarvis.learning.GetBehaviorProfileResponse.TraitScoresEntry
+	(*common.RequestMeta)(nil),             // 20: jarvis.common.RequestMeta
+	(*common.ResponseMeta)(nil),            // 21: jarvis.common.ResponseMeta
+	(*timestamppb.Timestamp)(nil),          // 22: google.protobuf.Timestamp
 }
 var file_pb_learning_learning_proto_depIdxs = []int32{
-	12, // 0: jarvis.learning.SubmitFeedbackRequest.meta:type_name -> jarvis.common.RequestMeta
+	20, // 0: jarvis.learning.SubmitFeedbackRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.learning.SubmitFeedbackRequest.feedback_type:type_name -> jarvis.learning.FeedbackType
-	13, // 2: jarvis.learning.SubmitFeedbackResponse.meta:type_name -> jarvis.common.ResponseMeta
-	12, // 3: jarvis.learning.GetBehaviorProfileRequest.meta:type_name -> jarvis.common.RequestMeta
-	13, // 4: jarvis.learning.GetBehaviorProfileResponse.meta:type_name -> jarvis.common.ResponseMeta
-	11, // 5: jarvis.learning.GetBehaviorProfileResponse.trait_scores:type_name -> jarvis.learning.GetBehaviorProfileResponse.TraitScoresEntry
-	14, // 6: jarvis.learning.GetBehaviorProfileResponse.profile_updated_at:type_name -> google.protobuf.Timestamp
-	12, // 7: jarvis.learning.GetModelPerformanceRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 2: jarvis.learning.SubmitFeedbackResponse.meta:type_name -> jarvis.common.ResponseMeta
+	20, // 3: jarvis.learning.GetBehaviorProfileRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 4: jarvis.learning.GetBehaviorProfileResponse.meta:type_name -> jarvis.common.ResponseMeta
+	19, // 5: jarvis.learning.GetBehaviorProfileResponse.trait_scores:type_name -> jarvis.learning.GetBehaviorProfileResponse.TraitScoresEntry
+	22, // 6: jarvis.learning.GetBehaviorProfileResponse.profile_updated_at:type_name -> google.protobuf.Timestamp
+	20, // 7: jarvis.learning.GetModelPerformanceRequest.meta:type_name -> jarvis.common.RequestMeta
 	1,  // 8: jarvis.learning.GetModelPerformanceRequest.domain:type_name -> jarvis.learning.ModelDomain
-	14, // 9: jarvis.learning.GetModelPerformanceRequest.from:type_name -> google.protobuf.Timestamp
-	14, // 10: jarvis.learning.GetModelPerformanceRequest.to:type_name -> google.protobuf.Timestamp
-	13, // 11: jarvis.learning.GetModelPerformanceResponse.meta:type_name -> jarvis.common.ResponseMeta
+	22, // 9: jarvis.learning.GetModelPerformanceRequest.from:type_name -> google.protobuf.Timestamp
+	22, // 10: jarvis.learning.GetModelPerformanceRequest.to:type_name -> google.protobuf.Timestamp
+	21, // 11: jarvis.learning.GetModelPerformanceResponse.meta:type_name -> jarvis.common.ResponseMeta
 	1,  // 12: jarvis.learning.GetModelPerformanceResponse.domain:type_name -> jarvis.learning.ModelDomain
 	1,  // 13: jarvis.learning.AdaptationEvent.domain:type_name -> jarvis.learning.ModelDomain
-	14, // 14: jarvis.learning.AdaptationEvent.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 15: jarvis.learning.StreamAdaptationEventsRequest.meta:type_name -> jarvis.common.RequestMeta
-	13, // 16: jarvis.learning.StreamAdaptationEventsResponse.meta:type_name -> jarvis.common.ResponseMeta
-	8,  // 17: jarvis.learning.StreamAdaptationEventsResponse.event:type_name -> jarvis.learning.AdaptationEvent
-	2,  // 18: jarvis.learning.LearningService.SubmitFeedback:input_type -> jarvis.learning.SubmitFeedbackRequest
-	4,  // 19: jarvis.learning.LearningService.GetBehaviorProfile:input_type -> jarvis.learning.GetBehaviorProfileRequest
-	6,  // 20: jarvis.learning.LearningService.GetModelPerformance:input_type -> jarvis.learning.GetModelPerformanceRequest
-	9,  // 21: jarvis.learning.LearningService.StreamAdaptationEvents:input_type -> jarvis.learning.StreamAdaptationEventsRequest
-	3,  // 22: jarvis.learning.LearningService.SubmitFeedback:output_type -> jarvis.learning.SubmitFeedbackResponse
-	5,  // 23: jarvis.learning.LearningService.GetBehaviorProfile:output_type -> jarvis.learning.GetBehaviorProfileResponse
-	7,  // 24: jarvis.learning.LearningService.GetModelPerformance:output_type -> jarvis.learning.GetModelPerformanceResponse
-	10, // 25: jarvis.learning.LearningService.StreamAdaptationEvents:output_type -> jarvis.learning.StreamAdaptationEventsResponse
-	22, // [22:26] is the sub-list for method output_type
-	18, // [18:22] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	22, // 14: jarvis.learning.AdaptationEvent.timestamp:type_name -> google.protobuf.Timestamp
+	20, // 15: jarvis.learning.StreamAdaptationEventsRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 16: jarvis.learning.StreamAdaptationEventsResponse.meta:type_name -> jarvis.common.ResponseMeta
+	9,  // 17: jarvis.learning.StreamAdaptationEventsResponse.event:type_name -> jarvis.learning.AdaptationEvent
+	2,  // 18: jarvis.learning.KnowledgeEntry.source:type_name -> jarvis.learning.KnowledgeSource
+	22, // 19: jarvis.learning.KnowledgeEntry.created_at:type_name -> google.protobuf.Timestamp
+	22, // 20: jarvis.learning.KnowledgeEntry.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 21: jarvis.learning.AddKnowledgeRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 22: jarvis.learning.AddKnowledgeResponse.meta:type_name -> jarvis.common.ResponseMeta
+	12, // 23: jarvis.learning.AddKnowledgeResponse.entry:type_name -> jarvis.learning.KnowledgeEntry
+	20, // 24: jarvis.learning.ListKnowledgeRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 25: jarvis.learning.ListKnowledgeResponse.meta:type_name -> jarvis.common.ResponseMeta
+	12, // 26: jarvis.learning.ListKnowledgeResponse.entries:type_name -> jarvis.learning.KnowledgeEntry
+	20, // 27: jarvis.learning.SearchKnowledgeRequest.meta:type_name -> jarvis.common.RequestMeta
+	2,  // 28: jarvis.learning.SearchKnowledgeRequest.preferred_source:type_name -> jarvis.learning.KnowledgeSource
+	21, // 29: jarvis.learning.SearchKnowledgeResponse.meta:type_name -> jarvis.common.ResponseMeta
+	12, // 30: jarvis.learning.SearchKnowledgeResponse.results:type_name -> jarvis.learning.KnowledgeEntry
+	2,  // 31: jarvis.learning.SearchKnowledgeResponse.suggested_source:type_name -> jarvis.learning.KnowledgeSource
+	3,  // 32: jarvis.learning.LearningService.SubmitFeedback:input_type -> jarvis.learning.SubmitFeedbackRequest
+	5,  // 33: jarvis.learning.LearningService.GetBehaviorProfile:input_type -> jarvis.learning.GetBehaviorProfileRequest
+	7,  // 34: jarvis.learning.LearningService.GetModelPerformance:input_type -> jarvis.learning.GetModelPerformanceRequest
+	10, // 35: jarvis.learning.LearningService.StreamAdaptationEvents:input_type -> jarvis.learning.StreamAdaptationEventsRequest
+	13, // 36: jarvis.learning.LearningService.AddKnowledge:input_type -> jarvis.learning.AddKnowledgeRequest
+	15, // 37: jarvis.learning.LearningService.ListKnowledge:input_type -> jarvis.learning.ListKnowledgeRequest
+	17, // 38: jarvis.learning.LearningService.SearchKnowledge:input_type -> jarvis.learning.SearchKnowledgeRequest
+	4,  // 39: jarvis.learning.LearningService.SubmitFeedback:output_type -> jarvis.learning.SubmitFeedbackResponse
+	6,  // 40: jarvis.learning.LearningService.GetBehaviorProfile:output_type -> jarvis.learning.GetBehaviorProfileResponse
+	8,  // 41: jarvis.learning.LearningService.GetModelPerformance:output_type -> jarvis.learning.GetModelPerformanceResponse
+	11, // 42: jarvis.learning.LearningService.StreamAdaptationEvents:output_type -> jarvis.learning.StreamAdaptationEventsResponse
+	14, // 43: jarvis.learning.LearningService.AddKnowledge:output_type -> jarvis.learning.AddKnowledgeResponse
+	16, // 44: jarvis.learning.LearningService.ListKnowledge:output_type -> jarvis.learning.ListKnowledgeResponse
+	18, // 45: jarvis.learning.LearningService.SearchKnowledge:output_type -> jarvis.learning.SearchKnowledgeResponse
+	39, // [39:46] is the sub-list for method output_type
+	32, // [32:39] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_pb_learning_learning_proto_init() }
@@ -885,8 +1497,8 @@ func file_pb_learning_learning_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_learning_learning_proto_rawDesc), len(file_pb_learning_learning_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   10,
+			NumEnums:      3,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
