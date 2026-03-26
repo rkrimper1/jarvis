@@ -15,10 +15,26 @@ type Detection struct {
 	X, Y, W, H int
 }
 
+// DetectParams controls the tunable detection parameters.
+type DetectParams struct {
+	MinSize          int     // minimum face size in pixels (default 65)
+	QualityThreshold float32 // minimum pigo quality score (default 6.0)
+	ClusterOverlap   float64 // clustering overlap factor (default 0.25)
+}
+
+// DefaultDetectParams returns sensible defaults.
+func DefaultDetectParams() DetectParams {
+	return DetectParams{
+		MinSize:          65,
+		QualityThreshold: 6.0,
+		ClusterOverlap:   0.25,
+	}
+}
+
 // Detect loads the pigo cascade from cascadePath and returns bounding boxes
 // for all faces found in img. Returns an empty slice (not an error) when no
 // faces are detected.
-func Detect(img image.Image, cascadePath string) ([]Detection, error) {
+func Detect(img image.Image, cascadePath string, params DetectParams) ([]Detection, error) {
 	cascadeData, err := os.ReadFile(cascadePath)
 	if err != nil {
 		return nil, fmt.Errorf("faceanalysis: read cascade: %w", err)
@@ -32,7 +48,7 @@ func Detect(img image.Image, cascadePath string) ([]Detection, error) {
 	pixels, cols, rows := toGrayscale(img)
 
 	cParams := pigo.CascadeParams{
-		MinSize:     30,
+		MinSize:     params.MinSize,
 		MaxSize:     min(cols, rows),
 		ShiftFactor: 0.1,
 		ScaleFactor: 1.1,
@@ -45,11 +61,11 @@ func Detect(img image.Image, cascadePath string) ([]Detection, error) {
 	}
 
 	dets := classifier.RunCascade(cParams, 0.0)
-	dets = classifier.ClusterDetections(dets, 0.15)
+	dets = classifier.ClusterDetections(dets, params.ClusterOverlap)
 
 	out := make([]Detection, 0, len(dets))
 	for _, d := range dets {
-		if d.Q < 6.0 {
+		if d.Q < params.QualityThreshold {
 			continue
 		}
 		half := int(d.Scale / 2)

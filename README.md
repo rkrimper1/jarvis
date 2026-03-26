@@ -28,10 +28,11 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │  │  nlp ◄──────► voice (in-process)                     │  │
   │  └──────────────────────────────────────────────────────┘  │
   │                                                             │
-  │   Claude API (NLP · knowledge search)   SMTP (invites)     │
-  │   Redis (session state)                                     │
-  │   /tmp/profiles  → ./profiles/        (heap profile mount) │
-  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge + users)  │
+  │   Claude API (NLP · knowledge search · face sentiment)      │
+  │   Redis (session state)   SMTP (invites)                    │
+  │   pigo (face detection)   ~/.jarvis/faces/ (annotated imgs) │
+  │   /tmp/profiles  → ./profiles/        (heap profile mount)  │
+  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge + users)   │
   └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -39,6 +40,8 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - Dialogue turns are powered by the Claude API, with session history stored in Redis
 - `SearchKnowledge` uses the Claude API (and optionally web search) as a fallback when no local SQLite result is found
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
+- `AnalyzeFaces` detects faces with the pigo cascade detector, annotates them with a HUD overlay, and uses the Claude API to generate per-face sentiment commentary
+- Annotated face images are written to `~/.jarvis/faces/` (host-mounted) and served at `/faces/<filename>` via the HTTP server
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
 - The SQLite knowledge DB at `~/.jarvis/knowledge.db` and users DB at `~/.jarvis/users.db` are mounted read/write so the container persists data to the host
@@ -134,6 +137,13 @@ KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per s
 USERS_DB_PATH=$HOME/.jarvis/users.db  # optional — SQLite DB path (created by setup.sh)
 SEED_TONY_USER=tony-stark             # optional — seeded admin username (default: tony-stark)
 SEED_TONY_PASSWORD=tony-stark         # optional — seeded admin password (default: tony-stark)
+
+# ── Face analysis (Security service) ──────────────────────────────
+FACE_CASCADE_PATH=$HOME/.jarvis/facefinder  # cascade file downloaded by setup.sh
+FACE_OUTPUT_DIR=$HOME/.jarvis/faces         # annotated image output dir
+FACE_MIN_SIZE=65                            # optional — minimum face pixel size (default: 65)
+FACE_QUALITY_THRESHOLD=6.0                  # optional — pigo quality score cutoff (default: 6.0)
+FACE_CLUSTER_OVERLAP=0.25                   # optional — duplicate detection merge factor (default: 0.25)
 ```
 
 > STT and TTS default to `stub` — mock responses, no cloud API required.
@@ -247,7 +257,9 @@ jarvis/
 │   │   │   ├── entity/
 │   │   │   ├── intent/
 │   │   │   └── server/
-│   │   ├── security/server/
+│   │   ├── security/
+│   │   │   ├── faceanalysis/     # pigo face detector + HUD annotation renderer
+│   │   │   └── server/
 │   │   ├── user/
 │   │   │   ├── server/           # UserService — CRUD, profile, password, entitlements
 │   │   │   └── store/            # SQLite store (bcrypt, seed users, UUID ids)

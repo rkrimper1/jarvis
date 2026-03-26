@@ -177,6 +177,46 @@ curl "http://localhost:8080/v1/security/audit?page_size=20" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### Analyze Faces
+
+Detects faces in an uploaded image using the pigo cascade detector, annotates each with a HUD overlay and Claude-generated sentiment commentary, and returns the annotated image URL.
+
+```bash
+curl -X POST http://localhost:8080/v1/security/faces \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "face-001"},
+    "image_data": "'"$(base64 -w0 /path/to/photo.jpg)"'",
+    "filename": "photo.jpg"
+  }'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "face-001", "success": true},
+  "imageUrl": "/faces/annotated_photo.png",
+  "faceCount": 2,
+  "faces": [
+    {"faceIndex": 1, "sentiment": "HAPPY",   "commentary": "Cheeks at maximum capacity, sir.",    "boundingBox": {"x": 120, "y": 80,  "width": 210, "height": 210}},
+    {"faceIndex": 2, "sentiment": "NEUTRAL", "commentary": "Contemplating life's mysteries.",     "boundingBox": {"x": 380, "y": 95,  "width": 195, "height": 195}}
+  ]
+}
+```
+
+> Detection is tunable without rebuilding via env vars: `FACE_MIN_SIZE` (px, default `65`), `FACE_QUALITY_THRESHOLD` (default `6.0`), `FACE_CLUSTER_OVERLAP` (default `0.25`).
+> The annotated image is served at the returned `imageUrl` path from the same HTTP server (`:8080`).
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d "{
+  \"meta\": {\"request_id\": \"face-001\"},
+  \"image_data\": \"$(base64 -w0 /path/to/photo.jpg)\",
+  \"filename\": \"photo.jpg\"
+}" localhost:50051 jarvis.security.SecurityService/AnalyzeFaces
+```
+
 ---
 
 ## Facility Service
@@ -485,9 +525,52 @@ curl -X POST http://localhost:8080/v1/users \
   }'
 ```
 
+### Look Up User (admin only)
+```bash
+curl -X POST http://localhost:8080/v1/users/lookup \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "pepper-potts"}'
+```
+
+### Update User (admin only)
+```bash
+curl -X PATCH http://localhost:8080/v1/users/<user-uuid> \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "<user-uuid>",
+    "role": "ROLE_EDITOR",
+    "is_active": true
+  }'
+```
+
 ### Delete User (admin only)
 ```bash
 curl -X DELETE http://localhost:8080/v1/users/<user-uuid> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Grant Entitlement (admin only)
+```bash
+curl -X POST http://localhost:8080/v1/users/<user-uuid>/entitlements \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "<user-uuid>",
+    "entitlement": {"application": "jarvis-hud", "access_level": "ACCESS_LEVEL_WRITE"}
+  }'
+```
+
+### Revoke Entitlement (admin only)
+```bash
+curl -X DELETE "http://localhost:8080/v1/users/<user-uuid>/entitlements/jarvis-hud" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### List Entitlements
+```bash
+curl "http://localhost:8080/v1/users/<user-uuid>/entitlements" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -498,6 +581,15 @@ grpcurl -plaintext -d '{"username": "tony-stark"}' \
 
 grpcurl -plaintext -d '{}' \
   localhost:50051 jarvis.user.UserService/ListUsers
+
+grpcurl -plaintext -d '{"username": "pepper-potts"}' \
+  localhost:50051 jarvis.user.UserService/GetUser
+
+grpcurl -plaintext -d '{"id": "<user-uuid>", "role": "ROLE_EDITOR"}' \
+  localhost:50051 jarvis.user.UserService/UpdateUser
+
+grpcurl -plaintext -d '{"user_id": "<user-uuid>"}' \
+  localhost:50051 jarvis.user.UserService/ListEntitlements
 ```
 
 ---

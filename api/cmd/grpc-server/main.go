@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
-	learningserver "github.com/rkrimper1/jarvis/api/internal/learning/server"
+	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
+	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
+	securityserver  "github.com/rkrimper1/jarvis/api/internal/security/server"
 )
 
 func main() {
@@ -50,8 +52,19 @@ func main() {
 
 	faceOutputDir   := envString("FACE_OUTPUT_DIR", "")
 	faceCascadePath := envString("FACE_CASCADE_PATH", "")
+	faceMinSize     := envInt("FACE_MIN_SIZE", 65)
+	faceQuality     := envFloat32("FACE_QUALITY_THRESHOLD", 6.0)
+	faceCluster     := envFloat64("FACE_CLUSTER_OVERLAP", 0.25)
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, faceOutputDir, faceCascadePath)
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
+		CascadePath:  faceCascadePath,
+		OutputDir:    faceOutputDir,
+		DetectParams: faceanalysis.DetectParams{
+			MinSize:          faceMinSize,
+			QualityThreshold: faceQuality,
+			ClusterOverlap:   faceCluster,
+		},
+	})
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -142,6 +155,24 @@ func envInt(key string, def int) int {
 func envString(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
+	}
+	return def
+}
+
+func envFloat32(key string, def float32) float32 {
+	if v := os.Getenv(key); v != "" {
+		if f, err := strconv.ParseFloat(v, 32); err == nil {
+			return float32(f)
+		}
+	}
+	return def
+}
+
+func envFloat64(key string, def float64) float64 {
+	if v := os.Getenv(key); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f
+		}
 	}
 	return def
 }

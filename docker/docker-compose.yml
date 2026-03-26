@@ -105,6 +105,9 @@ services:
       # Cascade is downloaded by setup.sh to ~/.jarvis/facefinder
       - FACE_CASCADE_PATH=${FACE_CASCADE_PATH:-/home/vagrant/.jarvis/facefinder}
       - FACE_OUTPUT_DIR=${FACE_OUTPUT_DIR:-/home/vagrant/.jarvis/faces}
+      - FACE_MIN_SIZE=${FACE_MIN_SIZE:-65}
+      - FACE_QUALITY_THRESHOLD=${FACE_QUALITY_THRESHOLD:-6.0}
+      - FACE_CLUSTER_OVERLAP=${FACE_CLUSTER_OVERLAP:-0.25}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis

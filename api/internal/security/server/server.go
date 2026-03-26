@@ -46,17 +46,19 @@ type SecurityServer struct {
 	log       *slog.Logger
 
 	// face analysis
-	faceAnalyzer    *faceanalysis.Analyzer
-	faceCascadePath string
-	faceOutputDir   string
+	faceAnalyzer     *faceanalysis.Analyzer
+	faceCascadePath  string
+	faceOutputDir    string
+	faceDetectParams faceanalysis.DetectParams
 }
 
 // FaceConfig holds optional face-analysis configuration.
 type FaceConfig struct {
-	CascadePath   string
-	OutputDir     string
-	AnthropicKey  string
-	ClaudeModel   string
+	CascadePath      string
+	OutputDir        string
+	AnthropicKey     string
+	ClaudeModel      string
+	DetectParams     faceanalysis.DetectParams
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -88,9 +90,10 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 		auditLog:        audit.New(),
 		users:           users,
 		log:             log,
-		faceAnalyzer:    faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
-		faceCascadePath: face.CascadePath,
-		faceOutputDir:   face.OutputDir,
+		faceAnalyzer:     faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
+		faceCascadePath:  face.CascadePath,
+		faceOutputDir:    face.OutputDir,
+		faceDetectParams: face.DetectParams,
 	}
 }
 
@@ -356,7 +359,7 @@ func (s *SecurityServer) AnalyzeFaces(
 	img = faceanalysis.ApplyOrientation(img, req.ImageData)
 
 	// Detect faces
-	dets, err := faceanalysis.Detect(img, s.faceCascadePath)
+	dets, err := faceanalysis.Detect(img, s.faceCascadePath, s.faceDetectParams)
 	if err != nil {
 		s.log.ErrorContext(ctx, "face detect failed", slog.Any("err", err))
 		return nil, status.Errorf(codes.Internal, "face detection: %v", err)
