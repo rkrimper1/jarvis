@@ -210,7 +210,32 @@ SQL
   success "Knowledge DB created at $KNOWLEDGE_DB"
 fi
 
-# ── 7. Node.js + Web client deps ─────────────────────────────────────
+# ── 7. JARVIS users database ─────────────────────────────────────────
+USERS_DB="${USERS_DB_PATH:-$JARVIS_DIR/users.db}"
+
+if [ -f "$USERS_DB" ]; then
+  success "Users DB already exists at $USERS_DB"
+else
+  info "Creating users DB schema at $USERS_DB (seed users added on first server start)..."
+  sqlite3 "$USERS_DB" <<'SQL'
+CREATE TABLE IF NOT EXISTS users (
+    id           TEXT PRIMARY KEY,
+    username     TEXT NOT NULL UNIQUE,
+    email        TEXT NOT NULL DEFAULT '',
+    display_name TEXT NOT NULL DEFAULT '',
+    role         TEXT NOT NULL DEFAULT 'ROLE_VIEWER'
+                 CHECK(role IN ('ROLE_ADMIN','ROLE_EDITOR','ROLE_VIEWER')),
+    password_hash TEXT NOT NULL,
+    is_active    INTEGER NOT NULL DEFAULT 1,
+    created_at   DATETIME DEFAULT (datetime('now')),
+    updated_at   DATETIME DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+SQL
+  success "Users DB created at $USERS_DB"
+fi
+
+# ── 8. Node.js + Web client deps ─────────────────────────────────────
 if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v(18|20|22)'; then
   success "Node.js already installed: $(node --version)"
 else
@@ -228,7 +253,7 @@ if [ -f "$WEB_DIR/package.json" ]; then
   success "Web client dependencies installed"
 fi
 
-# ── 8. Done ───────────────────────────────────────────────────────────
+# ── 9. Done ───────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"

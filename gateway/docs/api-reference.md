@@ -3,7 +3,7 @@
 Base URL: `http://localhost:8080`
 gRPC direct: `localhost:50051`
 
-All 8 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
+All 9 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
 ---
 
@@ -19,7 +19,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/v1/security/authenticate \
     "meta": {"request_id": "auth-001"},
     "subject_id": "tony-stark",
     "method": "AUTH_METHOD_TOKEN",
-    "credential_payload": ""
+    "credential_payload": "'"$(echo -n 'tony-stark' | base64)"'"
   }' | jq -r '.accessToken')
 
 # 2. Use the token
@@ -431,6 +431,77 @@ grpcurl -plaintext -d '{
 
 ---
 
+## User Service
+
+Users are stored in a SQLite DB (`USERS_DB_PATH`). Passwords are bcrypt-hashed. Two users are seeded on first start: `tony-stark` (ROLE_VIEWER) and `rob-krimper` (ROLE_ADMIN). The role is encoded in the JWT `granted_scopes` on every `Authenticate` call.
+
+### Get Current User
+```bash
+curl "http://localhost:8080/v1/users/me?username=tony-stark" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Update Profile
+```bash
+curl -X POST http://localhost:8080/v1/users/me/profile \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "<user-uuid>",
+    "email": "tony@stark.industries",
+    "display_name": "Tony Stark"
+  }'
+```
+
+### Change Password
+```bash
+curl -X POST http://localhost:8080/v1/users/me/password \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "<user-uuid>",
+    "current_password": "tony-stark",
+    "new_password": "new-secret"
+  }'
+```
+
+### List Users (admin only)
+```bash
+curl http://localhost:8080/v1/users \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Create User (admin only)
+```bash
+curl -X POST http://localhost:8080/v1/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "pepper-potts",
+    "email": "pepper@stark.industries",
+    "display_name": "Pepper Potts",
+    "password": "secure-pass",
+    "role": "ROLE_EDITOR"
+  }'
+```
+
+### Delete User (admin only)
+```bash
+curl -X DELETE http://localhost:8080/v1/users/<user-uuid> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"username": "tony-stark"}' \
+  localhost:50051 jarvis.user.UserService/GetMe
+
+grpcurl -plaintext -d '{}' \
+  localhost:50051 jarvis.user.UserService/ListUsers
+```
+
+---
+
 ## gRPC Direct Access
 
 ```bash
@@ -498,14 +569,15 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │                                           │
                   │  command      business-ops  facility      │
                   │  intelligence learning      security      │
-                  │  nlp ◄──────► voice (in-process)         │
+                  │  user         nlp ◄────────► voice        │
+                  │               (nlp↔voice in-process)      │
                   │                                           │
                   │  nlp → Claude API (dialogue, streaming)  │
                   │  learning → Claude API (knowledge search) │
                   │  Redis (dialogue history + sessions)      │
                   │                                           │
                   │  /tmp/profiles ──────────────────────┐   │
-                  │  ~/.jarvis (knowledge DB) ────────────┤   │
+                  │  ~/.jarvis (knowledge + users DBs) ───┤   │
                   └──────────────┬───────────────────────┼───┘
                                  │                        │ volume mounts
                   ┌──────────────▼──────────────┐   ┌────▼──────────────────┐
@@ -514,5 +586,6 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  · NLP dialogue              │   │  *.prof  *.gif        │
                   │  · knowledge search          │   │  ~/.jarvis/           │
                   │  SMTP → iCal email invites   │   │  knowledge.db         │
-                  └──────────────────────────────┘   └───────────────────────┘
+                  └──────────────────────────────┘   │  users.db             │
+                                                      └───────────────────────┘
 ```
