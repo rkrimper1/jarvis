@@ -156,8 +156,9 @@
 
 {#if showFacesModal && facesResult}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-	<div class="modal-backdrop" onclick={closeFacesModal}>
-		<div class="modal-box" onclick={(e) => e.stopPropagation()}>
+	<div class="modal-backdrop" role="presentation" onclick={closeFacesModal}>
+		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+		<div class="modal-box" role="dialog" aria-modal="true" tabindex="-1" onclick={(e) => e.stopPropagation()}>
 			<div class="modal-header">
 				<span class="hud-label" style="color:var(--hud-red)">FACE ANALYSIS — {facesResult.faceCount} TARGET(S)</span>
 				<div style="display:flex;gap:8px;align-items:center">
