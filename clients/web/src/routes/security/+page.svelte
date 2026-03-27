@@ -2,7 +2,7 @@
 	import { security, type AnalyzeFacesResponse } from '$lib/api/client';
 
 	type Mode = 'threat' | 'audit' | 'faces';
-	let mode = $state<Mode>('threat');
+	let mode = $state<Mode>('faces');
 
 	// Threat
 	let threatSubject = $state('');
