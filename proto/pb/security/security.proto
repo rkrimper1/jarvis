@@ -92,10 +92,17 @@ message AuditEntry {
   google.protobuf.Timestamp timestamp = 6;
 }
 
+message SurroundingsStatus {
+  double score  = 1; // 0–100
+  string color  = 2; // GREEN | YELLOW | RED
+  string status = 3; // NOMINAL | COMPROMISED
+}
+
 message GetAuditLogResponse {
-  jarvis.common.ResponseMeta meta = 1;
-  repeated AuditEntry entries     = 2;
-  string next_page_token          = 3;
+  jarvis.common.ResponseMeta meta      = 1;
+  repeated AuditEntry entries          = 2;
+  string next_page_token               = 3;
+  SurroundingsStatus surroundings_status = 4;
 }
 
 message SecurityAlert {

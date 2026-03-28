@@ -59,8 +59,8 @@ export const security = {
 			observed_signals: signals
 		});
 	},
-	auditLog(pageSize = 20) {
-		return call('GET', `/security/audit?page_size=${pageSize}`);
+	auditLog(pageSize = 20): Promise<AuditLogResponse> {
+		return call('GET', `/security/audit?meta.request_id=${reqId()}&page_size=${pageSize}`);
 	},
 	analyzeFaces(imageData: string, filename: string): Promise<AnalyzeFacesResponse> {
 		return call('POST', '/security/faces', {
@@ -70,6 +70,28 @@ export const security = {
 		});
 	}
 };
+
+export interface AuditEntry {
+	eventId: string;
+	subjectId: string;
+	action: string;
+	resource: string;
+	success: boolean;
+	timestamp: string;
+}
+
+export interface SurroundingsStatus {
+	score: number;
+	color: string;  // GREEN | YELLOW | RED
+	status: string; // NOMINAL | COMPROMISED
+}
+
+export interface AuditLogResponse {
+	meta: ResponseMeta;
+	entries: AuditEntry[];
+	nextPageToken: string;
+	surroundingsStatus?: SurroundingsStatus;
+}
 
 export interface BoundingBox {
 	x: number;

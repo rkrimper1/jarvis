@@ -108,6 +108,7 @@ services:
       - FACE_MIN_SIZE=${FACE_MIN_SIZE:-65}
       - FACE_QUALITY_THRESHOLD=${FACE_QUALITY_THRESHOLD:-6.0}
       - FACE_CLUSTER_OVERLAP=${FACE_CLUSTER_OVERLAP:-0.25}
+      - SECURITY_ANALYTICS_DB_PATH=${SECURITY_ANALYTICS_DB_PATH:-/home/vagrant/.jarvis/analytics.db}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis

@@ -50,15 +50,17 @@ func main() {
 
 	usersDBPath := envString("USERS_DB_PATH", "")
 
-	faceOutputDir   := envString("FACE_OUTPUT_DIR", "")
-	faceCascadePath := envString("FACE_CASCADE_PATH", "")
-	faceMinSize     := envInt("FACE_MIN_SIZE", 65)
-	faceQuality     := envFloat32("FACE_QUALITY_THRESHOLD", 6.0)
-	faceCluster     := envFloat64("FACE_CLUSTER_OVERLAP", 0.25)
+	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
+	faceCascadePath    := envString("FACE_CASCADE_PATH", "")
+	faceMinSize        := envInt("FACE_MIN_SIZE", 65)
+	faceQuality        := envFloat32("FACE_QUALITY_THRESHOLD", 6.0)
+	faceCluster        := envFloat64("FACE_CLUSTER_OVERLAP", 0.25)
+	analyticsDBPath    := envString("SECURITY_ANALYTICS_DB_PATH", "")
 
 	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
-		CascadePath:  faceCascadePath,
-		OutputDir:    faceOutputDir,
+		CascadePath:     faceCascadePath,
+		OutputDir:       faceOutputDir,
+		AnalyticsDBPath: analyticsDBPath,
 		DetectParams: faceanalysis.DetectParams{
 			MinSize:          faceMinSize,
 			QualityThreshold: faceQuality,

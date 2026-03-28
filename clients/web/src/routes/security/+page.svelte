@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { security, type AnalyzeFacesResponse } from '$lib/api/client';
+	import { security, type AnalyzeFacesResponse, type AuditLogResponse } from '$lib/api/client';
 
 	type Mode = 'threat' | 'audit' | 'faces';
 	let mode = $state<Mode>('faces');
@@ -14,6 +14,9 @@
 	let previewUrl = $state('');
 	let facesResult = $state<AnalyzeFacesResponse | null>(null);
 	let showFacesModal = $state(false);
+
+	// Audit
+	let auditResult = $state<AuditLogResponse | null>(null);
 
 	let loading = $state(false);
 	let result = $state<unknown>(null);
@@ -40,7 +43,8 @@
 					signals.split(',').map(s => s.trim()).filter(Boolean)
 				);
 			} else if (mode === 'audit') {
-				result = await security.auditLog(20);
+				await fetchAudit();
+				return;
 			} else if (mode === 'faces') {
 				if (!selectedFile) { error = 'Select an image first.'; loading = false; return; }
 				const buf = await selectedFile.arrayBuffer();
@@ -58,6 +62,18 @@
 		}
 	}
 
+	async function fetchAudit() {
+		error = ''; loading = true;
+		try {
+			auditResult = await security.auditLog(20);
+			result = auditResult;
+		} catch (err: unknown) {
+			error = err instanceof Error ? err.message : 'Audit retrieval failed';
+		} finally {
+			loading = false;
+		}
+	}
+
 	function closeFacesModal() { showFacesModal = false; }
 </script>
 
@@ -70,11 +86,21 @@
 		<div class="hud-panel form-panel" style="border-color:var(--hud-red);box-shadow:var(--glow-red),inset 0 0 20px #ff2d5508">
 			<div class="mode-tabs">
 				{#each (['threat', 'audit', 'faces'] as Mode[]) as m}
-					<button class="hud-btn mode-tab" class:active={mode === m} onclick={() => { mode = m; result = null; error = ''; }}>
+					<button class="hud-btn mode-tab" class:active={mode === m} onclick={() => { mode = m; result = null; auditResult = null; error = ''; if (m === 'audit') fetchAudit(); }}>
 						{m.toUpperCase()}
 					</button>
 				{/each}
 			</div>
+
+			<p class="tab-description">
+				{#if mode === 'threat'}
+					EVALUATE LIVE STREAMING VIDEO FOR THREATS
+				{:else if mode === 'audit'}
+					COMPILES AN OVERALL SURROUNDINGS SENTIMENT
+				{:else if mode === 'faces'}
+					LOAD AN IMAGE FOR FACIAL SENTIMENT ANALYSIS
+				{/if}
+			</p>
 
 			<form onsubmit={handleSubmit} class="form">
 				{#if mode === 'threat'}
@@ -130,6 +156,29 @@
 				</div>
 			{:else if error}
 				<div class="text-red" style="font-size:12px">{error}</div>
+			{:else if mode === 'audit' && auditResult}
+				{#if auditResult.surroundingsStatus}
+					{@const ss = auditResult.surroundingsStatus}
+					<div class="status-badge status-{ss.color.toLowerCase()}" style="margin-bottom:16px">
+						<div class="status-label">{ss.status}</div>
+						<div class="status-score">{ss.score.toFixed(1)}</div>
+						<div class="status-color-label">{ss.color}</div>
+					</div>
+				{/if}
+				{#if auditResult.entries?.length}
+					<div class="audit-entries">
+						{#each auditResult.entries as entry}
+							<div class="audit-row">
+								<span class="audit-action">{entry.action}</span>
+								<span class="audit-subject">{entry.subjectId}</span>
+								<span class="audit-ts">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+								<span class="audit-ok" class:audit-fail={!entry.success}>{entry.success ? '✓' : '✗'}</span>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="text-muted" style="font-size:12px">No audit entries found.</div>
+				{/if}
 			{:else if mode === 'faces' && facesResult}
 				<div class="faces-summary">
 					<div class="hud-label" style="margin-bottom:8px">{facesResult.faceCount} FACE(S) DETECTED</div>
@@ -190,6 +239,7 @@
 	.mode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
 	.mode-tab { font-size: 10px; padding: 4px 10px; }
 	.mode-tab.active { background: var(--hud-red); color: var(--hud-bg); border-color: var(--hud-red); }
+	.tab-description { font-size: 10px; color: var(--hud-cyan); letter-spacing: 0.08em; margin: -8px 0 12px; }
 	.form { display: flex; flex-direction: column; gap: 12px; }
 	.field { display: flex; flex-direction: column; gap: 4px; }
 	.submit-btn { width: 100%; padding: 10px; margin-top: 4px; }
@@ -283,6 +333,40 @@
 	/* Download button */
 	.download-btn { font-size: 10px; padding: 2px 10px; text-decoration: none; color: var(--hud-red); border-color: var(--hud-red); }
 	.download-btn:hover { background: var(--hud-red); color: var(--hud-bg); }
+
+	/* Surroundings status badge */
+	.status-badge {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 14px;
+		border: 1px solid currentColor;
+		font-family: var(--font-mono);
+	}
+	.status-green  { color: #00ff88; border-color: #00ff8866; background: #00ff8808; }
+	.status-yellow { color: #ffd700; border-color: #ffd70066; background: #ffd70008; }
+	.status-red    { color: var(--hud-red); border-color: #ff2d5566; background: #ff2d5508; }
+	.status-label  { font-size: 13px; font-weight: bold; letter-spacing: 0.1em; flex: 1; }
+	.status-score  { font-size: 22px; font-weight: bold; }
+	.status-color-label { font-size: 10px; opacity: 0.7; letter-spacing: 0.12em; }
+
+	/* Audit entries list */
+	.audit-entries { display: flex; flex-direction: column; gap: 4px; overflow: auto; }
+	.audit-row {
+		display: grid;
+		grid-template-columns: 1fr auto auto auto;
+		gap: 8px;
+		align-items: center;
+		padding: 5px 8px;
+		border-bottom: 1px solid #ffffff08;
+		font-size: 10px;
+		font-family: var(--font-mono);
+	}
+	.audit-action  { color: var(--hud-text); letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.audit-subject { color: #00d4ff88; white-space: nowrap; }
+	.audit-ts      { color: #ffffff44; white-space: nowrap; }
+	.audit-ok      { color: #00ff88; }
+	.audit-fail    { color: var(--hud-red); }
 
 	/* Scan bar */
 	.scan-wrap { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }

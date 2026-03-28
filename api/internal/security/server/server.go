@@ -17,6 +17,7 @@ import (
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
 	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
+	"github.com/rkrimper1/jarvis/api/internal/security/analyticsstore"
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
 	authpkg "github.com/rkrimper1/jarvis/api/internal/security/auth"
 	"github.com/rkrimper1/jarvis/api/internal/security/config"
@@ -41,9 +42,10 @@ type SecurityServer struct {
 	assessor  *threat.Assessor
 	broadcast *threat.AlertBroadcaster
 	protocols *protocol.Executor
-	auditLog  *audit.Store
-	users     UserStore // nil if user store not configured
-	log       *slog.Logger
+	auditLog       *audit.Store
+	analyticsStore *analyticsstore.Store // nil if not configured
+	users          UserStore             // nil if user store not configured
+	log            *slog.Logger
 
 	// face analysis
 	faceAnalyzer     *faceanalysis.Analyzer
@@ -59,6 +61,7 @@ type FaceConfig struct {
 	AnthropicKey     string
 	ClaudeModel      string
 	DetectParams     faceanalysis.DetectParams
+	AnalyticsDBPath  string // path to analytics SQLite DB; leave empty to disable
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -80,16 +83,34 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 	// receive data — remove in production and replace with real sensor input.
 	broadcaster.SimulatePatrolScan(assessor, cfg.Threat.AlertBroadcastInterval)
 
+	var aStore *analyticsstore.Store
+	auditStore := audit.New() // default: in-memory
+	if face.AnalyticsDBPath != "" {
+		var err error
+		aStore, err = analyticsstore.New(face.AnalyticsDBPath, log)
+		if err != nil {
+			log.Error("analyticsstore: failed to open DB — analytics disabled", slog.Any("err", err))
+		} else {
+			sqliteAudit, err := audit.NewSQLite(aStore.DB())
+			if err != nil {
+				log.Error("audit: failed to init SQLite store — falling back to in-memory", slog.Any("err", err))
+			} else {
+				auditStore = sqliteAudit
+			}
+		}
+	}
+
 	return &SecurityServer{
-		cfg:             cfg,
-		auth:            authpkg.New(),
-		tokens:          token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
-		assessor:        assessor,
-		broadcast:       broadcaster,
-		protocols:       protocol.New(log),
-		auditLog:        audit.New(),
-		users:           users,
-		log:             log,
+		cfg:              cfg,
+		auth:             authpkg.New(),
+		tokens:           token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
+		assessor:         assessor,
+		broadcast:        broadcaster,
+		protocols:        protocol.New(log),
+		auditLog:         auditStore,
+		analyticsStore:   aStore,
+		users:            users,
+		log:              log,
 		faceAnalyzer:     faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
 		faceCascadePath:  face.CascadePath,
 		faceOutputDir:    face.OutputDir,
@@ -193,6 +214,17 @@ func (s *SecurityServer) AssessThreat(
 		true,
 	)
 
+	if s.analyticsStore != nil {
+		if err := s.analyticsStore.InsertThreat(ctx, analyticsstore.ThreatEvent{
+			SubjectID:   req.SubjectId,
+			Location:    req.Location,
+			Signals:     req.ObservedSignals,
+			ThreatLevel: result.Level.String(),
+		}); err != nil {
+			s.log.WarnContext(ctx, "analyticsstore: insert threat failed", slog.Any("err", err))
+		}
+	}
+
 	// Broadcast high+ threats to all streaming subscribers
 	if result.Level >= securityv1.ThreatLevel_THREAT_LEVEL_HIGH {
 		s.broadcast.Publish(result)
@@ -284,11 +316,26 @@ func (s *SecurityServer) GetAuditLog(
 		return nil, status.Errorf(codes.InvalidArgument, "query error: %v", err)
 	}
 
-	return &securityv1.GetAuditLogResponse{
+	resp := &securityv1.GetAuditLogResponse{
 		Meta:          metaOK(req.Meta.RequestId),
 		Entries:       entries,
 		NextPageToken: nextToken,
-	}, nil
+	}
+
+	if s.analyticsStore != nil {
+		ss, err := s.analyticsStore.ComputeStatus(ctx)
+		if err != nil {
+			s.log.WarnContext(ctx, "analyticsstore: compute status failed", slog.Any("err", err))
+		} else {
+			resp.SurroundingsStatus = &securityv1.SurroundingsStatus{
+				Score:  ss.Score,
+				Color:  ss.Color,
+				Status: ss.Status,
+			}
+		}
+	}
+
+	return resp, nil
 }
 
 // ── StreamSecurityAlerts ──────────────────────────────────────────────
@@ -394,6 +441,23 @@ func (s *SecurityServer) AnalyzeFaces(
 				X: int32(det.X), Y: int32(det.Y),
 				Width: int32(det.W), Height: int32(det.H),
 			},
+		}
+	}
+
+	s.auditLog.Append(req.Meta.RequestId, fmt.Sprintf("face_analysis:faces=%d", len(dets)), "security/faces", true)
+
+	if s.analyticsStore != nil {
+		sentiments := make([]string, len(results))
+		for i, r := range results {
+			sentiments[i] = r.Sentiment
+		}
+		if err := s.analyticsStore.InsertFaces(ctx, analyticsstore.FacesEvent{
+			Filename:   filename,
+			FaceCount:  len(dets),
+			Sentiments: sentiments,
+			ImagePath:  s.faceOutputDir + "/" + filename,
+		}); err != nil {
+			s.log.WarnContext(ctx, "analyticsstore: insert faces failed", slog.Any("err", err))
 		}
 	}
 

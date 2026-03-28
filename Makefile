@@ -19,6 +19,8 @@ else
 endif
 
 COMPOSE_FILE := docker/docker-compose.yml
+ENV_FILE      := /home/vagrant/credentials/jarvis/.env
+ENV_FLAG      := $(shell [ -f $(ENV_FILE) ] && echo "--env-file $(ENV_FILE)")
 
 # ── Proto ───────────────────────────────────────────────────────────
 

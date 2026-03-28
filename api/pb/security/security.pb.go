@@ -776,18 +776,79 @@ func (x *AuditEntry) GetTimestamp() *timestamppb.Timestamp {
 	return nil
 }
 
-type GetAuditLogResponse struct {
+type SurroundingsStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	Entries       []*AuditEntry          `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
-	NextPageToken string                 `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	Score         float64                `protobuf:"fixed64,1,opt,name=score,proto3" json:"score,omitempty"` // 0–100
+	Color         string                 `protobuf:"bytes,2,opt,name=color,proto3" json:"color,omitempty"`   // GREEN | YELLOW | RED
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"` // NOMINAL | COMPROMISED
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *SurroundingsStatus) Reset() {
+	*x = SurroundingsStatus{}
+	mi := &file_pb_security_security_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SurroundingsStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SurroundingsStatus) ProtoMessage() {}
+
+func (x *SurroundingsStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_security_security_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SurroundingsStatus.ProtoReflect.Descriptor instead.
+func (*SurroundingsStatus) Descriptor() ([]byte, []int) {
+	return file_pb_security_security_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SurroundingsStatus) GetScore() float64 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+func (x *SurroundingsStatus) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *SurroundingsStatus) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type GetAuditLogResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Meta               *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Entries            []*AuditEntry          `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
+	NextPageToken      string                 `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	SurroundingsStatus *SurroundingsStatus    `protobuf:"bytes,4,opt,name=surroundings_status,json=surroundingsStatus,proto3" json:"surroundings_status,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
 func (x *GetAuditLogResponse) Reset() {
 	*x = GetAuditLogResponse{}
-	mi := &file_pb_security_security_proto_msgTypes[8]
+	mi := &file_pb_security_security_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -799,7 +860,7 @@ func (x *GetAuditLogResponse) String() string {
 func (*GetAuditLogResponse) ProtoMessage() {}
 
 func (x *GetAuditLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[8]
+	mi := &file_pb_security_security_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -812,7 +873,7 @@ func (x *GetAuditLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAuditLogResponse.ProtoReflect.Descriptor instead.
 func (*GetAuditLogResponse) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{8}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetAuditLogResponse) GetMeta() *common.ResponseMeta {
@@ -836,6 +897,13 @@ func (x *GetAuditLogResponse) GetNextPageToken() string {
 	return ""
 }
 
+func (x *GetAuditLogResponse) GetSurroundingsStatus() *SurroundingsStatus {
+	if x != nil {
+		return x.SurroundingsStatus
+	}
+	return nil
+}
+
 type SecurityAlert struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AlertId       string                 `protobuf:"bytes,1,opt,name=alert_id,json=alertId,proto3" json:"alert_id,omitempty"`
@@ -849,7 +917,7 @@ type SecurityAlert struct {
 
 func (x *SecurityAlert) Reset() {
 	*x = SecurityAlert{}
-	mi := &file_pb_security_security_proto_msgTypes[9]
+	mi := &file_pb_security_security_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -861,7 +929,7 @@ func (x *SecurityAlert) String() string {
 func (*SecurityAlert) ProtoMessage() {}
 
 func (x *SecurityAlert) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[9]
+	mi := &file_pb_security_security_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -874,7 +942,7 @@ func (x *SecurityAlert) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SecurityAlert.ProtoReflect.Descriptor instead.
 func (*SecurityAlert) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{9}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SecurityAlert) GetAlertId() string {
@@ -921,7 +989,7 @@ type StreamSecurityAlertsRequest struct {
 
 func (x *StreamSecurityAlertsRequest) Reset() {
 	*x = StreamSecurityAlertsRequest{}
-	mi := &file_pb_security_security_proto_msgTypes[10]
+	mi := &file_pb_security_security_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +1001,7 @@ func (x *StreamSecurityAlertsRequest) String() string {
 func (*StreamSecurityAlertsRequest) ProtoMessage() {}
 
 func (x *StreamSecurityAlertsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[10]
+	mi := &file_pb_security_security_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +1014,7 @@ func (x *StreamSecurityAlertsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSecurityAlertsRequest.ProtoReflect.Descriptor instead.
 func (*StreamSecurityAlertsRequest) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{10}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *StreamSecurityAlertsRequest) GetMeta() *common.RequestMeta {
@@ -966,7 +1034,7 @@ type StreamSecurityAlertsResponse struct {
 
 func (x *StreamSecurityAlertsResponse) Reset() {
 	*x = StreamSecurityAlertsResponse{}
-	mi := &file_pb_security_security_proto_msgTypes[11]
+	mi := &file_pb_security_security_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1046,7 @@ func (x *StreamSecurityAlertsResponse) String() string {
 func (*StreamSecurityAlertsResponse) ProtoMessage() {}
 
 func (x *StreamSecurityAlertsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[11]
+	mi := &file_pb_security_security_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1059,7 @@ func (x *StreamSecurityAlertsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSecurityAlertsResponse.ProtoReflect.Descriptor instead.
 func (*StreamSecurityAlertsResponse) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{11}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *StreamSecurityAlertsResponse) GetMeta() *common.ResponseMeta {
@@ -1020,7 +1088,7 @@ type BoundingBox struct {
 
 func (x *BoundingBox) Reset() {
 	*x = BoundingBox{}
-	mi := &file_pb_security_security_proto_msgTypes[12]
+	mi := &file_pb_security_security_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1032,7 +1100,7 @@ func (x *BoundingBox) String() string {
 func (*BoundingBox) ProtoMessage() {}
 
 func (x *BoundingBox) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[12]
+	mi := &file_pb_security_security_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1045,7 +1113,7 @@ func (x *BoundingBox) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BoundingBox.ProtoReflect.Descriptor instead.
 func (*BoundingBox) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{12}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *BoundingBox) GetX() int32 {
@@ -1088,7 +1156,7 @@ type FaceAnalysis struct {
 
 func (x *FaceAnalysis) Reset() {
 	*x = FaceAnalysis{}
-	mi := &file_pb_security_security_proto_msgTypes[13]
+	mi := &file_pb_security_security_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1100,7 +1168,7 @@ func (x *FaceAnalysis) String() string {
 func (*FaceAnalysis) ProtoMessage() {}
 
 func (x *FaceAnalysis) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[13]
+	mi := &file_pb_security_security_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1113,7 +1181,7 @@ func (x *FaceAnalysis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FaceAnalysis.ProtoReflect.Descriptor instead.
 func (*FaceAnalysis) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{13}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *FaceAnalysis) GetFaceIndex() int32 {
@@ -1155,7 +1223,7 @@ type AnalyzeFacesRequest struct {
 
 func (x *AnalyzeFacesRequest) Reset() {
 	*x = AnalyzeFacesRequest{}
-	mi := &file_pb_security_security_proto_msgTypes[14]
+	mi := &file_pb_security_security_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1167,7 +1235,7 @@ func (x *AnalyzeFacesRequest) String() string {
 func (*AnalyzeFacesRequest) ProtoMessage() {}
 
 func (x *AnalyzeFacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[14]
+	mi := &file_pb_security_security_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1248,7 @@ func (x *AnalyzeFacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeFacesRequest.ProtoReflect.Descriptor instead.
 func (*AnalyzeFacesRequest) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{14}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AnalyzeFacesRequest) GetMeta() *common.RequestMeta {
@@ -1216,7 +1284,7 @@ type AnalyzeFacesResponse struct {
 
 func (x *AnalyzeFacesResponse) Reset() {
 	*x = AnalyzeFacesResponse{}
-	mi := &file_pb_security_security_proto_msgTypes[15]
+	mi := &file_pb_security_security_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1228,7 +1296,7 @@ func (x *AnalyzeFacesResponse) String() string {
 func (*AnalyzeFacesResponse) ProtoMessage() {}
 
 func (x *AnalyzeFacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_security_security_proto_msgTypes[15]
+	mi := &file_pb_security_security_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1241,7 +1309,7 @@ func (x *AnalyzeFacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnalyzeFacesResponse.ProtoReflect.Descriptor instead.
 func (*AnalyzeFacesResponse) Descriptor() ([]byte, []int) {
-	return file_pb_security_security_proto_rawDescGZIP(), []int{15}
+	return file_pb_security_security_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *AnalyzeFacesResponse) GetMeta() *common.ResponseMeta {
@@ -1330,11 +1398,16 @@ const file_pb_security_security_proto_rawDesc = "" +
 	"\x06action\x18\x03 \x01(\tR\x06action\x12\x1a\n" +
 	"\bresource\x18\x04 \x01(\tR\bresource\x12\x18\n" +
 	"\asuccess\x18\x05 \x01(\bR\asuccess\x128\n" +
-	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xa5\x01\n" +
+	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"X\n" +
+	"\x12SurroundingsStatus\x12\x14\n" +
+	"\x05score\x18\x01 \x01(\x01R\x05score\x12\x14\n" +
+	"\x05color\x18\x02 \x01(\tR\x05color\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\"\xfb\x01\n" +
 	"\x13GetAuditLogResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x125\n" +
 	"\aentries\x18\x02 \x03(\v2\x1b.jarvis.security.AuditEntryR\aentries\x12&\n" +
-	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken\"\xca\x01\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken\x12T\n" +
+	"\x13surroundings_status\x18\x04 \x01(\v2#.jarvis.security.SurroundingsStatusR\x12surroundingsStatus\"\xca\x01\n" +
 	"\rSecurityAlert\x12\x19\n" +
 	"\balert_id\x18\x01 \x01(\tR\aalertId\x122\n" +
 	"\x05level\x18\x02 \x01(\x0e2\x1c.jarvis.security.ThreatLevelR\x05level\x12\x18\n" +
@@ -1412,7 +1485,7 @@ func file_pb_security_security_proto_rawDescGZIP() []byte {
 }
 
 var file_pb_security_security_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_pb_security_security_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_pb_security_security_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_pb_security_security_proto_goTypes = []any{
 	(AuthMethod)(0),                      // 0: jarvis.security.AuthMethod
 	(ThreatLevel)(0),                     // 1: jarvis.security.ThreatLevel
@@ -1425,62 +1498,64 @@ var file_pb_security_security_proto_goTypes = []any{
 	(*ExecuteProtocolResponse)(nil),      // 8: jarvis.security.ExecuteProtocolResponse
 	(*GetAuditLogRequest)(nil),           // 9: jarvis.security.GetAuditLogRequest
 	(*AuditEntry)(nil),                   // 10: jarvis.security.AuditEntry
-	(*GetAuditLogResponse)(nil),          // 11: jarvis.security.GetAuditLogResponse
-	(*SecurityAlert)(nil),                // 12: jarvis.security.SecurityAlert
-	(*StreamSecurityAlertsRequest)(nil),  // 13: jarvis.security.StreamSecurityAlertsRequest
-	(*StreamSecurityAlertsResponse)(nil), // 14: jarvis.security.StreamSecurityAlertsResponse
-	(*BoundingBox)(nil),                  // 15: jarvis.security.BoundingBox
-	(*FaceAnalysis)(nil),                 // 16: jarvis.security.FaceAnalysis
-	(*AnalyzeFacesRequest)(nil),          // 17: jarvis.security.AnalyzeFacesRequest
-	(*AnalyzeFacesResponse)(nil),         // 18: jarvis.security.AnalyzeFacesResponse
-	(*common.RequestMeta)(nil),           // 19: jarvis.common.RequestMeta
-	(*common.ResponseMeta)(nil),          // 20: jarvis.common.ResponseMeta
-	(*timestamppb.Timestamp)(nil),        // 21: google.protobuf.Timestamp
+	(*SurroundingsStatus)(nil),           // 11: jarvis.security.SurroundingsStatus
+	(*GetAuditLogResponse)(nil),          // 12: jarvis.security.GetAuditLogResponse
+	(*SecurityAlert)(nil),                // 13: jarvis.security.SecurityAlert
+	(*StreamSecurityAlertsRequest)(nil),  // 14: jarvis.security.StreamSecurityAlertsRequest
+	(*StreamSecurityAlertsResponse)(nil), // 15: jarvis.security.StreamSecurityAlertsResponse
+	(*BoundingBox)(nil),                  // 16: jarvis.security.BoundingBox
+	(*FaceAnalysis)(nil),                 // 17: jarvis.security.FaceAnalysis
+	(*AnalyzeFacesRequest)(nil),          // 18: jarvis.security.AnalyzeFacesRequest
+	(*AnalyzeFacesResponse)(nil),         // 19: jarvis.security.AnalyzeFacesResponse
+	(*common.RequestMeta)(nil),           // 20: jarvis.common.RequestMeta
+	(*common.ResponseMeta)(nil),          // 21: jarvis.common.ResponseMeta
+	(*timestamppb.Timestamp)(nil),        // 22: google.protobuf.Timestamp
 }
 var file_pb_security_security_proto_depIdxs = []int32{
-	19, // 0: jarvis.security.AuthenticateRequest.meta:type_name -> jarvis.common.RequestMeta
+	20, // 0: jarvis.security.AuthenticateRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.security.AuthenticateRequest.method:type_name -> jarvis.security.AuthMethod
-	20, // 2: jarvis.security.AuthenticateResponse.meta:type_name -> jarvis.common.ResponseMeta
-	21, // 3: jarvis.security.AuthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
-	19, // 4: jarvis.security.AssessThreatRequest.meta:type_name -> jarvis.common.RequestMeta
-	20, // 5: jarvis.security.AssessThreatResponse.meta:type_name -> jarvis.common.ResponseMeta
+	21, // 2: jarvis.security.AuthenticateResponse.meta:type_name -> jarvis.common.ResponseMeta
+	22, // 3: jarvis.security.AuthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
+	20, // 4: jarvis.security.AssessThreatRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 5: jarvis.security.AssessThreatResponse.meta:type_name -> jarvis.common.ResponseMeta
 	1,  // 6: jarvis.security.AssessThreatResponse.level:type_name -> jarvis.security.ThreatLevel
-	19, // 7: jarvis.security.ExecuteProtocolRequest.meta:type_name -> jarvis.common.RequestMeta
+	20, // 7: jarvis.security.ExecuteProtocolRequest.meta:type_name -> jarvis.common.RequestMeta
 	2,  // 8: jarvis.security.ExecuteProtocolRequest.protocol:type_name -> jarvis.security.ProtocolType
-	20, // 9: jarvis.security.ExecuteProtocolResponse.meta:type_name -> jarvis.common.ResponseMeta
+	21, // 9: jarvis.security.ExecuteProtocolResponse.meta:type_name -> jarvis.common.ResponseMeta
 	2,  // 10: jarvis.security.ExecuteProtocolResponse.protocol_executed:type_name -> jarvis.security.ProtocolType
-	19, // 11: jarvis.security.GetAuditLogRequest.meta:type_name -> jarvis.common.RequestMeta
-	21, // 12: jarvis.security.GetAuditLogRequest.from:type_name -> google.protobuf.Timestamp
-	21, // 13: jarvis.security.GetAuditLogRequest.to:type_name -> google.protobuf.Timestamp
-	21, // 14: jarvis.security.AuditEntry.timestamp:type_name -> google.protobuf.Timestamp
-	20, // 15: jarvis.security.GetAuditLogResponse.meta:type_name -> jarvis.common.ResponseMeta
+	20, // 11: jarvis.security.GetAuditLogRequest.meta:type_name -> jarvis.common.RequestMeta
+	22, // 12: jarvis.security.GetAuditLogRequest.from:type_name -> google.protobuf.Timestamp
+	22, // 13: jarvis.security.GetAuditLogRequest.to:type_name -> google.protobuf.Timestamp
+	22, // 14: jarvis.security.AuditEntry.timestamp:type_name -> google.protobuf.Timestamp
+	21, // 15: jarvis.security.GetAuditLogResponse.meta:type_name -> jarvis.common.ResponseMeta
 	10, // 16: jarvis.security.GetAuditLogResponse.entries:type_name -> jarvis.security.AuditEntry
-	1,  // 17: jarvis.security.SecurityAlert.level:type_name -> jarvis.security.ThreatLevel
-	21, // 18: jarvis.security.SecurityAlert.timestamp:type_name -> google.protobuf.Timestamp
-	19, // 19: jarvis.security.StreamSecurityAlertsRequest.meta:type_name -> jarvis.common.RequestMeta
-	20, // 20: jarvis.security.StreamSecurityAlertsResponse.meta:type_name -> jarvis.common.ResponseMeta
-	12, // 21: jarvis.security.StreamSecurityAlertsResponse.alert:type_name -> jarvis.security.SecurityAlert
-	15, // 22: jarvis.security.FaceAnalysis.bounding_box:type_name -> jarvis.security.BoundingBox
-	19, // 23: jarvis.security.AnalyzeFacesRequest.meta:type_name -> jarvis.common.RequestMeta
-	20, // 24: jarvis.security.AnalyzeFacesResponse.meta:type_name -> jarvis.common.ResponseMeta
-	16, // 25: jarvis.security.AnalyzeFacesResponse.faces:type_name -> jarvis.security.FaceAnalysis
-	3,  // 26: jarvis.security.SecurityService.Authenticate:input_type -> jarvis.security.AuthenticateRequest
-	5,  // 27: jarvis.security.SecurityService.AssessThreat:input_type -> jarvis.security.AssessThreatRequest
-	7,  // 28: jarvis.security.SecurityService.ExecuteProtocol:input_type -> jarvis.security.ExecuteProtocolRequest
-	9,  // 29: jarvis.security.SecurityService.GetAuditLog:input_type -> jarvis.security.GetAuditLogRequest
-	17, // 30: jarvis.security.SecurityService.AnalyzeFaces:input_type -> jarvis.security.AnalyzeFacesRequest
-	13, // 31: jarvis.security.SecurityService.StreamSecurityAlerts:input_type -> jarvis.security.StreamSecurityAlertsRequest
-	4,  // 32: jarvis.security.SecurityService.Authenticate:output_type -> jarvis.security.AuthenticateResponse
-	6,  // 33: jarvis.security.SecurityService.AssessThreat:output_type -> jarvis.security.AssessThreatResponse
-	8,  // 34: jarvis.security.SecurityService.ExecuteProtocol:output_type -> jarvis.security.ExecuteProtocolResponse
-	11, // 35: jarvis.security.SecurityService.GetAuditLog:output_type -> jarvis.security.GetAuditLogResponse
-	18, // 36: jarvis.security.SecurityService.AnalyzeFaces:output_type -> jarvis.security.AnalyzeFacesResponse
-	14, // 37: jarvis.security.SecurityService.StreamSecurityAlerts:output_type -> jarvis.security.StreamSecurityAlertsResponse
-	32, // [32:38] is the sub-list for method output_type
-	26, // [26:32] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	11, // 17: jarvis.security.GetAuditLogResponse.surroundings_status:type_name -> jarvis.security.SurroundingsStatus
+	1,  // 18: jarvis.security.SecurityAlert.level:type_name -> jarvis.security.ThreatLevel
+	22, // 19: jarvis.security.SecurityAlert.timestamp:type_name -> google.protobuf.Timestamp
+	20, // 20: jarvis.security.StreamSecurityAlertsRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 21: jarvis.security.StreamSecurityAlertsResponse.meta:type_name -> jarvis.common.ResponseMeta
+	13, // 22: jarvis.security.StreamSecurityAlertsResponse.alert:type_name -> jarvis.security.SecurityAlert
+	16, // 23: jarvis.security.FaceAnalysis.bounding_box:type_name -> jarvis.security.BoundingBox
+	20, // 24: jarvis.security.AnalyzeFacesRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 25: jarvis.security.AnalyzeFacesResponse.meta:type_name -> jarvis.common.ResponseMeta
+	17, // 26: jarvis.security.AnalyzeFacesResponse.faces:type_name -> jarvis.security.FaceAnalysis
+	3,  // 27: jarvis.security.SecurityService.Authenticate:input_type -> jarvis.security.AuthenticateRequest
+	5,  // 28: jarvis.security.SecurityService.AssessThreat:input_type -> jarvis.security.AssessThreatRequest
+	7,  // 29: jarvis.security.SecurityService.ExecuteProtocol:input_type -> jarvis.security.ExecuteProtocolRequest
+	9,  // 30: jarvis.security.SecurityService.GetAuditLog:input_type -> jarvis.security.GetAuditLogRequest
+	18, // 31: jarvis.security.SecurityService.AnalyzeFaces:input_type -> jarvis.security.AnalyzeFacesRequest
+	14, // 32: jarvis.security.SecurityService.StreamSecurityAlerts:input_type -> jarvis.security.StreamSecurityAlertsRequest
+	4,  // 33: jarvis.security.SecurityService.Authenticate:output_type -> jarvis.security.AuthenticateResponse
+	6,  // 34: jarvis.security.SecurityService.AssessThreat:output_type -> jarvis.security.AssessThreatResponse
+	8,  // 35: jarvis.security.SecurityService.ExecuteProtocol:output_type -> jarvis.security.ExecuteProtocolResponse
+	12, // 36: jarvis.security.SecurityService.GetAuditLog:output_type -> jarvis.security.GetAuditLogResponse
+	19, // 37: jarvis.security.SecurityService.AnalyzeFaces:output_type -> jarvis.security.AnalyzeFacesResponse
+	15, // 38: jarvis.security.SecurityService.StreamSecurityAlerts:output_type -> jarvis.security.StreamSecurityAlertsResponse
+	33, // [33:39] is the sub-list for method output_type
+	27, // [27:33] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_pb_security_security_proto_init() }
@@ -1494,7 +1569,7 @@ func file_pb_security_security_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_security_security_proto_rawDesc), len(file_pb_security_security_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   16,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
