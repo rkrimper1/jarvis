@@ -42,6 +42,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - `AnalyzeFaces` detects faces with the pigo cascade detector, annotates them with a HUD overlay, and uses the Claude API to generate per-face sentiment commentary
 - Annotated face images are written to `~/.jarvis/faces/` (host-mounted) and served at `/faces/<filename>` via the HTTP server
+- THREAT and FACES analytics events are stored in `~/.jarvis/analytics.db` (SQLite), including pre-computed scores and the audit log — data persists across container restarts
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
 - The SQLite knowledge DB at `~/.jarvis/knowledge.db` and users DB at `~/.jarvis/users.db` are mounted read/write so the container persists data to the host
@@ -259,8 +260,15 @@ jarvis/
 │   │   │   ├── intent/
 │   │   │   └── server/
 │   │   ├── security/
+│   │   │   ├── analyticsstore/   # SQLite analytics + audit event store (THREAT/FACES scores, audit log)
+│   │   │   ├── audit/            # Append-only audit log (in-memory or SQLite backend)
+│   │   │   ├── auth/             # JWT issuance and verification
+│   │   │   ├── config/           # FaceConfig and security env var helpers
 │   │   │   ├── faceanalysis/     # pigo face detector + HUD annotation renderer
-│   │   │   └── server/
+│   │   │   ├── protocol/         # Protocol execution stubs
+│   │   │   ├── server/           # SecurityService gRPC implementation
+│   │   │   ├── threat/           # Threat assessment logic
+│   │   │   └── token/            # Token store
 │   │   ├── user/
 │   │   │   ├── server/           # UserService — CRUD, profile, password, entitlements
 │   │   │   └── store/            # SQLite store (bcrypt, seed users, UUID ids)

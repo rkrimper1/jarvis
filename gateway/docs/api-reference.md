@@ -172,9 +172,38 @@ curl -X POST http://localhost:8080/v1/security/protocol \
 ```
 
 ### Audit Log
+
+Returns recent audit entries and a computed surroundings status derived from THREAT and FACES analytics events in the last 30 minutes (70% THREAT weight, 30% FACES weight).
+
 ```bash
-curl "http://localhost:8080/v1/security/audit?page_size=20" \
+curl "http://localhost:8080/v1/security/audit?meta.request_id=audit-001&page_size=20" \
   -H "Authorization: Bearer $TOKEN"
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "audit-001", "success": true},
+  "entries": [
+    {"eventId": "evt-000003", "subjectId": "face-001", "action": "face_analysis:faces=2", "resource": "security/faces", "success": true, "timestamp": "2026-03-27T14:05:00Z"},
+    {"eventId": "evt-000002", "subjectId": "threat-001", "action": "threat_assessed:MODERATE", "resource": "security/threat", "success": true, "timestamp": "2026-03-27T14:02:00Z"}
+  ],
+  "surroundingsStatus": {
+    "score": 35.0,
+    "color": "YELLOW",
+    "status": "NOMINAL"
+  }
+}
+```
+
+> `surroundingsStatus.color` is `GREEN` (0–20), `YELLOW` (21–70), or `RED` (71–100).
+> `surroundingsStatus.status` is `NOMINAL` (score < 40) or `COMPROMISED` (score ≥ 40).
+> Scores are computed from up to 30 minutes of recent events, falling back to the last 20 events if the window is empty.
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "audit-001"}, "page_size": 20}' \
+  localhost:50051 jarvis.security.SecurityService/GetAuditLog
 ```
 
 ### Analyze Faces
@@ -666,10 +695,13 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │                                           │
                   │  nlp → Claude API (dialogue, streaming)  │
                   │  learning → Claude API (knowledge search) │
+                  │  security → Claude API (face sentiment)   │
+                  │  security → pigo (face detection)         │
                   │  Redis (dialogue history + sessions)      │
                   │                                           │
                   │  /tmp/profiles ──────────────────────┐   │
-                  │  ~/.jarvis (knowledge + users DBs) ───┤   │
+                  │  ~/.jarvis (knowledge + users +    ───┤   │
+                  │            analytics DBs, faces/)      │   │
                   └──────────────┬───────────────────────┼───┘
                                  │                        │ volume mounts
                   ┌──────────────▼──────────────┐   ┌────▼──────────────────┐
@@ -677,7 +709,9 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  Anthropic API (Claude)      │   │  ./profiles/          │
                   │  · NLP dialogue              │   │  *.prof  *.gif        │
                   │  · knowledge search          │   │  ~/.jarvis/           │
-                  │  SMTP → iCal email invites   │   │  knowledge.db         │
-                  └──────────────────────────────┘   │  users.db             │
+                  │  · face sentiment analysis   │   │  knowledge.db         │
+                  │  SMTP → iCal email invites   │   │  users.db             │
+                  └──────────────────────────────┘   │  analytics.db         │
+                                                      │  faces/ (annotated)   │
                                                       └───────────────────────┘
 ```
