@@ -55,6 +55,9 @@ func main() {
 	faceMinSize        := envInt("FACE_MIN_SIZE", 65)
 	faceQuality        := envFloat32("FACE_QUALITY_THRESHOLD", 6.0)
 	faceCluster        := envFloat64("FACE_CLUSTER_OVERLAP", 0.25)
+	faceTriangleSize   := envFloat64("FACE_OUTPUT_TRIANGLE_SIZE", 0)
+	faceOpacity        := envFloat64("FACE_OUTPUT_OPACITY", 0)
+	faceFontSize       := envFloat64("FACE_OUTPUT_FONT_SIZE", 0)
 	analyticsDBPath    := envString("SECURITY_ANALYTICS_DB_PATH", "")
 
 	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
@@ -65,6 +68,11 @@ func main() {
 			MinSize:          faceMinSize,
 			QualityThreshold: faceQuality,
 			ClusterOverlap:   faceCluster,
+		},
+		AnnotateParams: faceanalysis.AnnotateParams{
+			TriangleSize: faceTriangleSize,
+			Opacity:      faceOpacity,
+			FontSize:     faceFontSize,
 		},
 	})
 	if err != nil {

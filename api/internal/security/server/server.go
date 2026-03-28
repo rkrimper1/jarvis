@@ -48,10 +48,11 @@ type SecurityServer struct {
 	log            *slog.Logger
 
 	// face analysis
-	faceAnalyzer     *faceanalysis.Analyzer
-	faceCascadePath  string
-	faceOutputDir    string
-	faceDetectParams faceanalysis.DetectParams
+	faceAnalyzer       *faceanalysis.Analyzer
+	faceCascadePath    string
+	faceOutputDir      string
+	faceDetectParams   faceanalysis.DetectParams
+	faceAnnotateParams faceanalysis.AnnotateParams
 }
 
 // FaceConfig holds optional face-analysis configuration.
@@ -61,6 +62,7 @@ type FaceConfig struct {
 	AnthropicKey     string
 	ClaudeModel      string
 	DetectParams     faceanalysis.DetectParams
+	AnnotateParams   faceanalysis.AnnotateParams
 	AnalyticsDBPath  string // path to analytics SQLite DB; leave empty to disable
 }
 
@@ -111,10 +113,11 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 		analyticsStore:   aStore,
 		users:            users,
 		log:              log,
-		faceAnalyzer:     faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
-		faceCascadePath:  face.CascadePath,
-		faceOutputDir:    face.OutputDir,
-		faceDetectParams: face.DetectParams,
+		faceAnalyzer:       faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
+		faceCascadePath:    face.CascadePath,
+		faceOutputDir:      face.OutputDir,
+		faceDetectParams:   face.DetectParams,
+		faceAnnotateParams: face.AnnotateParams,
 	}
 }
 
@@ -424,7 +427,7 @@ func (s *SecurityServer) AnalyzeFaces(
 	}
 
 	// Annotate and save
-	filename, err := faceanalysis.Annotate(img, dets, results, s.faceOutputDir)
+	filename, err := faceanalysis.Annotate(img, dets, results, s.faceOutputDir, s.faceAnnotateParams)
 	if err != nil {
 		s.log.ErrorContext(ctx, "face annotate failed", slog.Any("err", err))
 		return nil, status.Errorf(codes.Internal, "annotate image: %v", err)

@@ -16,18 +16,44 @@ import (
 	"golang.org/x/image/font/gofont/gomono"
 )
 
-// HUD cyan palette
-var (
-	hudCyan      = color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: 0xff}
-	hudCyanGlow  = color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: 0x88}
-	hudCyanFill  = color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: 0x40}
-	hudCyanDim   = color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: 0xcc}
-)
+// AnnotateParams controls the visual style of the HUD annotation overlay.
+// Zero values fall back to sensible defaults.
+type AnnotateParams struct {
+	// TriangleSize is the padding multiplier applied to each face bounding box
+	// to size the targeting triangle. Default: 0.22.
+	TriangleSize float64
+	// Opacity scales all HUD element alpha channels uniformly (0.0–1.0).
+	// Default: 1.0 (fully opaque at each element's natural alpha).
+	Opacity float64
+	// FontSize sets an explicit font size in points. 0 auto-computes from image width.
+	FontSize float64
+}
+
+// hudPalette holds runtime-computed HUD colors derived from the opacity setting.
+type hudPalette struct {
+	cyan     color.NRGBA
+	cyanGlow color.NRGBA
+	cyanFill color.NRGBA
+	cyanDim  color.NRGBA
+}
+
+func newHUDPalette(opacity float64) hudPalette {
+	if opacity <= 0 || opacity > 1 {
+		opacity = 1.0
+	}
+	sc := func(a uint8) uint8 { return uint8(float64(a) * opacity) }
+	return hudPalette{
+		cyan:     color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: sc(0xff)},
+		cyanGlow: color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: sc(0x88)},
+		cyanFill: color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: sc(0x40)},
+		cyanDim:  color.NRGBA{R: 0x00, G: 0xd4, B: 0xff, A: sc(0xcc)},
+	}
+}
 
 // Annotate draws HUD-style targeting triangles over each detected face,
 // labels each with its sentiment and commentary, saves the result as a PNG
 // in outputDir, and returns the filename (not the full path).
-func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir string) (string, error) {
+func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir string, params AnnotateParams) (string, error) {
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return "", fmt.Errorf("annotate: mkdir: %w", err)
 	}
@@ -36,16 +62,27 @@ func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir
 	w := float64(dc.Width())
 	h := float64(dc.Height())
 
-	// Font — scale to ~3% of image width, clamped [22, 40]
-	fontSize := math.Max(22, math.Min(40, w*0.03))
+	// Font size — use explicit param or auto-scale (~3% of width, clamped [22, 40])
+	fontSize := params.FontSize
+	if fontSize <= 0 {
+		fontSize = math.Max(22, math.Min(40, w*0.03))
+	}
 	face, err := loadFont(fontSize)
 	if err == nil {
 		dc.SetFontFace(face)
 	}
 
+	palette := newHUDPalette(params.Opacity)
+
+	// Triangle padding multiplier — default 0.22
+	triangleSize := params.TriangleSize
+	if triangleSize <= 0 {
+		triangleSize = 0.22
+	}
+
 	if len(dets) == 0 {
 		// No faces — still write the image with a HUD "NO TARGETS ACQUIRED" banner
-		drawNoBanner(dc, w, h, fontSize)
+		drawNoBanner(dc, w, h, fontSize, palette)
 	}
 
 	for i, det := range dets {
@@ -53,7 +90,7 @@ func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir
 		if i < len(results) {
 			res = results[i]
 		}
-		drawHUDFace(dc, det, i+1, res, w, h, fontSize)
+		drawHUDFace(dc, det, i+1, res, w, h, fontSize, triangleSize, palette)
 	}
 
 	filename := fmt.Sprintf("faces_%s.png", time.Now().UTC().Format("20060102_150405_000"))
@@ -65,8 +102,8 @@ func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir
 }
 
 // drawHUDFace renders the targeting triangle + callout label for one face.
-func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, imgH, fontSize float64) {
-	pad := math.Max(16, float64(det.W)*0.22)
+func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, imgH, fontSize, triangleSize float64, p hudPalette) {
+	pad := math.Max(16, float64(det.W)*triangleSize)
 
 	// Triangle vertices: downward-pointing (base at top, apex at bottom-center)
 	ax := float64(det.X) - pad
@@ -77,7 +114,7 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 	cy := float64(det.Y+det.H) + pad
 
 	// ── 1. Semi-transparent fill ─────────────────────────────────────
-	dc.SetColor(hudCyanFill)
+	dc.SetColor(p.cyanFill)
 	dc.MoveTo(ax, ay)
 	dc.LineTo(bx, by)
 	dc.LineTo(cx, cy)
@@ -85,7 +122,7 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 	dc.Fill()
 
 	// ── 2. Glow layer ────────────────────────────────────────────────
-	dc.SetColor(hudCyanGlow)
+	dc.SetColor(p.cyanGlow)
 	dc.SetLineWidth(6)
 	dc.MoveTo(ax, ay)
 	dc.LineTo(bx, by)
@@ -94,7 +131,7 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 	dc.Stroke()
 
 	// ── 3. Solid outline ─────────────────────────────────────────────
-	dc.SetColor(hudCyan)
+	dc.SetColor(p.cyan)
 	dc.SetLineWidth(2.5)
 	dc.MoveTo(ax, ay)
 	dc.LineTo(bx, by)
@@ -104,7 +141,7 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 
 	// ── 4. Corner tick marks ─────────────────────────────────────────
 	tick := math.Max(6, fontSize*0.7)
-	dc.SetColor(hudCyan)
+	dc.SetColor(p.cyan)
 	dc.SetLineWidth(2.5)
 
 	// Top-left vertex A
@@ -126,7 +163,7 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 	dc.Stroke()
 
 	// ── 5. Face index label inside triangle ──────────────────────────
-	dc.SetColor(hudCyan)
+	dc.SetColor(p.cyan)
 	dc.DrawStringAnchored(fmt.Sprintf("◉ %02d", idx),
 		(ax+bx+cx)/3, (ay+by+cy)/3,
 		0.5, 0.5)
@@ -141,7 +178,7 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 		lineEndX = bx - calloutLen
 	}
 
-	dc.SetColor(hudCyanDim)
+	dc.SetColor(p.cyanDim)
 	dc.SetLineWidth(1)
 	dc.DrawLine(bx, by, lineEndX, lineEndY)
 	dc.Stroke()
@@ -159,13 +196,13 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 		anchorX = 1.0
 	}
 
-	dc.SetColor(hudCyan)
+	dc.SetColor(p.cyan)
 	dc.DrawStringAnchored(
 		fmt.Sprintf("FACE %02d  ·  %s", idx, strings.ToUpper(res.Sentiment)),
 		textX, lineEndY-fontSize*0.6,
 		anchorX, 0.5,
 	)
-	dc.SetColor(hudCyanDim)
+	dc.SetColor(p.cyanDim)
 	dc.DrawStringAnchored(
 		truncate(res.Commentary, 48),
 		textX, lineEndY+fontSize*0.6,
@@ -173,15 +210,15 @@ func drawHUDFace(dc *gg.Context, det Detection, idx int, res FaceResult, imgW, i
 	)
 }
 
-func drawNoBanner(dc *gg.Context, w, h, fontSize float64) {
-	dc.SetColor(hudCyanDim)
+func drawNoBanner(dc *gg.Context, w, h, fontSize float64, p hudPalette) {
+	dc.SetColor(p.cyanDim)
 	dc.SetLineWidth(1)
 	// Horizontal scan lines across middle third
 	for y := h * 0.4; y < h*0.6; y += fontSize * 1.4 {
 		dc.DrawLine(0, y, w, y)
 		dc.Stroke()
 	}
-	dc.SetColor(hudCyan)
+	dc.SetColor(p.cyan)
 	dc.DrawStringAnchored("NO TARGETS ACQUIRED", w/2, h/2, 0.5, 0.5)
 }
 

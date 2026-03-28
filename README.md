@@ -145,6 +145,9 @@ FACE_OUTPUT_DIR=$HOME/.jarvis/faces         # annotated image output dir
 FACE_MIN_SIZE=65                            # optional — minimum face pixel size (default: 65)
 FACE_QUALITY_THRESHOLD=6.0                  # optional — pigo quality score cutoff (default: 6.0)
 FACE_CLUSTER_OVERLAP=0.25                   # optional — duplicate detection merge factor (default: 0.25)
+FACE_OUTPUT_TRIANGLE_SIZE=0.22             # optional — triangle padding multiplier (default: 0.22, 0 = use default)
+FACE_OUTPUT_OPACITY=1.0                    # optional — HUD overlay opacity 0.0–1.0 (default: 1.0, 0 = use default)
+FACE_OUTPUT_FONT_SIZE=0                    # optional — annotation font size in points (default: 0 = auto from image width)
 SECURITY_ANALYTICS_DB_PATH=$HOME/.jarvis/analytics.db  # analytics event store (THREAT + FACES metadata)
 ```
 
