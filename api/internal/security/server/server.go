@@ -48,11 +48,11 @@ type SecurityServer struct {
 	log            *slog.Logger
 
 	// face analysis
+	faceDetector       *faceanalysis.Detector // nil if not configured
 	faceAnalyzer       *faceanalysis.Analyzer
-	faceCascadePath    string
 	faceOutputDir      string
-	faceDetectParams   faceanalysis.DetectParams
 	faceAnnotateParams faceanalysis.AnnotateParams
+	faceMaxImageBytes  int
 }
 
 // FaceConfig holds optional face-analysis configuration.
@@ -64,6 +64,7 @@ type FaceConfig struct {
 	DetectParams     faceanalysis.DetectParams
 	AnnotateParams   faceanalysis.AnnotateParams
 	AnalyticsDBPath  string // path to analytics SQLite DB; leave empty to disable
+	MaxImageBytes    int    // max accepted image_data size; 0 → default 5 MiB
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -102,7 +103,7 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 		}
 	}
 
-	return &SecurityServer{
+	srv := &SecurityServer{
 		cfg:              cfg,
 		auth:             authpkg.New(),
 		tokens:           token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
@@ -114,11 +115,21 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 		users:            users,
 		log:              log,
 		faceAnalyzer:       faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
-		faceCascadePath:    face.CascadePath,
 		faceOutputDir:      face.OutputDir,
-		faceDetectParams:   face.DetectParams,
 		faceAnnotateParams: face.AnnotateParams,
+		faceMaxImageBytes:  face.MaxImageBytes,
 	}
+
+	if face.CascadePath != "" {
+		detector, err := faceanalysis.NewDetector(face.CascadePath, face.DetectParams)
+		if err != nil {
+			log.Error("faceanalysis: failed to load cascade — face detection disabled", slog.Any("err", err))
+		} else {
+			srv.faceDetector = detector
+		}
+	}
+
+	return srv
 }
 
 // ── Authenticate ─────────────────────────────────────────────────────
@@ -396,7 +407,15 @@ func (s *SecurityServer) AnalyzeFaces(
 	if len(req.ImageData) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image_data is required")
 	}
-	if s.faceCascadePath == "" || s.faceOutputDir == "" {
+	maxBytes := s.faceMaxImageBytes
+	if maxBytes <= 0 {
+		maxBytes = 5 * 1024 * 1024 // 5 MiB default
+	}
+	if len(req.ImageData) > maxBytes {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"image_data exceeds maximum allowed size of %d bytes", maxBytes)
+	}
+	if s.faceDetector == nil || s.faceOutputDir == "" {
 		return nil, status.Error(codes.FailedPrecondition,
 			"face analysis not configured (set FACE_CASCADE_PATH and FACE_OUTPUT_DIR)")
 	}
@@ -409,7 +428,7 @@ func (s *SecurityServer) AnalyzeFaces(
 	img = faceanalysis.ApplyOrientation(img, req.ImageData)
 
 	// Detect faces
-	dets, err := faceanalysis.Detect(img, s.faceCascadePath, s.faceDetectParams)
+	dets, err := s.faceDetector.Detect(img)
 	if err != nil {
 		s.log.ErrorContext(ctx, "face detect failed", slog.Any("err", err))
 		return nil, status.Errorf(codes.Internal, "face detection: %v", err)

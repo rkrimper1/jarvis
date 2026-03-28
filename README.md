@@ -148,6 +148,7 @@ FACE_CLUSTER_OVERLAP=0.25                   # optional — duplicate detection m
 FACE_OUTPUT_TRIANGLE_SIZE=0.22             # optional — triangle padding multiplier (default: 0.22, 0 = use default)
 FACE_OUTPUT_OPACITY=1.0                    # optional — HUD overlay opacity 0.0–1.0 (default: 1.0, 0 = use default)
 FACE_OUTPUT_FONT_SIZE=0                    # optional — annotation font size in points (default: 0 = auto from image width)
+FACE_MAX_IMAGE_BYTES=5242880               # optional — max uploaded image size in bytes (default: 5 MiB)
 SECURITY_ANALYTICS_DB_PATH=$HOME/.jarvis/analytics.db  # analytics event store (THREAT + FACES metadata)
 ```
 

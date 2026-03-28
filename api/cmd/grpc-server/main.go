@@ -58,6 +58,7 @@ func main() {
 	faceTriangleSize   := envFloat64("FACE_OUTPUT_TRIANGLE_SIZE", 0)
 	faceOpacity        := envFloat64("FACE_OUTPUT_OPACITY", 0)
 	faceFontSize       := envFloat64("FACE_OUTPUT_FONT_SIZE", 0)
+	faceMaxImageBytes  := envInt("FACE_MAX_IMAGE_BYTES", 0) // 0 → server default (5 MiB)
 	analyticsDBPath    := envString("SECURITY_ANALYTICS_DB_PATH", "")
 
 	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
@@ -74,6 +75,7 @@ func main() {
 			Opacity:      faceOpacity,
 			FontSize:     faceFontSize,
 		},
+		MaxImageBytes: faceMaxImageBytes,
 	})
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))

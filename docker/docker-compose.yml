@@ -111,6 +111,7 @@ services:
       - FACE_OUTPUT_TRIANGLE_SIZE=${FACE_OUTPUT_TRIANGLE_SIZE:-0}
       - FACE_OUTPUT_OPACITY=${FACE_OUTPUT_OPACITY:-0}
       - FACE_OUTPUT_FONT_SIZE=${FACE_OUTPUT_FONT_SIZE:-0}
+      - FACE_MAX_IMAGE_BYTES=${FACE_MAX_IMAGE_BYTES:-0}
       - SECURITY_ANALYTICS_DB_PATH=${SECURITY_ANALYTICS_DB_PATH:-/home/vagrant/.jarvis/analytics.db}
     volumes:
       - ../profiles:/tmp/profiles

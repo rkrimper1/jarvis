@@ -31,24 +31,44 @@ func DefaultDetectParams() DetectParams {
 	}
 }
 
-// Detect loads the pigo cascade from cascadePath and returns bounding boxes
-// for all faces found in img. Returns an empty slice (not an error) when no
-// faces are detected.
-func Detect(img image.Image, cascadePath string, params DetectParams) ([]Detection, error) {
+// Detector holds a pre-loaded pigo classifier and its tuning parameters.
+// Construct once at startup via NewDetector and reuse across requests.
+type Detector struct {
+	classifier *pigo.Pigo
+	params     DetectParams
+}
+
+// NewDetector loads and parses the pigo cascade file at cascadePath.
+// Returns an error if the file cannot be read or parsed, surfacing
+// misconfiguration at startup rather than on the first request.
+func NewDetector(cascadePath string, params DetectParams) (_ *Detector, err error) {
 	cascadeData, err := os.ReadFile(cascadePath)
 	if err != nil {
 		return nil, fmt.Errorf("faceanalysis: read cascade: %w", err)
 	}
 
+	// pigo.Unpack panics on malformed data rather than returning an error;
+	// recover and convert to a normal error so the server does not crash.
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("faceanalysis: unpack cascade: %v", r)
+		}
+	}()
+
 	classifier, err := new(pigo.Pigo).Unpack(cascadeData)
 	if err != nil {
 		return nil, fmt.Errorf("faceanalysis: unpack cascade: %w", err)
 	}
+	return &Detector{classifier: classifier, params: params}, nil
+}
 
+// Detect returns bounding boxes for all faces found in img.
+// Returns an empty slice (not an error) when no faces are detected.
+func (d *Detector) Detect(img image.Image) ([]Detection, error) {
 	pixels, cols, rows := toGrayscale(img)
 
 	cParams := pigo.CascadeParams{
-		MinSize:     params.MinSize,
+		MinSize:     d.params.MinSize,
 		MaxSize:     min(cols, rows),
 		ShiftFactor: 0.1,
 		ScaleFactor: 1.1,
@@ -60,19 +80,19 @@ func Detect(img image.Image, cascadePath string, params DetectParams) ([]Detecti
 		},
 	}
 
-	dets := classifier.RunCascade(cParams, 0.0)
-	dets = classifier.ClusterDetections(dets, params.ClusterOverlap)
+	dets := d.classifier.RunCascade(cParams, 0.0)
+	dets = d.classifier.ClusterDetections(dets, d.params.ClusterOverlap)
 
 	out := make([]Detection, 0, len(dets))
-	for _, d := range dets {
-		if d.Q < params.QualityThreshold {
+	for _, det := range dets {
+		if det.Q < d.params.QualityThreshold {
 			continue
 		}
-		half := int(d.Scale / 2)
-		x := d.Col - half
-		y := d.Row - half
-		w := int(d.Scale)
-		h := int(d.Scale)
+		half := int(det.Scale / 2)
+		x := det.Col - half
+		y := det.Row - half
+		w := int(det.Scale)
+		h := int(det.Scale)
 		// Clamp to image bounds
 		if x < 0 { x = 0 }
 		if y < 0 { y = 0 }
@@ -102,9 +122,3 @@ func toGrayscale(img image.Image) ([]uint8, int, int) {
 	return pixels, cols, rows
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
