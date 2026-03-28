@@ -240,6 +240,84 @@ func TestRotate90CCW_CornerPixels(t *testing.T) {
 	}
 }
 
+// ── rotation with non-zero-origin sub-images ─────────────────────────
+
+// subImage returns a 2×2 view into a larger image with non-zero Min bounds,
+// exercising the off-by-min fix in rotate90CW / rotate90CCW.
+func makeSubImage() (*image.RGBA, image.Rectangle) {
+	// 4×4 canvas, crop the bottom-right 2×2 region → Min=(2,2)
+	canvas := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	sub := image.Rect(2, 2, 4, 4)
+
+	red := color.RGBA{R: 255, A: 255}
+	green := color.RGBA{G: 255, A: 255}
+	blue := color.RGBA{B: 255, A: 255}
+	yellow := color.RGBA{R: 255, G: 255, A: 255}
+	canvas.SetRGBA(2, 2, red)
+	canvas.SetRGBA(3, 2, green)
+	canvas.SetRGBA(2, 3, blue)
+	canvas.SetRGBA(3, 3, yellow)
+
+	return canvas, sub
+}
+
+func TestRotate90CW_NonZeroOrigin(t *testing.T) {
+	canvas, sub := makeSubImage()
+	// Use canvas.SubImage to get an image.Image with Min=(2,2)
+	src := canvas.SubImage(sub)
+
+	rot := rotate90CW(src)
+	b := rot.Bounds()
+
+	// dst is always zero-based; dimensions should be 2×2 (swapped)
+	if b.Min.X != 0 || b.Min.Y != 0 {
+		t.Errorf("rotate90CW sub-image: dst.Min = %v, want (0,0)", b.Min)
+	}
+	if b.Dx() != 2 || b.Dy() != 2 {
+		t.Errorf("rotate90CW sub-image: dims = %dx%d, want 2x2", b.Dx(), b.Dy())
+	}
+
+	red := color.RGBA{R: 255, A: 255}
+	blue := color.RGBA{B: 255, A: 255}
+	// src(2,2)=red → dstX=b.Max.Y-1-2=3-1-2=0 wait...
+	// sub bounds: Min=(2,2) Max=(4,4). b.Max.Y=4.
+	// src(x=2,y=2)=red → dstX=4-1-2=1, dstY=2-2=0 → dst(1,0)=red
+	// src(x=2,y=3)=blue → dstX=4-1-3=0, dstY=2-2=0 → dst(0,0)=blue
+	if rot.At(1, 0) != red {
+		t.Errorf("rotate90CW sub (1,0) = %v, want red %v", rot.At(1, 0), red)
+	}
+	if rot.At(0, 0) != blue {
+		t.Errorf("rotate90CW sub (0,0) = %v, want blue %v", rot.At(0, 0), blue)
+	}
+}
+
+func TestRotate90CCW_NonZeroOrigin(t *testing.T) {
+	canvas, sub := makeSubImage()
+	src := canvas.SubImage(sub)
+
+	rot := rotate90CCW(src)
+	b := rot.Bounds()
+
+	if b.Min.X != 0 || b.Min.Y != 0 {
+		t.Errorf("rotate90CCW sub-image: dst.Min = %v, want (0,0)", b.Min)
+	}
+	if b.Dx() != 2 || b.Dy() != 2 {
+		t.Errorf("rotate90CCW sub-image: dims = %dx%d, want 2x2", b.Dx(), b.Dy())
+	}
+
+	red := color.RGBA{R: 255, A: 255}
+	green := color.RGBA{G: 255, A: 255}
+	// sub bounds: Min=(2,2) Max=(4,4). b.Max.X=4.
+	// src(x=2,y=2)=red → dstX=2-2=0, dstY=4-1-2=1 → dst(0,1)=red
+	// src(x=3,y=2)=green → dstX=2-2=0, dstY=4-1-3=0 → dst(0,0)=green
+	if rot.At(0, 1) != red {
+		t.Errorf("rotate90CCW sub (0,1) = %v, want red %v", rot.At(0, 1), red)
+	}
+	if rot.At(0, 0) != green {
+		t.Errorf("rotate90CCW sub (0,0) = %v, want green %v", rot.At(0, 0), green)
+	}
+}
+
 // ── truncate ──────────────────────────────────────────────────────────
 
 func TestTruncate_ShortString(t *testing.T) {

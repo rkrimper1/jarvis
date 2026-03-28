@@ -41,7 +41,7 @@ func rotate90CW(src image.Image) image.Image {
 	dst := image.NewRGBA(image.Rect(0, 0, b.Dy(), b.Dx()))
 	for y := b.Min.Y; y < b.Max.Y; y++ {
 		for x := b.Min.X; x < b.Max.X; x++ {
-			dst.Set(b.Max.Y-1-y+b.Min.Y, x-b.Min.X, src.At(x, y))
+			dst.Set(b.Max.Y-1-y, x-b.Min.X, src.At(x, y))
 		}
 	}
 	return dst
@@ -52,7 +52,7 @@ func rotate90CCW(src image.Image) image.Image {
 	dst := image.NewRGBA(image.Rect(0, 0, b.Dy(), b.Dx()))
 	for y := b.Min.Y; y < b.Max.Y; y++ {
 		for x := b.Min.X; x < b.Max.X; x++ {
-			dst.Set(y-b.Min.Y, b.Max.X-1-x+b.Min.X, src.At(x, y))
+			dst.Set(y-b.Min.Y, b.Max.X-1-x, src.At(x, y))
 		}
 	}
 	return dst

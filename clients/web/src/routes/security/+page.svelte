@@ -22,6 +22,11 @@
 	let result = $state<unknown>(null);
 	let error = $state('');
 
+	// Revoke the preview object URL when the component is destroyed.
+	$effect(() => () => {
+		if (previewUrl) URL.revokeObjectURL(previewUrl);
+	});
+
 	function handleFileChange(e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0] ?? null;

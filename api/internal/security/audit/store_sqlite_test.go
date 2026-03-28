@@ -2,6 +2,7 @@ package audit_test
 
 import (
 	"database/sql"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ func newSQLiteStore(t *testing.T) *audit.Store {
 	}
 	t.Cleanup(func() { db.Close() })
 
-	s, err := audit.NewSQLite(db)
+	s, err := audit.NewSQLite(db, slog.Default())
 	if err != nil {
 		t.Fatalf("audit.NewSQLite: %v", err)
 	}

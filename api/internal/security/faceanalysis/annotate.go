@@ -1,6 +1,8 @@
 package faceanalysis
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"image"
 	"image/color"
@@ -93,7 +95,14 @@ func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir
 		drawHUDFace(dc, det, i+1, res, w, h, fontSize, triangleSize, palette)
 	}
 
-	filename := fmt.Sprintf("faces_%s.png", time.Now().UTC().Format("20060102_150405_000"))
+	var rnd [4]byte
+	if _, err := rand.Read(rnd[:]); err != nil {
+		return "", fmt.Errorf("annotate: generate filename: %w", err)
+	}
+	filename := fmt.Sprintf("faces_%s_%s.png",
+		time.Now().UTC().Format("20060102_150405_000"),
+		hex.EncodeToString(rnd[:]),
+	)
 	outPath := filepath.Join(outputDir, filename)
 	if err := dc.SavePNG(outPath); err != nil {
 		return "", fmt.Errorf("annotate: save png: %w", err)

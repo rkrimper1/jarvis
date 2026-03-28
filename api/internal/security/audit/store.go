@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,7 +38,8 @@ type Store struct {
 	counter int64
 
 	// SQLite backend (nil = use in-memory)
-	db *sql.DB
+	db  *sql.DB
+	log *slog.Logger
 }
 
 // New creates an in-memory Store (used in tests and when no DB is configured).
@@ -47,11 +49,11 @@ func New() *Store {
 
 // NewSQLite creates a Store backed by the provided *sql.DB.
 // It applies the audits table schema on the shared connection.
-func NewSQLite(db *sql.DB) (*Store, error) {
+func NewSQLite(db *sql.DB, log *slog.Logger) (*Store, error) {
 	if _, err := db.Exec(auditSchema); err != nil {
 		return nil, fmt.Errorf("audit: apply schema: %w", err)
 	}
-	return &Store{db: db}, nil
+	return &Store{db: db, log: log}, nil
 }
 
 // Append adds a new entry to the audit log.
@@ -65,8 +67,8 @@ func (s *Store) Append(subjectID, action, resource string, success bool) {
 			`INSERT INTO audits (subject_id, action, resource, success) VALUES (?, ?, ?, ?)`,
 			subjectID, action, resource, successInt,
 		); err != nil {
-			// best-effort: log to stderr rather than crashing the RPC
-			fmt.Printf("audit: insert failed: %v\n", err)
+			// best-effort: log but don't fail the RPC
+			s.log.Error("audit: insert failed", slog.Any("err", err))
 		}
 		return
 	}

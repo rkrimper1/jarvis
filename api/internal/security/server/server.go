@@ -94,7 +94,7 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 		if err != nil {
 			log.Error("analyticsstore: failed to open DB — analytics disabled", slog.Any("err", err))
 		} else {
-			sqliteAudit, err := audit.NewSQLite(aStore.DB())
+			sqliteAudit, err := audit.NewSQLite(aStore.DB(), log)
 			if err != nil {
 				log.Error("audit: failed to init SQLite store — falling back to in-memory", slog.Any("err", err))
 			} else {
