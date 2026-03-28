@@ -135,14 +135,30 @@ Session history persists across turns for the duration of `DIALOGUE_SESSION_TTL`
 ## Security Service
 
 ### Authenticate
+
+`credential_payload` is the user's password, base64-encoded. The server checks it against the bcrypt hash in the users DB (`AUTH_METHOD_PASSCODE`). On success the response includes a signed JWT in `accessToken`.
+
 ```bash
 curl -X POST http://localhost:8080/v1/security/authenticate \
   -H "Content-Type: application/json" \
   -d '{
     "meta": {"request_id": "sec-auth-001"},
     "subject_id": "tony-stark",
-    "method": "AUTH_METHOD_TOKEN"
+    "method": "AUTH_METHOD_PASSCODE",
+    "credential_payload": "'"$(echo -n 'tony-stark' | base64)"'"
   }'
+```
+
+```bash
+# grpcurl
+grpcurl -plaintext \
+  -d '{
+    "meta": {"request_id": "sec-auth-001"},
+    "subject_id": "tony-stark",
+    "method": "AUTH_METHOD_PASSCODE",
+    "credential_payload": "'"$(echo -n 'tony-stark' | base64)"'"
+  }' \
+  localhost:50051 jarvis.security.SecurityService/Authenticate
 ```
 
 ### Assess Threat
