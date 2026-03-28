@@ -4,7 +4,7 @@ version: "3.8"
 #  JARVIS — Single binary, all services in one process
 #
 #  Ports:
-#    :50051  gRPC  (all 8 services)
+#    :50051  gRPC  (all 9 services)
 #    :8080   REST  (grpc-gateway HTTP transcoder)
 #    :6379   Redis (session store — opt-in via SESSION_PROVIDER=redis)
 #
@@ -36,7 +36,7 @@ services:
       - DIALOGUE_CONFIDENCE_THRESH=${DIALOGUE_CONFIDENCE_THRESH:-0.6}
 
       # ── Claude AI (dialogue manager) ──────────────────────────────
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
       - CLAUDE_MAX_TOKENS=${CLAUDE_MAX_TOKENS:-1024}
 
@@ -100,6 +100,19 @@ services:
       - KNOWLEDGE_DB_PATH=${KNOWLEDGE_DB_PATH:-}
       - KNOWLEDGE_STALE_DAYS=${KNOWLEDGE_STALE_DAYS:-30}
       - KNOWLEDGE_WEB_SEARCH_MAX_USES=${KNOWLEDGE_WEB_SEARCH_MAX_USES:-10}
+
+      # ── Face analysis (Security service) ─────────────────────────
+      # Cascade is downloaded by setup.sh to ~/.jarvis/facefinder
+      - FACE_CASCADE_PATH=${FACE_CASCADE_PATH:-/home/vagrant/.jarvis/facefinder}
+      - FACE_OUTPUT_DIR=${FACE_OUTPUT_DIR:-/home/vagrant/.jarvis/faces}
+      - FACE_MIN_SIZE=${FACE_MIN_SIZE:-65}
+      - FACE_QUALITY_THRESHOLD=${FACE_QUALITY_THRESHOLD:-6.0}
+      - FACE_CLUSTER_OVERLAP=${FACE_CLUSTER_OVERLAP:-0.25}
+      - FACE_OUTPUT_TRIANGLE_SIZE=${FACE_OUTPUT_TRIANGLE_SIZE:-0}
+      - FACE_OUTPUT_OPACITY=${FACE_OUTPUT_OPACITY:-0}
+      - FACE_OUTPUT_FONT_SIZE=${FACE_OUTPUT_FONT_SIZE:-0}
+      - FACE_MAX_IMAGE_BYTES=${FACE_MAX_IMAGE_BYTES:-0}
+      - SECURITY_ANALYTICS_DB_PATH=${SECURITY_ANALYTICS_DB_PATH:-/home/vagrant/.jarvis/analytics.db}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis

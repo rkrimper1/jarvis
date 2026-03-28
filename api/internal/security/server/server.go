@@ -2,8 +2,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"log/slog"
 
 	"google.golang.org/grpc/codes"
@@ -13,9 +17,11 @@ import (
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
 	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
+	"github.com/rkrimper1/jarvis/api/internal/security/analyticsstore"
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
 	authpkg "github.com/rkrimper1/jarvis/api/internal/security/auth"
 	"github.com/rkrimper1/jarvis/api/internal/security/config"
+	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	"github.com/rkrimper1/jarvis/api/internal/security/protocol"
 	"github.com/rkrimper1/jarvis/api/internal/security/threat"
 	"github.com/rkrimper1/jarvis/api/internal/security/token"
@@ -36,9 +42,29 @@ type SecurityServer struct {
 	assessor  *threat.Assessor
 	broadcast *threat.AlertBroadcaster
 	protocols *protocol.Executor
-	auditLog  *audit.Store
-	users     UserStore // nil if user store not configured
-	log       *slog.Logger
+	auditLog       *audit.Store
+	analyticsStore *analyticsstore.Store // nil if not configured
+	users          UserStore             // nil if user store not configured
+	log            *slog.Logger
+
+	// face analysis
+	faceDetector       *faceanalysis.Detector // nil if not configured
+	faceAnalyzer       *faceanalysis.Analyzer
+	faceOutputDir      string
+	faceAnnotateParams faceanalysis.AnnotateParams
+	faceMaxImageBytes  int
+}
+
+// FaceConfig holds optional face-analysis configuration.
+type FaceConfig struct {
+	CascadePath      string
+	OutputDir        string
+	AnthropicKey     string
+	ClaudeModel      string
+	DetectParams     faceanalysis.DetectParams
+	AnnotateParams   faceanalysis.AnnotateParams
+	AnalyticsDBPath  string // path to analytics SQLite DB; leave empty to disable
+	MaxImageBytes    int    // max accepted image_data size; 0 → default 5 MiB
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -48,6 +74,11 @@ func New(cfg *config.Config, log *slog.Logger) *SecurityServer {
 
 // NewWithUserStore wires all dependencies including the optional user store.
 func NewWithUserStore(cfg *config.Config, log *slog.Logger, users UserStore) *SecurityServer {
+	return NewWithUserStoreFace(cfg, log, users, FaceConfig{})
+}
+
+// NewWithUserStoreFace wires all dependencies including user store and face analysis config.
+func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore, face FaceConfig) *SecurityServer {
 	assessor := threat.New()
 	broadcaster := threat.NewBroadcaster()
 
@@ -55,17 +86,59 @@ func NewWithUserStore(cfg *config.Config, log *slog.Logger, users UserStore) *Se
 	// receive data — remove in production and replace with real sensor input.
 	broadcaster.SimulatePatrolScan(assessor, cfg.Threat.AlertBroadcastInterval)
 
-	return &SecurityServer{
-		cfg:       cfg,
-		auth:      authpkg.New(),
-		tokens:    token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
-		assessor:  assessor,
-		broadcast: broadcaster,
-		protocols: protocol.New(log),
-		auditLog:  audit.New(),
-		users:     users,
-		log:       log,
+	var aStore *analyticsstore.Store
+	auditStore := audit.New() // default: in-memory
+	if face.AnalyticsDBPath != "" {
+		var err error
+		aStore, err = analyticsstore.New(face.AnalyticsDBPath, log)
+		if err != nil {
+			log.Error("analyticsstore: failed to open DB — analytics disabled", slog.Any("err", err))
+		} else {
+			sqliteAudit, err := audit.NewSQLite(aStore.DB(), log)
+			if err != nil {
+				log.Error("audit: failed to init SQLite store — falling back to in-memory", slog.Any("err", err))
+			} else {
+				auditStore = sqliteAudit
+			}
+		}
 	}
+
+	srv := &SecurityServer{
+		cfg:              cfg,
+		auth:             authpkg.New(),
+		tokens:           token.New(cfg.Token.Secret, cfg.Token.AccessTokenTTL, cfg.Token.Issuer),
+		assessor:         assessor,
+		broadcast:        broadcaster,
+		protocols:        protocol.New(log),
+		auditLog:         auditStore,
+		analyticsStore:   aStore,
+		users:            users,
+		log:              log,
+		faceAnalyzer:       faceanalysis.NewAnalyzer(face.AnthropicKey, face.ClaudeModel),
+		faceOutputDir:      face.OutputDir,
+		faceAnnotateParams: face.AnnotateParams,
+		faceMaxImageBytes:  face.MaxImageBytes,
+	}
+
+	if face.CascadePath != "" {
+		detector, err := faceanalysis.NewDetector(face.CascadePath, face.DetectParams)
+		if err != nil {
+			log.Error("faceanalysis: failed to load cascade — face detection disabled", slog.Any("err", err))
+		} else {
+			srv.faceDetector = detector
+		}
+	}
+
+	if face.OutputDir != "" {
+		// Annotated PNGs accumulate in this directory with no automatic cleanup.
+		// Monitor disk usage and prune old files as needed (e.g. a cron job or
+		// logrotate-style script targeting files older than your retention window).
+		log.Info("faceanalysis: annotated images will be written to disk",
+			slog.String("output_dir", face.OutputDir),
+		)
+	}
+
+	return srv
 }
 
 // ── Authenticate ─────────────────────────────────────────────────────
@@ -164,6 +237,21 @@ func (s *SecurityServer) AssessThreat(
 		true,
 	)
 
+	// Analytics recording is best-effort: a storage failure does not fail the
+	// RPC because the threat assessment result has already been computed and
+	// returned. Loss of analytics events is acceptable; loss of the response
+	// to the caller is not.
+	if s.analyticsStore != nil {
+		if err := s.analyticsStore.InsertThreat(ctx, analyticsstore.ThreatEvent{
+			SubjectID:   req.SubjectId,
+			Location:    req.Location,
+			Signals:     req.ObservedSignals,
+			ThreatLevel: result.Level.String(),
+		}); err != nil {
+			s.log.WarnContext(ctx, "analyticsstore: insert threat failed", slog.Any("err", err))
+		}
+	}
+
 	// Broadcast high+ threats to all streaming subscribers
 	if result.Level >= securityv1.ThreatLevel_THREAT_LEVEL_HIGH {
 		s.broadcast.Publish(result)
@@ -237,10 +325,6 @@ func (s *SecurityServer) GetAuditLog(
 		pageSize = s.cfg.Audit.MaxPageSize
 	}
 
-	var fromT, toT interface{ AsTime() interface{ IsZero() bool } }
-	_ = fromT
-	_ = toT
-
 	// Convert proto timestamps (nil-safe)
 	from := req.GetFrom().AsTime()
 	to := req.GetTo().AsTime()
@@ -255,11 +339,26 @@ func (s *SecurityServer) GetAuditLog(
 		return nil, status.Errorf(codes.InvalidArgument, "query error: %v", err)
 	}
 
-	return &securityv1.GetAuditLogResponse{
+	resp := &securityv1.GetAuditLogResponse{
 		Meta:          metaOK(req.Meta.RequestId),
 		Entries:       entries,
 		NextPageToken: nextToken,
-	}, nil
+	}
+
+	if s.analyticsStore != nil {
+		ss, err := s.analyticsStore.ComputeStatus(ctx)
+		if err != nil {
+			s.log.WarnContext(ctx, "analyticsstore: compute status failed", slog.Any("err", err))
+		} else {
+			resp.SurroundingsStatus = &securityv1.SurroundingsStatus{
+				Score:  ss.Score,
+				Color:  ss.Color,
+				Status: ss.Status,
+			}
+		}
+	}
+
+	return resp, nil
 }
 
 // ── StreamSecurityAlerts ──────────────────────────────────────────────
@@ -269,6 +368,10 @@ func (s *SecurityServer) StreamSecurityAlerts(
 	stream securityv1.SecurityService_StreamSecurityAlertsServer,
 ) error {
 
+	// RequestId is intentionally used as the subscriber key here: each streaming
+	// call gets a unique per-call UUID, making it a suitable deduplication key
+	// for the broadcaster. This is distinct from UserId, which identifies the
+	// caller and is not guaranteed unique across concurrent stream connections.
 	subscriberID := req.GetMeta().GetRequestId()
 	s.log.Info("StreamSecurityAlerts subscriber connected",
 		slog.String("subscriber_id", subscriberID),
@@ -302,6 +405,104 @@ func (s *SecurityServer) StreamSecurityAlerts(
 			}
 		}
 	}
+}
+
+// ── AnalyzeFaces ──────────────────────────────────────────────────────
+
+func (s *SecurityServer) AnalyzeFaces(
+	ctx context.Context,
+	req *securityv1.AnalyzeFacesRequest,
+) (*securityv1.AnalyzeFacesResponse, error) {
+
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if len(req.ImageData) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "image_data is required")
+	}
+	maxBytes := s.faceMaxImageBytes
+	if maxBytes <= 0 {
+		maxBytes = 5 * 1024 * 1024 // 5 MiB default
+	}
+	if len(req.ImageData) > maxBytes {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"image_data exceeds maximum allowed size of %d bytes", maxBytes)
+	}
+	if s.faceDetector == nil || s.faceOutputDir == "" {
+		return nil, status.Error(codes.FailedPrecondition,
+			"face analysis not configured (set FACE_CASCADE_PATH and FACE_OUTPUT_DIR)")
+	}
+
+	// Decode image (preserve raw bytes for EXIF orientation correction)
+	img, _, err := image.Decode(bytes.NewReader(req.ImageData))
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "decode image: %v", err)
+	}
+	img = faceanalysis.ApplyOrientation(img, req.ImageData)
+
+	// Detect faces
+	dets, err := s.faceDetector.Detect(img)
+	if err != nil {
+		s.log.ErrorContext(ctx, "face detect failed", slog.Any("err", err))
+		return nil, status.Errorf(codes.Internal, "face detection: %v", err)
+	}
+
+	s.log.InfoContext(ctx, "AnalyzeFaces",
+		slog.Int("faces_detected", len(dets)),
+		slog.String("request_id", req.Meta.RequestId),
+	)
+
+	// Analyze each face via Claude
+	results := make([]faceanalysis.FaceResult, len(dets))
+	for i, det := range dets {
+		results[i] = s.faceAnalyzer.Analyze(ctx, img, det)
+	}
+
+	// Annotate and save
+	filename, err := faceanalysis.Annotate(img, dets, results, s.faceOutputDir, s.faceAnnotateParams)
+	if err != nil {
+		s.log.ErrorContext(ctx, "face annotate failed", slog.Any("err", err))
+		return nil, status.Errorf(codes.Internal, "annotate image: %v", err)
+	}
+
+	// Build response
+	faces := make([]*securityv1.FaceAnalysis, len(dets))
+	for i, det := range dets {
+		faces[i] = &securityv1.FaceAnalysis{
+			FaceIndex:  int32(i + 1),
+			Sentiment:  results[i].Sentiment,
+			Commentary: results[i].Commentary,
+			BoundingBox: &securityv1.BoundingBox{
+				X: int32(det.X), Y: int32(det.Y),
+				Width: int32(det.W), Height: int32(det.H),
+			},
+		}
+	}
+
+	s.auditLog.Append(req.Meta.UserId, fmt.Sprintf("face_analysis:faces=%d", len(dets)), "security/faces", true)
+
+	// Analytics recording is best-effort — see equivalent comment in AssessThreat.
+	if s.analyticsStore != nil {
+		sentiments := make([]string, len(results))
+		for i, r := range results {
+			sentiments[i] = r.Sentiment
+		}
+		if err := s.analyticsStore.InsertFaces(ctx, analyticsstore.FacesEvent{
+			Filename:   filename,
+			FaceCount:  len(dets),
+			Sentiments: sentiments,
+			ImagePath:  s.faceOutputDir + "/" + filename,
+		}); err != nil {
+			s.log.WarnContext(ctx, "analyticsstore: insert faces failed", slog.Any("err", err))
+		}
+	}
+
+	return &securityv1.AnalyzeFacesResponse{
+		Meta:      metaOK(req.Meta.RequestId),
+		ImageUrl:  "/faces/" + filename,
+		FaceCount: int32(len(dets)),
+		Faces:     faces,
+	}, nil
 }
 
 // ── helpers ───────────────────────────────────────────────────────────

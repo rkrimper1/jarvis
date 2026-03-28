@@ -58,7 +58,7 @@ var serviceNames = []string{
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string, faceCfg securityserver.FaceConfig) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -116,7 +116,9 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("security config: %w", err)
 	}
-	secSrv := securityserver.NewWithUserStore(secCfg, log, uStore)
+	faceCfg.AnthropicKey = learningCfg.AnthropicAPIKey
+	faceCfg.ClaudeModel = learningCfg.ClaudeModel
+	secSrv := securityserver.NewWithUserStoreFace(secCfg, log, uStore, faceCfg)
 	securityv1.RegisterSecurityServiceServer(grpcSrv, secSrv)
 
 	// ── Service: user ─────────────────────────────────────────────────

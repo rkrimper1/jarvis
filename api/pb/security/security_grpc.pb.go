@@ -23,6 +23,7 @@ const (
 	SecurityService_AssessThreat_FullMethodName         = "/jarvis.security.SecurityService/AssessThreat"
 	SecurityService_ExecuteProtocol_FullMethodName      = "/jarvis.security.SecurityService/ExecuteProtocol"
 	SecurityService_GetAuditLog_FullMethodName          = "/jarvis.security.SecurityService/GetAuditLog"
+	SecurityService_AnalyzeFaces_FullMethodName         = "/jarvis.security.SecurityService/AnalyzeFaces"
 	SecurityService_StreamSecurityAlerts_FullMethodName = "/jarvis.security.SecurityService/StreamSecurityAlerts"
 )
 
@@ -34,6 +35,7 @@ type SecurityServiceClient interface {
 	AssessThreat(ctx context.Context, in *AssessThreatRequest, opts ...grpc.CallOption) (*AssessThreatResponse, error)
 	ExecuteProtocol(ctx context.Context, in *ExecuteProtocolRequest, opts ...grpc.CallOption) (*ExecuteProtocolResponse, error)
 	GetAuditLog(ctx context.Context, in *GetAuditLogRequest, opts ...grpc.CallOption) (*GetAuditLogResponse, error)
+	AnalyzeFaces(ctx context.Context, in *AnalyzeFacesRequest, opts ...grpc.CallOption) (*AnalyzeFacesResponse, error)
 	StreamSecurityAlerts(ctx context.Context, in *StreamSecurityAlertsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamSecurityAlertsResponse], error)
 }
 
@@ -85,6 +87,16 @@ func (c *securityServiceClient) GetAuditLog(ctx context.Context, in *GetAuditLog
 	return out, nil
 }
 
+func (c *securityServiceClient) AnalyzeFaces(ctx context.Context, in *AnalyzeFacesRequest, opts ...grpc.CallOption) (*AnalyzeFacesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AnalyzeFacesResponse)
+	err := c.cc.Invoke(ctx, SecurityService_AnalyzeFaces_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *securityServiceClient) StreamSecurityAlerts(ctx context.Context, in *StreamSecurityAlertsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamSecurityAlertsResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &SecurityService_ServiceDesc.Streams[0], SecurityService_StreamSecurityAlerts_FullMethodName, cOpts...)
@@ -112,6 +124,7 @@ type SecurityServiceServer interface {
 	AssessThreat(context.Context, *AssessThreatRequest) (*AssessThreatResponse, error)
 	ExecuteProtocol(context.Context, *ExecuteProtocolRequest) (*ExecuteProtocolResponse, error)
 	GetAuditLog(context.Context, *GetAuditLogRequest) (*GetAuditLogResponse, error)
+	AnalyzeFaces(context.Context, *AnalyzeFacesRequest) (*AnalyzeFacesResponse, error)
 	StreamSecurityAlerts(*StreamSecurityAlertsRequest, grpc.ServerStreamingServer[StreamSecurityAlertsResponse]) error
 	mustEmbedUnimplementedSecurityServiceServer()
 }
@@ -134,6 +147,9 @@ func (UnimplementedSecurityServiceServer) ExecuteProtocol(context.Context, *Exec
 }
 func (UnimplementedSecurityServiceServer) GetAuditLog(context.Context, *GetAuditLogRequest) (*GetAuditLogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAuditLog not implemented")
+}
+func (UnimplementedSecurityServiceServer) AnalyzeFaces(context.Context, *AnalyzeFacesRequest) (*AnalyzeFacesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AnalyzeFaces not implemented")
 }
 func (UnimplementedSecurityServiceServer) StreamSecurityAlerts(*StreamSecurityAlertsRequest, grpc.ServerStreamingServer[StreamSecurityAlertsResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamSecurityAlerts not implemented")
@@ -231,6 +247,24 @@ func _SecurityService_GetAuditLog_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SecurityService_AnalyzeFaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnalyzeFacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SecurityServiceServer).AnalyzeFaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SecurityService_AnalyzeFaces_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SecurityServiceServer).AnalyzeFaces(ctx, req.(*AnalyzeFacesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SecurityService_StreamSecurityAlerts_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamSecurityAlertsRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -264,6 +298,10 @@ var SecurityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAuditLog",
 			Handler:    _SecurityService_GetAuditLog_Handler,
+		},
+		{
+			MethodName: "AnalyzeFaces",
+			Handler:    _SecurityService_AnalyzeFaces_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

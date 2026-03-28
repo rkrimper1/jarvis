@@ -13,7 +13,11 @@ require (
 require (
 	github.com/alicebob/miniredis/v2 v2.37.0
 	github.com/anthropics/anthropic-sdk-go v1.27.0
+	github.com/esimov/pigo v1.4.6
+	github.com/fogleman/gg v1.3.0
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	golang.org/x/crypto v0.49.0
+	golang.org/x/image v0.38.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260203192932-546029d2fa20
 	modernc.org/sqlite v1.47.0
 )
@@ -25,6 +29,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

@@ -235,7 +235,63 @@ SQL
   success "Users DB created at $USERS_DB"
 fi
 
-# ── 8. Node.js + Web client deps ─────────────────────────────────────
+# ── 8. Security analytics database ──────────────────────────────────
+ANALYTICS_DB="${SECURITY_ANALYTICS_DB_PATH:-$JARVIS_DIR/analytics.db}"
+
+if [ -f "$ANALYTICS_DB" ]; then
+  success "Analytics DB already exists at $ANALYTICS_DB"
+else
+  info "Creating analytics DB schema at $ANALYTICS_DB..."
+  sqlite3 "$ANALYTICS_DB" <<'SQL'
+CREATE TABLE IF NOT EXISTS analytics_events (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_type   TEXT    NOT NULL,
+    created_at   DATETIME DEFAULT (datetime('now')),
+    subject_id   TEXT,
+    object_type  TEXT,
+    location     TEXT,
+    signals      TEXT,
+    threat_level TEXT,
+    filename     TEXT,
+    face_count   INTEGER,
+    sentiments   TEXT,
+    image_path   TEXT,
+    score        REAL NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_analytics_created ON analytics_events(created_at);
+CREATE TABLE IF NOT EXISTS audits (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_id TEXT    NOT NULL DEFAULT '',
+    action     TEXT    NOT NULL,
+    resource   TEXT    NOT NULL DEFAULT '',
+    success    INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_audits_created ON audits(created_at);
+CREATE INDEX IF NOT EXISTS idx_audits_subject ON audits(subject_id);
+SQL
+  success "Analytics DB created at $ANALYTICS_DB"
+fi
+
+# ── 9. Face analysis — cascade file + output dir ─────────────────────
+FACE_CASCADE="${FACE_CASCADE_PATH:-$JARVIS_DIR/facefinder}"
+FACE_DIR="${FACE_OUTPUT_DIR:-$JARVIS_DIR/faces}"
+
+mkdir -p "$FACE_DIR"
+success "Face output dir ready at $FACE_DIR"
+
+if [ -f "$FACE_CASCADE" ]; then
+  success "pigo face cascade already exists at $FACE_CASCADE"
+else
+  info "Downloading pigo facefinder cascade to $FACE_CASCADE..."
+  curl -fsSL \
+    "https://raw.githubusercontent.com/esimov/pigo/master/cascade/facefinder" \
+    -o "$FACE_CASCADE" \
+    && success "pigo cascade downloaded" \
+    || warn "Failed to download pigo cascade — face analysis will be unavailable until $FACE_CASCADE exists"
+fi
+
+# ── 10. Node.js + Web client deps ────────────────────────────────────
 if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v(18|20|22)'; then
   success "Node.js already installed: $(node --version)"
 else
@@ -253,7 +309,7 @@ if [ -f "$WEB_DIR/package.json" ]; then
   success "Web client dependencies installed"
 fi
 
-# ── 9. Done ───────────────────────────────────────────────────────────
+# ── 10. Done ──────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"

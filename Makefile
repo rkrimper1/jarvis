@@ -19,6 +19,8 @@ else
 endif
 
 COMPOSE_FILE := docker/docker-compose.yml
+ENV_FILE      := /home/vagrant/credentials/jarvis/.env
+ENV_FLAG      := $(shell [ -f $(ENV_FILE) ] && echo "--env-file $(ENV_FILE)")
 
 # ── Proto ───────────────────────────────────────────────────────────
 
@@ -61,8 +63,7 @@ test-voice:     ## Run voice tests only
 
 # ── Docker ───────────────────────────────────────────────────────────
 
-ENV_FILE := $(wildcard $(ENV_PATH))
-ENV_FLAG  := $(if $(ENV_FILE),--env-file $(ENV_PATH))
+## ENV_FILE and ENV_FLAG defined near top of Makefile
 
 docker-build:   ## Build the Jarvis Docker image
 	$(DC) $(ENV_FLAG) -f $(COMPOSE_FILE) build

@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
-	learningserver "github.com/rkrimper1/jarvis/api/internal/learning/server"
+	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
+	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
+	securityserver  "github.com/rkrimper1/jarvis/api/internal/security/server"
 )
 
 func main() {
@@ -48,7 +50,33 @@ func main() {
 
 	usersDBPath := envString("USERS_DB_PATH", "")
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath)
+	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
+	faceCascadePath    := envString("FACE_CASCADE_PATH", "")
+	faceMinSize        := envInt("FACE_MIN_SIZE", 65)
+	faceQuality        := envFloat32("FACE_QUALITY_THRESHOLD", 6.0)
+	faceCluster        := envFloat64("FACE_CLUSTER_OVERLAP", 0.25)
+	faceTriangleSize   := envFloat64("FACE_OUTPUT_TRIANGLE_SIZE", 0)
+	faceOpacity        := envFloat64("FACE_OUTPUT_OPACITY", 0)
+	faceFontSize       := envFloat64("FACE_OUTPUT_FONT_SIZE", 0)
+	faceMaxImageBytes  := envInt("FACE_MAX_IMAGE_BYTES", 0) // 0 → server default (5 MiB)
+	analyticsDBPath    := envString("SECURITY_ANALYTICS_DB_PATH", "")
+
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
+		CascadePath:     faceCascadePath,
+		OutputDir:       faceOutputDir,
+		AnalyticsDBPath: analyticsDBPath,
+		DetectParams: faceanalysis.DetectParams{
+			MinSize:          faceMinSize,
+			QualityThreshold: faceQuality,
+			ClusterOverlap:   faceCluster,
+		},
+		AnnotateParams: faceanalysis.AnnotateParams{
+			TriangleSize: faceTriangleSize,
+			Opacity:      faceOpacity,
+			FontSize:     faceFontSize,
+		},
+		MaxImageBytes: faceMaxImageBytes,
+	})
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -62,11 +90,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// ── HTTP/REST listener (grpc-gateway) ─────────────────────────────
+	// ── HTTP/REST listener (grpc-gateway + static face images) ───────
 	httpAddr := fmt.Sprintf(":%d", httpPort)
+	httpMux := http.NewServeMux()
+	httpMux.Handle("/v1/", gwMux)
+	if faceOutputDir != "" {
+		httpMux.Handle("/faces/", http.StripPrefix("/faces/", http.FileServer(http.Dir(faceOutputDir))))
+	}
+	// Fallback: anything else goes to the gateway (health, etc.)
+	httpMux.Handle("/", gwMux)
 	httpSrv := &http.Server{
 		Addr:    httpAddr,
-		Handler: gwMux,
+		Handler: httpMux,
 	}
 
 	log.Info("JARVIS starting",
@@ -132,6 +167,24 @@ func envInt(key string, def int) int {
 func envString(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
+	}
+	return def
+}
+
+func envFloat32(key string, def float32) float32 {
+	if v := os.Getenv(key); v != "" {
+		if f, err := strconv.ParseFloat(v, 32); err == nil {
+			return float32(f)
+		}
+	}
+	return def
+}
+
+func envFloat64(key string, def float64) float64 {
+	if v := os.Getenv(key); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f
+		}
 	}
 	return def
 }
