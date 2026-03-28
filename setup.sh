@@ -291,7 +291,7 @@ else
     || warn "Failed to download pigo cascade — face analysis will be unavailable until $FACE_CASCADE exists"
 fi
 
-# ── 9. Node.js + Web client deps ─────────────────────────────────────
+# ── 10. Node.js + Web client deps ────────────────────────────────────
 if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v(18|20|22)'; then
   success "Node.js already installed: $(node --version)"
 else

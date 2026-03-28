@@ -52,6 +52,12 @@ func New(dbPath string, log *slog.Logger) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("analyticsstore: open db: %w", err)
 	}
+	// WAL mode allows concurrent reads alongside a single writer, preventing
+	// lock contention when gRPC handlers for threat, faces, and audit queries
+	// run concurrently against the same *sql.DB.
+	if _, err := db.Exec(`PRAGMA journal_mode=WAL`); err != nil {
+		return nil, fmt.Errorf("analyticsstore: enable WAL: %w", err)
+	}
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("analyticsstore: apply schema: %w", err)
 	}

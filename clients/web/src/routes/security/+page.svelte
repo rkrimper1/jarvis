@@ -47,11 +47,7 @@
 				return;
 			} else if (mode === 'faces') {
 				if (!selectedFile) { error = 'Select an image first.'; loading = false; return; }
-				const buf = await selectedFile.arrayBuffer();
-				const bytes = new Uint8Array(buf);
-				let binary = '';
-				for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-				const b64 = btoa(binary);
+				const b64 = await readFileAsBase64(selectedFile);
 				facesResult = await security.analyzeFaces(b64, selectedFile.name);
 				showFacesModal = true;
 			}
@@ -75,6 +71,19 @@
 	}
 
 	function closeFacesModal() { showFacesModal = false; }
+
+	/** Reads a File as a base64 string (no data-URL prefix) using FileReader. */
+	function readFileAsBase64(file: File): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => {
+				const dataUrl = reader.result as string;
+				resolve(dataUrl.slice(dataUrl.indexOf(',') + 1));
+			};
+			reader.onerror = () => reject(reader.error);
+			reader.readAsDataURL(file);
+		});
+	}
 </script>
 
 <div class="page-layout">
