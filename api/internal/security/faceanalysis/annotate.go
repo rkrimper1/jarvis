@@ -104,6 +104,9 @@ func Annotate(img image.Image, dets []Detection, results []FaceResult, outputDir
 		hex.EncodeToString(rnd[:]),
 	)
 	outPath := filepath.Join(outputDir, filename)
+	// TODO: implement a retention policy — files accumulate indefinitely.
+	// Consider a background sweep that deletes PNGs older than a configurable
+	// age (e.g. 30 days) to prevent unbounded disk growth.
 	if err := dc.SavePNG(outPath); err != nil {
 		return "", fmt.Errorf("annotate: save png: %w", err)
 	}

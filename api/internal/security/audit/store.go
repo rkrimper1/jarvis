@@ -104,7 +104,9 @@ func (s *Store) Query(
 func (s *Store) Len() int {
 	if s.db != nil {
 		var n int
-		s.db.QueryRow(`SELECT COUNT(*) FROM audits`).Scan(&n) //nolint:errcheck
+		if err := s.db.QueryRow(`SELECT COUNT(*) FROM audits`).Scan(&n); err != nil {
+			s.log.Error("audit: Len query failed", slog.Any("err", err))
+		}
 		return n
 	}
 	s.mu.RLock()

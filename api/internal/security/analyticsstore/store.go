@@ -15,6 +15,17 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// Status band thresholds (0–100 score scale).
+// GREEN  → low activity, no concerning signals.
+// YELLOW → elevated activity or mixed sentiment; warrants attention.
+// RED    → high threat scores or predominantly hostile sentiment.
+// COMPROMISED is applied when the score crosses scoreCompromisedMin regardless of color band.
+const (
+	scoreGreenMax      = 20.0
+	scoreYellowMax     = 70.0
+	scoreCompromisedMin = 40.0
+)
+
 const schema = `
 CREATE TABLE IF NOT EXISTS analytics_events (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,7 +114,7 @@ func (s *Store) InsertThreat(ctx context.Context, e ThreatEvent) error {
 // InsertFaces records a completed face-analysis run.
 func (s *Store) InsertFaces(ctx context.Context, e FacesEvent) error {
 	sents, _ := json.Marshal(e.Sentiments)
-	score := avgSentimentsScore(e.Sentiments)
+	score := s.avgSentimentsScore(e.Sentiments)
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO analytics_events
 		    (event_type, filename, face_count, sentiments, image_path, score)
@@ -217,15 +228,15 @@ func statusFromEvents(events []eventRow) SurroundingsStatus {
 func scoreToStatus(score float64) SurroundingsStatus {
 	var color string
 	switch {
-	case score <= 20:
+	case score <= scoreGreenMax:
 		color = "GREEN"
-	case score <= 70:
+	case score <= scoreYellowMax:
 		color = "YELLOW"
 	default:
 		color = "RED"
 	}
 	statusLabel := "NOMINAL"
-	if score >= 40 {
+	if score >= scoreCompromisedMin {
 		statusLabel = "COMPROMISED"
 	}
 	return SurroundingsStatus{Score: score, Color: color, Status: statusLabel}
@@ -266,20 +277,27 @@ var sentimentScoreMap = map[string]float64{
 	"happy": 10, "pleased": 10, "amused": 10, "content": 10, "smug": 10,
 }
 
-func sentimentToScore(s string) float64 {
-	if v, ok := sentimentScoreMap[strings.ToLower(s)]; ok {
-		return v
-	}
-	return 30 // unknown
+func sentimentToScore(s string) (float64, bool) {
+	v, ok := sentimentScoreMap[strings.ToLower(s)]
+	return v, ok
 }
 
-func avgSentimentsScore(sentiments []string) float64 {
+func (s *Store) avgSentimentsScore(sentiments []string) float64 {
 	if len(sentiments) == 0 {
 		return 0
 	}
 	var total float64
-	for _, s := range sentiments {
-		total += sentimentToScore(s)
+	for _, sent := range sentiments {
+		if v, ok := sentimentToScore(sent); ok {
+			total += v
+		} else {
+			// Claude returned a sentiment not in the scoring map; using the
+			// unknown fallback score (30). Log so prompt/model drift is visible.
+			s.log.Warn("analyticsstore: unrecognised sentiment, scoring as unknown",
+				slog.String("sentiment", sent),
+			)
+			total += 30
+		}
 	}
 	return total / float64(len(sentiments))
 }

@@ -72,6 +72,9 @@ func (a *Analyzer) Analyze(ctx context.Context, img image.Image, det Detection) 
 	if err != nil {
 		return stubResult()
 	}
+	if len(msg.Content) == 0 {
+		return stubResult()
+	}
 
 	return parseResponse(msg.Content[0].Text)
 }

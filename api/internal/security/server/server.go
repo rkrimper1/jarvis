@@ -129,6 +129,15 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 		}
 	}
 
+	if face.OutputDir != "" {
+		// Annotated PNGs accumulate in this directory with no automatic cleanup.
+		// Monitor disk usage and prune old files as needed (e.g. a cron job or
+		// logrotate-style script targeting files older than your retention window).
+		log.Info("faceanalysis: annotated images will be written to disk",
+			slog.String("output_dir", face.OutputDir),
+		)
+	}
+
 	return srv
 }
 
@@ -228,6 +237,10 @@ func (s *SecurityServer) AssessThreat(
 		true,
 	)
 
+	// Analytics recording is best-effort: a storage failure does not fail the
+	// RPC because the threat assessment result has already been computed and
+	// returned. Loss of analytics events is acceptable; loss of the response
+	// to the caller is not.
 	if s.analyticsStore != nil {
 		if err := s.analyticsStore.InsertThreat(ctx, analyticsstore.ThreatEvent{
 			SubjectID:   req.SubjectId,
@@ -312,10 +325,6 @@ func (s *SecurityServer) GetAuditLog(
 		pageSize = s.cfg.Audit.MaxPageSize
 	}
 
-	var fromT, toT interface{ AsTime() interface{ IsZero() bool } }
-	_ = fromT
-	_ = toT
-
 	// Convert proto timestamps (nil-safe)
 	from := req.GetFrom().AsTime()
 	to := req.GetTo().AsTime()
@@ -359,6 +368,10 @@ func (s *SecurityServer) StreamSecurityAlerts(
 	stream securityv1.SecurityService_StreamSecurityAlertsServer,
 ) error {
 
+	// RequestId is intentionally used as the subscriber key here: each streaming
+	// call gets a unique per-call UUID, making it a suitable deduplication key
+	// for the broadcaster. This is distinct from UserId, which identifies the
+	// caller and is not guaranteed unique across concurrent stream connections.
 	subscriberID := req.GetMeta().GetRequestId()
 	s.log.Info("StreamSecurityAlerts subscriber connected",
 		slog.String("subscriber_id", subscriberID),
@@ -466,8 +479,9 @@ func (s *SecurityServer) AnalyzeFaces(
 		}
 	}
 
-	s.auditLog.Append(req.Meta.RequestId, fmt.Sprintf("face_analysis:faces=%d", len(dets)), "security/faces", true)
+	s.auditLog.Append(req.Meta.UserId, fmt.Sprintf("face_analysis:faces=%d", len(dets)), "security/faces", true)
 
+	// Analytics recording is best-effort — see equivalent comment in AssessThreat.
 	if s.analyticsStore != nil {
 		sentiments := make([]string, len(results))
 		for i, r := range results {
