@@ -57,7 +57,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `intelligence` | Research, artifact analysis, cross-referencing |
 | `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
-| `security` | Auth, threat assessment, emergency protocols |
+| `security` | Auth, threat assessment, emergency protocols, face detection + sentiment analysis, audit log, surroundings analytics |
 | `user` | User CRUD, profile management, password change, role-based access (SQLite + bcrypt) |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
@@ -84,6 +84,12 @@ When `SMTP_*` env vars are configured, `ScheduleEvent` automatically emails an i
 ### Command — Heap Profiler
 
 `RequestMemoryProfile` triggers an immediate heap snapshot. The `.prof` file and rendered `.gif` call-graph are written to `PPROF_DIR` and automatically appear in `./profiles/` on the host via the Docker volume mount.
+
+### Security — Face Analysis
+
+`AnalyzeFaces` accepts a JPEG or PNG image, detects faces using **pigo** (loaded once at startup from `FACE_CASCADE_PATH`), crops each face and sends it to **Claude** for sentiment classification, then writes a HUD-annotated PNG to `FACE_OUTPUT_DIR`. The result includes per-face sentiment, commentary, and bounding-box coordinates. Detection runs only when both `FACE_CASCADE_PATH` and `FACE_OUTPUT_DIR` are set; the service starts and handles all other RPCs normally if they are absent.
+
+Audit events are recorded per call, and face sentiment scores feed into the `SurroundingsStatus` composite score returned by `GetAuditLog` (70 % threat weight, 30 % face weight over the last 30 minutes).
 
 Required env vars (store outside the repo, e.g. `$HOME/credentials/jarvis/.env`):
 
