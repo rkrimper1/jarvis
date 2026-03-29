@@ -14,10 +14,13 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"go.opencensus.io/trace"
+
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
 	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
 	"github.com/rkrimper1/jarvis/api/internal/security/analyticsstore"
+	"github.com/rkrimper1/jarvis/api/middleware"
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
 	authpkg "github.com/rkrimper1/jarvis/api/internal/security/auth"
 	"github.com/rkrimper1/jarvis/api/internal/security/config"
@@ -151,6 +154,10 @@ func (s *SecurityServer) Authenticate(
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "security/Authenticate")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.SubjectId)
+
 	if req.SubjectId == "" {
 		return nil, status.Error(codes.InvalidArgument, "subject_id is required")
 	}
@@ -221,6 +228,9 @@ func (s *SecurityServer) AssessThreat(
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "security/AssessThreat")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
 
 	s.log.InfoContext(ctx, "AssessThreat",
 		slog.String("subject_id", req.SubjectId),
@@ -276,6 +286,10 @@ func (s *SecurityServer) ExecuteProtocol(
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "security/ExecuteProtocol")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.Protocol == securityv1.ProtocolType_PROTOCOL_TYPE_UNSPECIFIED {
 		return nil, status.Error(codes.InvalidArgument, "protocol must be specified")
 	}
@@ -319,6 +333,9 @@ func (s *SecurityServer) GetAuditLog(
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "security/GetAuditLog")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
 
 	pageSize := int(req.PageSize)
 	if pageSize <= 0 || pageSize > s.cfg.Audit.MaxPageSize {
@@ -399,7 +416,11 @@ func (s *SecurityServer) StreamSecurityAlerts(
 					Message: result.Summary,
 				},
 			}
-			if err := stream.Send(resp); err != nil {
+			_, alertSpan := trace.StartSpan(stream.Context(), "security/StreamSecurityAlerts/send_alert")
+			alertSpan.AddAttributes(trace.StringAttribute("threat_level", result.Level.String()))
+			err := stream.Send(resp)
+			alertSpan.End()
+			if err != nil {
 				s.log.Error("StreamSecurityAlerts: send error", slog.Any("err", err))
 				return status.Errorf(codes.Internal, "stream send: %v", err)
 			}
@@ -417,6 +438,10 @@ func (s *SecurityServer) AnalyzeFaces(
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "security/AnalyzeFaces")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if len(req.ImageData) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "image_data is required")
 	}
@@ -441,7 +466,7 @@ func (s *SecurityServer) AnalyzeFaces(
 	img = faceanalysis.ApplyOrientation(img, req.ImageData)
 
 	// Detect faces
-	dets, err := s.faceDetector.Detect(img)
+	dets, err := s.faceDetector.Detect(ctx, img)
 	if err != nil {
 		s.log.ErrorContext(ctx, "face detect failed", slog.Any("err", err))
 		return nil, status.Errorf(codes.Internal, "face detection: %v", err)

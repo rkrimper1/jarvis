@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -12,6 +13,7 @@ import (
 	commandv1 "github.com/rkrimper1/jarvis/api/pb/command"
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 type CommandServer struct {
@@ -28,6 +30,10 @@ func (s *CommandServer) RequestMemoryProfile(
 	ctx context.Context,
 	req *commandv1.RequestMemoryProfileRequest,
 ) (*commandv1.RequestMemoryProfileResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "command/RequestMemoryProfile")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.GetMeta().GetRequestId(), req.GetMeta().GetUserId())
+
 	profPath, gifPath, err := s.hp.Capture()
 	if err != nil {
 		s.log.Error("command: memory profile failed", slog.Any("err", err))

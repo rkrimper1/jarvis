@@ -8,6 +8,7 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
+	"go.opencensus.io/trace"
 )
 
 // Client wraps the Anthropic SDK for dialogue use.
@@ -35,6 +36,10 @@ type Turn struct {
 // Complete sends a message to Claude and streams the response, returning
 // the full accumulated reply. history should be ordered oldest-first.
 func (c *Client) Complete(ctx context.Context, systemPrompt string, history []Turn, utterance string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "jarvis/claude.Complete")
+	defer span.End()
+	span.AddAttributes(trace.StringAttribute("model", string(c.model)))
+
 	messages := make([]anthropic.MessageParam, 0, len(history)+1)
 
 	for _, t := range history {

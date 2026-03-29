@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -12,6 +13,7 @@ import (
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	intelligv1 "github.com/rkrimper1/jarvis/api/pb/intelligence"
 	"github.com/rkrimper1/jarvis/api/internal/intelligence/knowledge"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 type IntelligenceServer struct {
@@ -28,6 +30,10 @@ func (s *IntelligenceServer) QueryIntel(ctx context.Context, req *intelligv1.Que
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "intelligence/QueryIntel")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	s.log.InfoContext(ctx, "QueryIntel", slog.String("query", req.Query), slog.String("depth", req.Depth.String()))
 
 	record := s.kb.Query(req.Query, req.Depth)
@@ -50,6 +56,10 @@ func (s *IntelligenceServer) AnalyzeArtifact(ctx context.Context, req *intelligv
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "intelligence/AnalyzeArtifact")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	s.log.InfoContext(ctx, "AnalyzeArtifact", slog.String("artifact_id", req.ArtifactId))
 
 	composition, isKnown, isHostile, anomalies, elements :=
@@ -70,6 +80,10 @@ func (s *IntelligenceServer) CrossReference(ctx context.Context, req *intelligv1
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "intelligence/CrossReference")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if len(req.SubjectIds) < 2 {
 		return nil, status.Error(codes.InvalidArgument, "at least 2 subject_ids required for cross-reference")
 	}

@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/redis/go-redis/v9"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -18,6 +19,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/nlp/dialogue"
 	"github.com/rkrimper1/jarvis/api/internal/nlp/entity"
 	"github.com/rkrimper1/jarvis/api/internal/nlp/intent"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 // NLPServer is the gRPC server that implements nlpv1.NLPServiceServer.
@@ -61,6 +63,9 @@ func (s *NLPServer) ParseIntent(
 	if err := validateParseMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "nlp/ParseIntent")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
 
 	s.log.InfoContext(ctx, "ParseIntent",
 		slog.String("request_id", req.Meta.RequestId),
@@ -96,6 +101,10 @@ func (s *NLPServer) ProcessDialogueTurn(
 	if req.GetMeta() == nil {
 		return nil, status.Error(codes.InvalidArgument, "meta is required")
 	}
+	ctx, span := trace.StartSpan(ctx, "nlp/ProcessDialogueTurn")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.Utterance == "" {
 		return nil, status.Error(codes.InvalidArgument, "utterance is required")
 	}
@@ -160,8 +169,14 @@ func (s *NLPServer) StreamVoiceInput(
 			continue
 		}
 
+		ctx, uttSpan := trace.StartSpan(ctx, "nlp/StreamVoiceInput/classify")
 		result := s.classifier.Classify(req.RawText, req.ContextTags)
 		entities := s.extractor.Extract(req.RawText)
+		uttSpan.AddAttributes(
+			trace.StringAttribute("intent", result.Intent.String()),
+			trace.Float64Attribute("confidence", float64(result.Confidence)),
+		)
+		uttSpan.End()
 
 		resp := &nlpv1.StreamVoiceInputResponse{
 			Meta: &commonv1.ResponseMeta{

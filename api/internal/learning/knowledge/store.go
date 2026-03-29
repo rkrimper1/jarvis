@@ -16,6 +16,7 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
+	"go.opencensus.io/trace"
 
 	learningv1 "github.com/rkrimper1/jarvis/api/pb/learning"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -83,6 +84,9 @@ func (s *Store) Close() error { return s.db.Close() }
 // Search looks up fresh knowledge entries matching query.
 // Returns (results, found) where found is false when the DB has no fresh match.
 func (s *Store) Search(ctx context.Context, query string) ([]*learningv1.KnowledgeEntry, bool, error) {
+	ctx, span := trace.StartSpan(ctx, "jarvis/knowledge.Search")
+	defer span.End()
+
 	staleThreshold := time.Now().AddDate(0, 0, -s.staleDays).Format("2006-01-02 15:04:05")
 
 	// ── 1. FTS5 full-text match ───────────────────────────────────────
@@ -147,6 +151,10 @@ func (s *Store) List(ctx context.Context, limit int) ([]*learningv1.KnowledgeEnt
 // SearchWithClaude calls the Claude API with web_search tool, saves the
 // result, and returns the new entry.
 func (s *Store) SearchWithClaude(ctx context.Context, query string, src learningv1.KnowledgeSource) (*learningv1.KnowledgeEntry, error) {
+	ctx, span := trace.StartSpan(ctx, "jarvis/knowledge.SearchWithClaude")
+	defer span.End()
+	span.AddAttributes(trace.StringAttribute("source", src.String()))
+
 	if s.apiKey == "" {
 		return nil, fmt.Errorf("knowledge: ANTHROPIC_API_KEY not configured")
 	}
