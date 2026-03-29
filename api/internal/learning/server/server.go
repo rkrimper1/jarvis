@@ -154,6 +154,7 @@ func (s *LearningServer) GetModelPerformance(ctx context.Context, req *learningv
 // StreamAdaptationEvents fans out model improvement events to the caller.
 func (s *LearningServer) StreamAdaptationEvents(req *learningv1.StreamAdaptationEventsRequest, stream learningv1.LearningService_StreamAdaptationEventsServer) error {
 	subscriberID := req.GetMeta().GetRequestId()
+	middleware.AddRequestAttributes(stream.Context(), req.GetMeta().GetRequestId(), req.GetMeta().GetUserId())
 	s.log.Info("StreamAdaptationEvents: subscriber connected", slog.String("id", subscriberID))
 
 	ch, unsub := s.bus.Subscribe(subscriberID)

@@ -390,6 +390,7 @@ func (s *SecurityServer) StreamSecurityAlerts(
 	// for the broadcaster. This is distinct from UserId, which identifies the
 	// caller and is not guaranteed unique across concurrent stream connections.
 	subscriberID := req.GetMeta().GetRequestId()
+	middleware.AddRequestAttributes(stream.Context(), req.GetMeta().GetRequestId(), req.GetMeta().GetUserId())
 	s.log.Info("StreamSecurityAlerts subscriber connected",
 		slog.String("subscriber_id", subscriberID),
 	)
