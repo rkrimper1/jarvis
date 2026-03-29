@@ -46,6 +46,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
 - The SQLite knowledge DB at `~/.jarvis/knowledge.db` and users DB at `~/.jarvis/users.db` are mounted read/write so the container persists data to the host
+- OpenCensus distributed tracing exports to Stackdriver when `TRACING_ENABLED=true`; every gRPC span carries `original_request_id`, `x_request_id`, `request_id`, and `user_id` attributes
 
 ## Services
 
@@ -130,6 +131,9 @@ TTS_CHUNK_SIZE_BYTES=8192
 # ── GCP (required when STT_PROVIDER or TTS_PROVIDER = google) ─────
 GCP_PROJECT=your-project-id
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+
+# ── Distributed tracing ───────────────────────────────────────────
+TRACING_ENABLED=false                 # optional — set true to enable OpenCensus → Stackdriver export (default: false)
 
 # ── Heap profiler ─────────────────────────────────────────────────
 PPROF_DIR=/tmp/profiles               # optional — output dir (default: /tmp/profiles)
@@ -283,7 +287,7 @@ jarvis/
 │   │   │   ├── server/           # UserService — CRUD, profile, password, entitlements
 │   │   │   └── store/            # SQLite store (bcrypt, seed users, UUID ids)
 │   │   └── voice/server/
-│   ├── middleware/               # Shared gRPC interceptors (logging, recovery)
+│   ├── middleware/               # Shared gRPC interceptors (tracing, logging, recovery)
 │   ├── pb/                       # Generated Go stubs — gitignored, do not edit
 │   └── rest/                     # grpc-gateway custom error handler
 ├── gen/
