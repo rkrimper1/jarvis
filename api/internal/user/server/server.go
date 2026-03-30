@@ -39,7 +39,7 @@ func (s *UserServer) GetMe(ctx context.Context, req *userv1.GetMeRequest) (*user
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/GetMe")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.Username)
 
 	if req.Username == "" {
 		return nil, status.Error(codes.InvalidArgument, "username is required")
@@ -56,7 +56,7 @@ func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfil
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/UpdateProfile")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.Id)
 
 	if req.Id == "" {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -74,7 +74,7 @@ func (s *UserServer) ChangePassword(ctx context.Context, req *userv1.ChangePassw
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/ChangePassword")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.Id)
 
 	if req.Id == "" || req.CurrentPassword == "" || req.NewPassword == "" {
 		return nil, status.Error(codes.InvalidArgument, "id, current_password, and new_password are required")
@@ -93,7 +93,7 @@ func (s *UserServer) CreateUser(ctx context.Context, req *userv1.CreateUserReque
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/CreateUser")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.Username)
 
 	if req.Username == "" || req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "username and password are required")
@@ -115,7 +115,7 @@ func (s *UserServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/GetUser")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.GetId())
 
 	var u *userv1.User
 	var err error
@@ -157,7 +157,7 @@ func (s *UserServer) UpdateUser(ctx context.Context, req *userv1.UpdateUserReque
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/UpdateUser")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.Id)
 
 	if req.Id == "" {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
@@ -175,7 +175,7 @@ func (s *UserServer) DeleteUser(ctx context.Context, req *userv1.DeleteUserReque
 	if err := s.storeRequired(); err != nil { return nil, err }
 	ctx, span := trace.StartSpan(ctx, "user/DeleteUser")
 	defer span.End()
-	middleware.AddRequestAttributes(ctx, "", "")
+	middleware.AddRequestAttributes(ctx, "", req.Id)
 
 	if req.Id == "" {
 		return nil, status.Error(codes.InvalidArgument, "id is required")
