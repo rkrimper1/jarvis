@@ -11,6 +11,7 @@ import (
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
+	"go.opencensus.io/trace"
 	"golang.org/x/image/draw"
 )
 
@@ -49,6 +50,9 @@ COMMENTARY: [one short funny comment, max 10 words, in JARVIS's dry witty style]
 // Analyze crops the detected face from img, sends it to Claude, and returns
 // the sentiment label + commentary. Falls back to stub values on any error.
 func (a *Analyzer) Analyze(ctx context.Context, img image.Image, det Detection) FaceResult {
+	ctx, span := trace.StartSpan(ctx, "jarvis/faceanalysis.Analyze")
+	defer span.End()
+
 	if a.client == nil {
 		return FaceResult{Sentiment: "UNKNOWN", Commentary: "Sir, facial recognition module offline."}
 	}

@@ -29,6 +29,30 @@ curl http://localhost:8080/v1/business/schedule/tony-stark \
 
 ---
 
+## Observability
+
+JARVIS uses OpenCensus for distributed tracing, exporting spans to Stackdriver when enabled.
+
+**Enabling tracing:**
+Set `TRACING_ENABLED=true` in the environment. When disabled (the default), all spans use `NeverSample()` and no exporter is registered. When enabled, the Stackdriver exporter is initialised at startup and flushed on shutdown; `GCP_PROJECT` and `GOOGLE_APPLICATION_CREDENTIALS` must be set.
+
+**Span naming:**
+- gRPC RPCs: `<package>.<Service>/<Method>` (the full gRPC method path, e.g. `jarvis.nlp.NLPService/ProcessDialogueTurn`)
+- Internal calls: `jarvis/<function>`
+
+**Span attributes added by the tracing interceptors:**
+
+| Attribute | Source |
+|---|---|
+| `original_request_id` | UUID generated per RPC by `UnaryTracing` / `StreamTracing` |
+| `x_request_id` | `x-request-id` header forwarded by the client in gRPC metadata |
+| `request_id` | From `RequestMeta.request_id` — added by handlers via `middleware.AddRequestAttributes` |
+| `user_id` | From `RequestMeta.user_id` — added by handlers via `middleware.AddRequestAttributes` |
+
+The `original_request_id` is also available to all downstream code via `middleware.OriginalRequestIDFromCtx(ctx)`.
+
+---
+
 ## Command Service
 
 ### Request Memory Profile

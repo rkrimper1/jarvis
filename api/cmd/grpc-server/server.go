@@ -66,10 +66,12 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 		grpc.MaxRecvMsgSize(maxRecv),
 		grpc.MaxSendMsgSize(maxSend),
 		grpc.ChainUnaryInterceptor(
+			middleware.UnaryTracing(),
 			middleware.UnaryRecovery(log),
 			middleware.UnaryLogger(log),
 		),
 		grpc.ChainStreamInterceptor(
+			middleware.StreamTracing(),
 			middleware.StreamRecovery(log),
 			middleware.StreamLogger(log),
 		),

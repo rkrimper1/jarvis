@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"time"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,6 +25,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/voice/audio"
 	"github.com/rkrimper1/jarvis/api/internal/voice/config"
 	"github.com/rkrimper1/jarvis/api/internal/voice/session"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 // VoiceServer implements voicev1.VoiceServiceServer.
@@ -265,6 +267,9 @@ func (s *VoiceServer) processUtterance(
 	pcm []byte,
 	seqNum int64,
 ) error {
+	ctx, span := trace.StartSpan(ctx, "voice/Converse/processUtterance")
+	defer span.End()
+
 	// 1. PROCESSING state
 	s.sessions.SetState(sess.ID, session.StateProcessing)
 	if err := s.sendStatus(stream, sess.ID, voicev1.StatusEvent_STATE_PROCESSING, "", voicev1.VoiceErrorCode_VOICE_ERROR_CODE_UNSPECIFIED); err != nil {
@@ -448,6 +453,9 @@ func (s *VoiceServer) GetSession(
 	if req.GetMeta() == nil {
 		return nil, status.Error(codes.InvalidArgument, "meta is required")
 	}
+	ctx, span := trace.StartSpan(ctx, "voice/GetSession")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
 
 	sess, ok := s.sessions.Get(req.SessionId)
 	if !ok {
@@ -477,6 +485,10 @@ func (s *VoiceServer) ListSessions(
 	if req.GetMeta() == nil {
 		return nil, status.Error(codes.InvalidArgument, "meta is required")
 	}
+	ctx, span := trace.StartSpan(ctx, "voice/ListSessions")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	// Stub — production would query a persistent store (Firestore / Postgres).
 	return &voicev1.ListSessionsResponse{
 		Meta: &commonv1.ResponseMeta{

@@ -12,6 +12,9 @@ import (
 	"syscall"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/stackdriver"
+	"go.opencensus.io/trace"
+
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
@@ -29,6 +32,10 @@ func main() {
 	shutdownTimeout := envDuration("SHUTDOWN_TIMEOUT", 10*time.Second)
 	maxRecv         := envInt("MAX_RECV_MSG_SIZE", 8*1024*1024)
 	maxSend         := envInt("MAX_SEND_MSG_SIZE", 8*1024*1024)
+
+	tracingEnabled := envString("TRACING_ENABLED", "false") == "true"
+	flushTraces := initTracing(tracingEnabled, log)
+	defer flushTraces()
 
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	defer rootCancel()
@@ -153,6 +160,28 @@ func main() {
 		log.Warn("shutdown timeout — forcing stop")
 		grpcSrv.Stop()
 	}
+}
+
+func initTracing(enabled bool, log *slog.Logger) func() {
+	if !enabled {
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.NeverSample()})
+		log.Info("tracing disabled — set TRACING_ENABLED=true to enable")
+		return func() {}
+	}
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		OnError: func(e error) {
+			log.Error("stackdriver trace export error", slog.Any("err", e))
+		},
+	})
+	if err != nil {
+		log.Error("stackdriver exporter init failed — tracing disabled", slog.Any("err", err))
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.NeverSample()})
+		return func() {}
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	log.Info("tracing enabled", slog.String("exporter", "stackdriver"))
+	return func() { exporter.Flush() }
 }
 
 func envInt(key string, def int) int {

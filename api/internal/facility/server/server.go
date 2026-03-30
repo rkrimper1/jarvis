@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -13,6 +14,7 @@ import (
 	facilityv1 "github.com/rkrimper1/jarvis/api/pb/facility"
 	"github.com/rkrimper1/jarvis/api/internal/facility/environment"
 	"github.com/rkrimper1/jarvis/api/internal/facility/zone"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 type FacilityServer struct {
@@ -29,6 +31,10 @@ func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.Cont
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "facility/ControlSystem")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	s.log.InfoContext(ctx, "ControlSystem",
 		slog.String("zone_id", req.ZoneId),
 		slog.String("system", req.System.String()),
@@ -51,6 +57,10 @@ func (s *FacilityServer) ManageAccess(ctx context.Context, req *facilityv1.Manag
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "facility/ManageAccess")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	s.log.InfoContext(ctx, "ManageAccess",
 		slog.String("subject_id", req.SubjectId),
 		slog.String("zone_id", req.ZoneId),
@@ -81,6 +91,10 @@ func (s *FacilityServer) GetEnvironmentReading(ctx context.Context, req *facilit
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "facility/GetEnvironmentReading")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	return &facilityv1.GetEnvironmentReadingResponse{
 		Meta:    metaOK(req.Meta.RequestId),
 		Reading: environment.Reading(req.ZoneId),

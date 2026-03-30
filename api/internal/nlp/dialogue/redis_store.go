@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.opencensus.io/trace"
 )
 
 // RedisStore persists dialogue sessions in Redis.
@@ -35,6 +36,9 @@ func sessionKey(sessionID string) string {
 // Load retrieves the conversation history for a session.
 // Returns an empty slice if the session does not exist.
 func (s *RedisStore) Load(ctx context.Context, sessionID string) ([]storedTurn, error) {
+	ctx, span := trace.StartSpan(ctx, "jarvis/dialogue.Load")
+	defer span.End()
+
 	data, err := s.rdb.Get(ctx, sessionKey(sessionID)).Bytes()
 	if err == redis.Nil {
 		return []storedTurn{}, nil
@@ -52,6 +56,9 @@ func (s *RedisStore) Load(ctx context.Context, sessionID string) ([]storedTurn, 
 
 // Append adds a user + assistant turn pair and resets the TTL.
 func (s *RedisStore) Append(ctx context.Context, sessionID, userText, assistantText string, maxTurns int) error {
+	ctx, span := trace.StartSpan(ctx, "jarvis/dialogue.Append")
+	defer span.End()
+
 	turns, err := s.Load(ctx, sessionID)
 	if err != nil {
 		return err

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -16,6 +17,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/business-ops/reports"
 	"github.com/rkrimper1/jarvis/api/internal/business-ops/tasks"
 	"github.com/rkrimper1/jarvis/api/internal/integrations/email"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 // BusinessOpsServer implements businessv1.BusinessOpsServiceServer.
@@ -50,6 +52,10 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "business/ScheduleEvent")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "title is required")
 	}
@@ -77,7 +83,7 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 				OrganizerEmail: s.smtp.User,
 			})
 			subject := fmt.Sprintf("Invite: %s", req.Title)
-			if err := email.SendInvite(*s.smtp, subject, ics, req.Attendees); err != nil {
+			if err := email.SendInvite(ctx, *s.smtp, subject, ics, req.Attendees); err != nil {
 				s.log.Warn("calendar invite not sent", slog.String("event_id", id), slog.Any("error", err))
 			} else {
 				s.log.Info("calendar invite sent", slog.String("event_id", id), slog.String("organizer", s.smtp.Organizer))
@@ -97,6 +103,10 @@ func (s *BusinessOpsServer) GetSchedule(ctx context.Context, req *businessv1.Get
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "business/GetSchedule")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	s.log.InfoContext(ctx, "GetSchedule", slog.String("subject_id", req.SubjectId))
 
 	events := s.cal.List(req.SubjectId, req.GetFrom().AsTime(), req.GetTo().AsTime())
@@ -107,6 +117,10 @@ func (s *BusinessOpsServer) CreateTask(ctx context.Context, req *businessv1.Crea
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "business/CreateTask")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.Title == "" {
 		return nil, status.Error(codes.InvalidArgument, "title is required")
 	}
@@ -124,6 +138,10 @@ func (s *BusinessOpsServer) SendMessage(ctx context.Context, req *businessv1.Sen
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "business/SendMessage")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if len(req.Recipients) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "at least one recipient required")
 	}
@@ -149,6 +167,10 @@ func (s *BusinessOpsServer) GenerateReport(ctx context.Context, req *businessv1.
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "business/GenerateReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.ReportType == "" {
 		return nil, status.Error(codes.InvalidArgument, "report_type is required")
 	}

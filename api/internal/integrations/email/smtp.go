@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"mime/multipart"
@@ -10,6 +11,8 @@ import (
 	"net/textproto"
 	"os"
 	"strings"
+
+	"go.opencensus.io/trace"
 )
 
 // Config holds SMTP connection settings read from environment variables.
@@ -51,7 +54,10 @@ func ConfigFromEnv() (Config, error) {
 
 // SendInvite sends a calendar invite to all recipients.
 // The organizer (SMTP_TO) is always included even if not in the attendees list.
-func SendInvite(cfg Config, subject, icsPayload string, attendees []string) error {
+func SendInvite(ctx context.Context, cfg Config, subject, icsPayload string, attendees []string) error {
+	_, span := trace.StartSpan(ctx, "jarvis/email.SendInvite")
+	defer span.End()
+
 	recipients := mergeRecipients(cfg.Organizer, attendees)
 
 	auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)

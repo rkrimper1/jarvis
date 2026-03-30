@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -17,6 +18,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/learning/knowledge"
 	"github.com/rkrimper1/jarvis/api/internal/learning/metrics"
 	"github.com/rkrimper1/jarvis/api/internal/learning/profile"
+	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
 // Config holds optional knowledge-store settings injected from env vars.
@@ -68,6 +70,10 @@ func (s *LearningServer) SubmitFeedback(ctx context.Context, req *learningv1.Sub
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "learning/SubmitFeedback")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.InteractionId == "" {
 		return nil, status.Error(codes.InvalidArgument, "interaction_id is required")
 	}
@@ -108,6 +114,10 @@ func (s *LearningServer) GetBehaviorProfile(ctx context.Context, req *learningv1
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "learning/GetBehaviorProfile")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.SubjectId == "" {
 		return nil, status.Error(codes.InvalidArgument, "subject_id is required")
 	}
@@ -123,6 +133,10 @@ func (s *LearningServer) GetModelPerformance(ctx context.Context, req *learningv
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "learning/GetModelPerformance")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	s.log.InfoContext(ctx, "GetModelPerformance", slog.String("domain", req.Domain.String()))
 
 	snap := s.metrics.Get(req.Domain, req.GetFrom().AsTime(), req.GetTo().AsTime())
@@ -140,6 +154,7 @@ func (s *LearningServer) GetModelPerformance(ctx context.Context, req *learningv
 // StreamAdaptationEvents fans out model improvement events to the caller.
 func (s *LearningServer) StreamAdaptationEvents(req *learningv1.StreamAdaptationEventsRequest, stream learningv1.LearningService_StreamAdaptationEventsServer) error {
 	subscriberID := req.GetMeta().GetRequestId()
+	middleware.AddRequestAttributes(stream.Context(), req.GetMeta().GetRequestId(), req.GetMeta().GetUserId())
 	s.log.Info("StreamAdaptationEvents: subscriber connected", slog.String("id", subscriberID))
 
 	ch, unsub := s.bus.Subscribe(subscriberID)
@@ -153,7 +168,10 @@ func (s *LearningServer) StreamAdaptationEvents(req *learningv1.StreamAdaptation
 			if !ok {
 				return nil
 			}
-			if err := stream.Send(&learningv1.StreamAdaptationEventsResponse{Event: ev}); err != nil {
+			_, evSpan := trace.StartSpan(stream.Context(), "learning/StreamAdaptationEvents/send_event")
+			err := stream.Send(&learningv1.StreamAdaptationEventsResponse{Event: ev})
+			evSpan.End()
+			if err != nil {
 				return status.Errorf(codes.Internal, "stream send: %v", err)
 			}
 		}
@@ -165,6 +183,10 @@ func (s *LearningServer) AddKnowledge(ctx context.Context, req *learningv1.AddKn
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "learning/AddKnowledge")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.Query == "" {
 		return nil, status.Error(codes.InvalidArgument, "query is required")
 	}
@@ -194,6 +216,10 @@ func (s *LearningServer) ListKnowledge(ctx context.Context, req *learningv1.List
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "learning/ListKnowledge")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if s.knowledge == nil {
 		return nil, status.Error(codes.FailedPrecondition, "knowledge store not configured (set KNOWLEDGE_DB_PATH)")
 	}
@@ -219,6 +245,10 @@ func (s *LearningServer) SearchKnowledge(ctx context.Context, req *learningv1.Se
 	if err := validateMeta(req.GetMeta()); err != nil {
 		return nil, err
 	}
+	ctx, span := trace.StartSpan(ctx, "learning/SearchKnowledge")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
 	if req.Query == "" {
 		return nil, status.Error(codes.InvalidArgument, "query is required")
 	}

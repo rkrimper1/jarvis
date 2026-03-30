@@ -3,11 +3,13 @@
 package faceanalysis
 
 import (
+	"context"
 	"fmt"
 	"image"
 	"os"
 
 	pigo "github.com/esimov/pigo/core"
+	"go.opencensus.io/trace"
 )
 
 // Detection holds the bounding box for one detected face.
@@ -64,7 +66,10 @@ func NewDetector(cascadePath string, params DetectParams) (_ *Detector, err erro
 
 // Detect returns bounding boxes for all faces found in img.
 // Returns an empty slice (not an error) when no faces are detected.
-func (d *Detector) Detect(img image.Image) ([]Detection, error) {
+func (d *Detector) Detect(ctx context.Context, img image.Image) ([]Detection, error) {
+	_, span := trace.StartSpan(ctx, "jarvis/faceanalysis.Detect")
+	defer span.End()
+
 	pixels, cols, rows := toGrayscale(img)
 
 	cParams := pigo.CascadeParams{
