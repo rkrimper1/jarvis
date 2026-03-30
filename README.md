@@ -11,22 +11,22 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   ┌─────────────────────────────────────────────────────────────┐
   │                      Client Layer                           │
   │                                                             │
-  │   Web HUD :5173          iOS / Android       Voice / STT   │
-  │   (SvelteKit)            (Swift / Kotlin)    (gRPC stream) │
-  └───────────────┬──────────────────┬───────────────┬─────────┘
+  │   Web HUD :5173          iOS / Android       Voice / STT    │
+  │   (SvelteKit)            (Swift / Kotlin)    (gRPC stream)  │
+  └───────────────┬──────────────────┬───────────────┬──────────┘
                   │  REST :8080      │               │ gRPC :50051
                   ▼                  ▼               ▼
   ┌─────────────────────────────────────────────────────────────┐
   │                    J.A.R.V.I.S.                             │
   │                  Single Go Binary                           │
   │                                                             │
-  │   grpc-gateway (in-process REST → gRPC transcoder)         │
+  │   grpc-gateway (in-process REST → gRPC transcoder)          │
   │                                                             │
-  │  ┌──────────────────────────────────────────────────────┐  │
-  │  │  command      │ business-ops │ facility               │  │
-  │  │  intelligence │ learning     │ security  │ user       │  │
-  │  │  nlp ◄──────► voice (in-process)                     │  │
-  │  └──────────────────────────────────────────────────────┘  │
+  │  ┌──────────────────────────────────────────────────────┐   │
+  │  │  command      │ business-ops │ facility              │   │
+  │  │  intelligence │ learning     │ security  │ user      │   │
+  │  │  nlp ◄──────► voice (in-process)                     │   │
+  │  └──────────────────────────────────────────────────────┘   │
   │                                                             │
   │   Claude API (NLP · knowledge search · face sentiment)      │
   │   Redis (session state)   SMTP (invites)                    │
