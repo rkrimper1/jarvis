@@ -23,6 +23,8 @@ const (
 	FacilityService_ManageAccess_FullMethodName          = "/jarvis.facility.FacilityService/ManageAccess"
 	FacilityService_GetEnvironmentReading_FullMethodName = "/jarvis.facility.FacilityService/GetEnvironmentReading"
 	FacilityService_StreamEnvironment_FullMethodName     = "/jarvis.facility.FacilityService/StreamEnvironment"
+	FacilityService_ListAlexaDevices_FullMethodName      = "/jarvis.facility.FacilityService/ListAlexaDevices"
+	FacilityService_SendAlexaCommand_FullMethodName      = "/jarvis.facility.FacilityService/SendAlexaCommand"
 )
 
 // FacilityServiceClient is the client API for FacilityService service.
@@ -33,6 +35,8 @@ type FacilityServiceClient interface {
 	ManageAccess(ctx context.Context, in *ManageAccessRequest, opts ...grpc.CallOption) (*ManageAccessResponse, error)
 	GetEnvironmentReading(ctx context.Context, in *GetEnvironmentReadingRequest, opts ...grpc.CallOption) (*GetEnvironmentReadingResponse, error)
 	StreamEnvironment(ctx context.Context, in *StreamEnvironmentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamEnvironmentResponse], error)
+	ListAlexaDevices(ctx context.Context, in *ListAlexaDevicesRequest, opts ...grpc.CallOption) (*ListAlexaDevicesResponse, error)
+	SendAlexaCommand(ctx context.Context, in *SendAlexaCommandRequest, opts ...grpc.CallOption) (*SendAlexaCommandResponse, error)
 }
 
 type facilityServiceClient struct {
@@ -92,6 +96,26 @@ func (c *facilityServiceClient) StreamEnvironment(ctx context.Context, in *Strea
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type FacilityService_StreamEnvironmentClient = grpc.ServerStreamingClient[StreamEnvironmentResponse]
 
+func (c *facilityServiceClient) ListAlexaDevices(ctx context.Context, in *ListAlexaDevicesRequest, opts ...grpc.CallOption) (*ListAlexaDevicesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAlexaDevicesResponse)
+	err := c.cc.Invoke(ctx, FacilityService_ListAlexaDevices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *facilityServiceClient) SendAlexaCommand(ctx context.Context, in *SendAlexaCommandRequest, opts ...grpc.CallOption) (*SendAlexaCommandResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendAlexaCommandResponse)
+	err := c.cc.Invoke(ctx, FacilityService_SendAlexaCommand_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FacilityServiceServer is the server API for FacilityService service.
 // All implementations must embed UnimplementedFacilityServiceServer
 // for forward compatibility.
@@ -100,6 +124,8 @@ type FacilityServiceServer interface {
 	ManageAccess(context.Context, *ManageAccessRequest) (*ManageAccessResponse, error)
 	GetEnvironmentReading(context.Context, *GetEnvironmentReadingRequest) (*GetEnvironmentReadingResponse, error)
 	StreamEnvironment(*StreamEnvironmentRequest, grpc.ServerStreamingServer[StreamEnvironmentResponse]) error
+	ListAlexaDevices(context.Context, *ListAlexaDevicesRequest) (*ListAlexaDevicesResponse, error)
+	SendAlexaCommand(context.Context, *SendAlexaCommandRequest) (*SendAlexaCommandResponse, error)
 	mustEmbedUnimplementedFacilityServiceServer()
 }
 
@@ -121,6 +147,12 @@ func (UnimplementedFacilityServiceServer) GetEnvironmentReading(context.Context,
 }
 func (UnimplementedFacilityServiceServer) StreamEnvironment(*StreamEnvironmentRequest, grpc.ServerStreamingServer[StreamEnvironmentResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamEnvironment not implemented")
+}
+func (UnimplementedFacilityServiceServer) ListAlexaDevices(context.Context, *ListAlexaDevicesRequest) (*ListAlexaDevicesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAlexaDevices not implemented")
+}
+func (UnimplementedFacilityServiceServer) SendAlexaCommand(context.Context, *SendAlexaCommandRequest) (*SendAlexaCommandResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendAlexaCommand not implemented")
 }
 func (UnimplementedFacilityServiceServer) mustEmbedUnimplementedFacilityServiceServer() {}
 func (UnimplementedFacilityServiceServer) testEmbeddedByValue()                         {}
@@ -208,6 +240,42 @@ func _FacilityService_StreamEnvironment_Handler(srv interface{}, stream grpc.Ser
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type FacilityService_StreamEnvironmentServer = grpc.ServerStreamingServer[StreamEnvironmentResponse]
 
+func _FacilityService_ListAlexaDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAlexaDevicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FacilityServiceServer).ListAlexaDevices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FacilityService_ListAlexaDevices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FacilityServiceServer).ListAlexaDevices(ctx, req.(*ListAlexaDevicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FacilityService_SendAlexaCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendAlexaCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FacilityServiceServer).SendAlexaCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FacilityService_SendAlexaCommand_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FacilityServiceServer).SendAlexaCommand(ctx, req.(*SendAlexaCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FacilityService_ServiceDesc is the grpc.ServiceDesc for FacilityService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -226,6 +294,14 @@ var FacilityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetEnvironmentReading",
 			Handler:    _FacilityService_GetEnvironmentReading_Handler,
+		},
+		{
+			MethodName: "ListAlexaDevices",
+			Handler:    _FacilityService_ListAlexaDevices_Handler,
+		},
+		{
+			MethodName: "SendAlexaCommand",
+			Handler:    _FacilityService_SendAlexaCommand_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

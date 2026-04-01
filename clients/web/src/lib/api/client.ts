@@ -229,6 +229,23 @@ export const intel = {
 
 // ── Facility ─────────────────────────────────────────────────────────
 
+export interface AlexaDevice {
+	serialNumber?: string;
+	name: string;
+	deviceFamily?: string;
+	deviceType?: string;
+	online: boolean;
+	isSmartHome: boolean;
+	applianceId?: string;
+	capabilities?: string[];
+	powerState?: string; // "ON", "OFF", or empty if unknown
+}
+
+export interface ListAlexaDevicesResponse {
+	meta: ResponseMeta;
+	devices: AlexaDevice[];
+}
+
 export const facility = {
 	getEnvironment(zoneId: string) {
 		return call('GET', `/facility/zones/${zoneId}/environment`);
@@ -240,6 +257,17 @@ export const facility = {
 			system,
 			command,
 			settings
+		});
+	},
+	listAlexaDevices(): Promise<ListAlexaDevicesResponse> {
+		return call('GET', `/facility/alexa/devices?meta.request_id=${reqId()}`);
+	},
+	sendAlexaCommand(applianceId: string, action: string, parameters: Record<string, string> = {}): Promise<{ meta: ResponseMeta }> {
+		return call('POST', '/facility/alexa/command', {
+			meta: { request_id: reqId() },
+			appliance_id: applianceId,
+			action,
+			parameters
 		});
 	}
 };

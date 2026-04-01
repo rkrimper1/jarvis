@@ -15,6 +15,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
 
+	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
@@ -39,6 +40,19 @@ func main() {
 
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	defer rootCancel()
+
+	alexaDebug := envString("ALEXA_DEBUG", "false") == "true"
+
+	var alexaClient *alexaclient.Client
+	if cookiesPath := envString("ALEXA_COOKIES_PATH", ""); cookiesPath != "" {
+		var err error
+		alexaClient, err = alexaclient.New(rootCtx, cookiesPath)
+		if err != nil {
+			log.Warn("alexa client init failed — Alexa features disabled", slog.Any("err", err))
+		} else {
+			log.Info("alexa client ready", slog.String("cookies", cookiesPath))
+		}
+	}
 
 	hp := &profiler.HeapProfiler{
 		OutDir:   envString("PPROF_DIR", "/tmp/profiles"),
@@ -83,7 +97,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	})
+	}, alexaClient, alexaDebug)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)

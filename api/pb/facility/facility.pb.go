@@ -818,6 +818,322 @@ func (x *StreamEnvironmentResponse) GetReading() *EnvironmentReading {
 	return nil
 }
 
+type AlexaDevice struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SerialNumber  string                 `protobuf:"bytes,1,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	DeviceFamily  string                 `protobuf:"bytes,3,opt,name=device_family,json=deviceFamily,proto3" json:"device_family,omitempty"` // ECHO, TABLET, WHA, UNKNOWN
+	DeviceType    string                 `protobuf:"bytes,4,opt,name=device_type,json=deviceType,proto3" json:"device_type,omitempty"`       // manufacturer/model description
+	Online        bool                   `protobuf:"varint,5,opt,name=online,proto3" json:"online,omitempty"`
+	IsSmartHome   bool                   `protobuf:"varint,6,opt,name=is_smart_home,json=isSmartHome,proto3" json:"is_smart_home,omitempty"` // true → appliance; supports SendAlexaCommand
+	ApplianceId   string                 `protobuf:"bytes,7,opt,name=appliance_id,json=applianceId,proto3" json:"appliance_id,omitempty"`    // populated for smart home devices
+	Capabilities  []string               `protobuf:"bytes,8,rep,name=capabilities,proto3" json:"capabilities,omitempty"`                     // LIGHT, THERMOSTAT, LOCK, SWITCH, etc.
+	PowerState    string                 `protobuf:"bytes,9,opt,name=power_state,json=powerState,proto3" json:"power_state,omitempty"`       // ON, OFF, or empty if unknown
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AlexaDevice) Reset() {
+	*x = AlexaDevice{}
+	mi := &file_pb_facility_facility_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AlexaDevice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AlexaDevice) ProtoMessage() {}
+
+func (x *AlexaDevice) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_facility_facility_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AlexaDevice.ProtoReflect.Descriptor instead.
+func (*AlexaDevice) Descriptor() ([]byte, []int) {
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *AlexaDevice) GetSerialNumber() string {
+	if x != nil {
+		return x.SerialNumber
+	}
+	return ""
+}
+
+func (x *AlexaDevice) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AlexaDevice) GetDeviceFamily() string {
+	if x != nil {
+		return x.DeviceFamily
+	}
+	return ""
+}
+
+func (x *AlexaDevice) GetDeviceType() string {
+	if x != nil {
+		return x.DeviceType
+	}
+	return ""
+}
+
+func (x *AlexaDevice) GetOnline() bool {
+	if x != nil {
+		return x.Online
+	}
+	return false
+}
+
+func (x *AlexaDevice) GetIsSmartHome() bool {
+	if x != nil {
+		return x.IsSmartHome
+	}
+	return false
+}
+
+func (x *AlexaDevice) GetApplianceId() string {
+	if x != nil {
+		return x.ApplianceId
+	}
+	return ""
+}
+
+func (x *AlexaDevice) GetCapabilities() []string {
+	if x != nil {
+		return x.Capabilities
+	}
+	return nil
+}
+
+func (x *AlexaDevice) GetPowerState() string {
+	if x != nil {
+		return x.PowerState
+	}
+	return ""
+}
+
+type ListAlexaDevicesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAlexaDevicesRequest) Reset() {
+	*x = ListAlexaDevicesRequest{}
+	mi := &file_pb_facility_facility_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAlexaDevicesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAlexaDevicesRequest) ProtoMessage() {}
+
+func (x *ListAlexaDevicesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_facility_facility_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAlexaDevicesRequest.ProtoReflect.Descriptor instead.
+func (*ListAlexaDevicesRequest) Descriptor() ([]byte, []int) {
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListAlexaDevicesRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type ListAlexaDevicesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Devices       []*AlexaDevice         `protobuf:"bytes,2,rep,name=devices,proto3" json:"devices,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAlexaDevicesResponse) Reset() {
+	*x = ListAlexaDevicesResponse{}
+	mi := &file_pb_facility_facility_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAlexaDevicesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAlexaDevicesResponse) ProtoMessage() {}
+
+func (x *ListAlexaDevicesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_facility_facility_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAlexaDevicesResponse.ProtoReflect.Descriptor instead.
+func (*ListAlexaDevicesResponse) Descriptor() ([]byte, []int) {
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListAlexaDevicesResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ListAlexaDevicesResponse) GetDevices() []*AlexaDevice {
+	if x != nil {
+		return x.Devices
+	}
+	return nil
+}
+
+type SendAlexaCommandRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	ApplianceId   string                 `protobuf:"bytes,2,opt,name=appliance_id,json=applianceId,proto3" json:"appliance_id,omitempty"`
+	Action        string                 `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`                                                                                   // turnOn, turnOff, setBrightness, setTargetTemperature, lock, unlock
+	Parameters    map[string]string      `protobuf:"bytes,4,rep,name=parameters,proto3" json:"parameters,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // e.g. brightness=50, targetTemperature=72
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendAlexaCommandRequest) Reset() {
+	*x = SendAlexaCommandRequest{}
+	mi := &file_pb_facility_facility_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendAlexaCommandRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendAlexaCommandRequest) ProtoMessage() {}
+
+func (x *SendAlexaCommandRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_facility_facility_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendAlexaCommandRequest.ProtoReflect.Descriptor instead.
+func (*SendAlexaCommandRequest) Descriptor() ([]byte, []int) {
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SendAlexaCommandRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *SendAlexaCommandRequest) GetApplianceId() string {
+	if x != nil {
+		return x.ApplianceId
+	}
+	return ""
+}
+
+func (x *SendAlexaCommandRequest) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *SendAlexaCommandRequest) GetParameters() map[string]string {
+	if x != nil {
+		return x.Parameters
+	}
+	return nil
+}
+
+type SendAlexaCommandResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendAlexaCommandResponse) Reset() {
+	*x = SendAlexaCommandResponse{}
+	mi := &file_pb_facility_facility_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendAlexaCommandResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendAlexaCommandResponse) ProtoMessage() {}
+
+func (x *SendAlexaCommandResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_facility_facility_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendAlexaCommandResponse.ProtoReflect.Descriptor instead.
+func (*SendAlexaCommandResponse) Descriptor() ([]byte, []int) {
+	return file_pb_facility_facility_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SendAlexaCommandResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
 var File_pb_facility_facility_proto protoreflect.FileDescriptor
 
 const file_pb_facility_facility_proto_rawDesc = "" +
@@ -878,7 +1194,36 @@ const file_pb_facility_facility_proto_rawDesc = "" +
 	"\azone_id\x18\x02 \x01(\tR\x06zoneId\"\x8b\x01\n" +
 	"\x19StreamEnvironmentResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12=\n" +
-	"\areading\x18\x02 \x01(\v2#.jarvis.facility.EnvironmentReadingR\areading*\xb3\x01\n" +
+	"\areading\x18\x02 \x01(\v2#.jarvis.facility.EnvironmentReadingR\areading\"\xb0\x02\n" +
+	"\vAlexaDevice\x12#\n" +
+	"\rserial_number\x18\x01 \x01(\tR\fserialNumber\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
+	"\rdevice_family\x18\x03 \x01(\tR\fdeviceFamily\x12\x1f\n" +
+	"\vdevice_type\x18\x04 \x01(\tR\n" +
+	"deviceType\x12\x16\n" +
+	"\x06online\x18\x05 \x01(\bR\x06online\x12\"\n" +
+	"\ris_smart_home\x18\x06 \x01(\bR\visSmartHome\x12!\n" +
+	"\fappliance_id\x18\a \x01(\tR\vapplianceId\x12\"\n" +
+	"\fcapabilities\x18\b \x03(\tR\fcapabilities\x12\x1f\n" +
+	"\vpower_state\x18\t \x01(\tR\n" +
+	"powerState\"I\n" +
+	"\x17ListAlexaDevicesRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x83\x01\n" +
+	"\x18ListAlexaDevicesResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x126\n" +
+	"\adevices\x18\x02 \x03(\v2\x1c.jarvis.facility.AlexaDeviceR\adevices\"\x9d\x02\n" +
+	"\x17SendAlexaCommandRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12!\n" +
+	"\fappliance_id\x18\x02 \x01(\tR\vapplianceId\x12\x16\n" +
+	"\x06action\x18\x03 \x01(\tR\x06action\x12X\n" +
+	"\n" +
+	"parameters\x18\x04 \x03(\v28.jarvis.facility.SendAlexaCommandRequest.ParametersEntryR\n" +
+	"parameters\x1a=\n" +
+	"\x0fParametersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"K\n" +
+	"\x18SendAlexaCommandResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta*\xb3\x01\n" +
 	"\bZoneType\x12\x19\n" +
 	"\x15ZONE_TYPE_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rZONE_TYPE_LAB\x10\x01\x12\x16\n" +
@@ -895,12 +1240,14 @@ const file_pb_facility_facility_proto_rawDesc = "" +
 	"\x11SYSTEM_TYPE_POWER\x10\x03\x12\x1c\n" +
 	"\x18SYSTEM_TYPE_ACCESS_DOORS\x10\x04\x12\x17\n" +
 	"\x13SYSTEM_TYPE_CAMERAS\x10\x05\x12\x15\n" +
-	"\x11SYSTEM_TYPE_COMMS\x10\x062\xc9\x04\n" +
+	"\x11SYSTEM_TYPE_COMMS\x10\x062\xe8\x06\n" +
 	"\x0fFacilityService\x12\x8e\x01\n" +
 	"\rControlSystem\x12%.jarvis.facility.ControlSystemRequest\x1a&.jarvis.facility.ControlSystemResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/facility/zones/{zone_id}/system\x12\x8b\x01\n" +
 	"\fManageAccess\x12$.jarvis.facility.ManageAccessRequest\x1a%.jarvis.facility.ManageAccessResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/facility/zones/{zone_id}/access\x12\xa8\x01\n" +
 	"\x15GetEnvironmentReading\x12-.jarvis.facility.GetEnvironmentReadingRequest\x1a..jarvis.facility.GetEnvironmentReadingResponse\"0\x82\xd3\xe4\x93\x02*\x12(/v1/facility/zones/{zone_id}/environment\x12l\n" +
-	"\x11StreamEnvironment\x12).jarvis.facility.StreamEnvironmentRequest\x1a*.jarvis.facility.StreamEnvironmentResponse0\x01B\xae\x01\n" +
+	"\x11StreamEnvironment\x12).jarvis.facility.StreamEnvironmentRequest\x1a*.jarvis.facility.StreamEnvironmentResponse0\x01\x12\x8b\x01\n" +
+	"\x10ListAlexaDevices\x12(.jarvis.facility.ListAlexaDevicesRequest\x1a).jarvis.facility.ListAlexaDevicesResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/facility/alexa/devices\x12\x8e\x01\n" +
+	"\x10SendAlexaCommand\x12(.jarvis.facility.SendAlexaCommandRequest\x1a).jarvis.facility.SendAlexaCommandResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/facility/alexa/commandB\xae\x01\n" +
 	"\x13com.jarvis.facilityB\rFacilityProtoP\x01Z+github.com/rkrimper1/jarvis/api/pb/facility\xa2\x02\x03JFX\xaa\x02\x0fJarvis.Facility\xca\x02\x0fJarvis\\Facility\xe2\x02\x1bJarvis\\Facility\\GPBMetadata\xea\x02\x10Jarvis::Facilityb\x06proto3"
 
 var (
@@ -916,7 +1263,7 @@ func file_pb_facility_facility_proto_rawDescGZIP() []byte {
 }
 
 var file_pb_facility_facility_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_pb_facility_facility_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_pb_facility_facility_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_pb_facility_facility_proto_goTypes = []any{
 	(ZoneType)(0),                         // 0: jarvis.facility.ZoneType
 	(SystemType)(0),                       // 1: jarvis.facility.SystemType
@@ -930,41 +1277,57 @@ var file_pb_facility_facility_proto_goTypes = []any{
 	(*GetEnvironmentReadingResponse)(nil), // 9: jarvis.facility.GetEnvironmentReadingResponse
 	(*StreamEnvironmentRequest)(nil),      // 10: jarvis.facility.StreamEnvironmentRequest
 	(*StreamEnvironmentResponse)(nil),     // 11: jarvis.facility.StreamEnvironmentResponse
-	nil,                                   // 12: jarvis.facility.ControlSystemRequest.SettingsEntry
-	(*timestamppb.Timestamp)(nil),         // 13: google.protobuf.Timestamp
-	(*common.RequestMeta)(nil),            // 14: jarvis.common.RequestMeta
-	(*common.ResponseMeta)(nil),           // 15: jarvis.common.ResponseMeta
+	(*AlexaDevice)(nil),                   // 12: jarvis.facility.AlexaDevice
+	(*ListAlexaDevicesRequest)(nil),       // 13: jarvis.facility.ListAlexaDevicesRequest
+	(*ListAlexaDevicesResponse)(nil),      // 14: jarvis.facility.ListAlexaDevicesResponse
+	(*SendAlexaCommandRequest)(nil),       // 15: jarvis.facility.SendAlexaCommandRequest
+	(*SendAlexaCommandResponse)(nil),      // 16: jarvis.facility.SendAlexaCommandResponse
+	nil,                                   // 17: jarvis.facility.ControlSystemRequest.SettingsEntry
+	nil,                                   // 18: jarvis.facility.SendAlexaCommandRequest.ParametersEntry
+	(*timestamppb.Timestamp)(nil),         // 19: google.protobuf.Timestamp
+	(*common.RequestMeta)(nil),            // 20: jarvis.common.RequestMeta
+	(*common.ResponseMeta)(nil),           // 21: jarvis.common.ResponseMeta
 }
 var file_pb_facility_facility_proto_depIdxs = []int32{
 	0,  // 0: jarvis.facility.Zone.type:type_name -> jarvis.facility.ZoneType
-	13, // 1: jarvis.facility.EnvironmentReading.timestamp:type_name -> google.protobuf.Timestamp
-	14, // 2: jarvis.facility.ControlSystemRequest.meta:type_name -> jarvis.common.RequestMeta
+	19, // 1: jarvis.facility.EnvironmentReading.timestamp:type_name -> google.protobuf.Timestamp
+	20, // 2: jarvis.facility.ControlSystemRequest.meta:type_name -> jarvis.common.RequestMeta
 	1,  // 3: jarvis.facility.ControlSystemRequest.system:type_name -> jarvis.facility.SystemType
-	12, // 4: jarvis.facility.ControlSystemRequest.settings:type_name -> jarvis.facility.ControlSystemRequest.SettingsEntry
-	15, // 5: jarvis.facility.ControlSystemResponse.meta:type_name -> jarvis.common.ResponseMeta
+	17, // 4: jarvis.facility.ControlSystemRequest.settings:type_name -> jarvis.facility.ControlSystemRequest.SettingsEntry
+	21, // 5: jarvis.facility.ControlSystemResponse.meta:type_name -> jarvis.common.ResponseMeta
 	1,  // 6: jarvis.facility.ControlSystemResponse.system:type_name -> jarvis.facility.SystemType
-	14, // 7: jarvis.facility.ManageAccessRequest.meta:type_name -> jarvis.common.RequestMeta
-	15, // 8: jarvis.facility.ManageAccessResponse.meta:type_name -> jarvis.common.ResponseMeta
-	13, // 9: jarvis.facility.ManageAccessResponse.valid_until:type_name -> google.protobuf.Timestamp
-	14, // 10: jarvis.facility.GetEnvironmentReadingRequest.meta:type_name -> jarvis.common.RequestMeta
-	15, // 11: jarvis.facility.GetEnvironmentReadingResponse.meta:type_name -> jarvis.common.ResponseMeta
+	20, // 7: jarvis.facility.ManageAccessRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 8: jarvis.facility.ManageAccessResponse.meta:type_name -> jarvis.common.ResponseMeta
+	19, // 9: jarvis.facility.ManageAccessResponse.valid_until:type_name -> google.protobuf.Timestamp
+	20, // 10: jarvis.facility.GetEnvironmentReadingRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 11: jarvis.facility.GetEnvironmentReadingResponse.meta:type_name -> jarvis.common.ResponseMeta
 	3,  // 12: jarvis.facility.GetEnvironmentReadingResponse.reading:type_name -> jarvis.facility.EnvironmentReading
-	14, // 13: jarvis.facility.StreamEnvironmentRequest.meta:type_name -> jarvis.common.RequestMeta
-	15, // 14: jarvis.facility.StreamEnvironmentResponse.meta:type_name -> jarvis.common.ResponseMeta
+	20, // 13: jarvis.facility.StreamEnvironmentRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 14: jarvis.facility.StreamEnvironmentResponse.meta:type_name -> jarvis.common.ResponseMeta
 	3,  // 15: jarvis.facility.StreamEnvironmentResponse.reading:type_name -> jarvis.facility.EnvironmentReading
-	4,  // 16: jarvis.facility.FacilityService.ControlSystem:input_type -> jarvis.facility.ControlSystemRequest
-	6,  // 17: jarvis.facility.FacilityService.ManageAccess:input_type -> jarvis.facility.ManageAccessRequest
-	8,  // 18: jarvis.facility.FacilityService.GetEnvironmentReading:input_type -> jarvis.facility.GetEnvironmentReadingRequest
-	10, // 19: jarvis.facility.FacilityService.StreamEnvironment:input_type -> jarvis.facility.StreamEnvironmentRequest
-	5,  // 20: jarvis.facility.FacilityService.ControlSystem:output_type -> jarvis.facility.ControlSystemResponse
-	7,  // 21: jarvis.facility.FacilityService.ManageAccess:output_type -> jarvis.facility.ManageAccessResponse
-	9,  // 22: jarvis.facility.FacilityService.GetEnvironmentReading:output_type -> jarvis.facility.GetEnvironmentReadingResponse
-	11, // 23: jarvis.facility.FacilityService.StreamEnvironment:output_type -> jarvis.facility.StreamEnvironmentResponse
-	20, // [20:24] is the sub-list for method output_type
-	16, // [16:20] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	20, // 16: jarvis.facility.ListAlexaDevicesRequest.meta:type_name -> jarvis.common.RequestMeta
+	21, // 17: jarvis.facility.ListAlexaDevicesResponse.meta:type_name -> jarvis.common.ResponseMeta
+	12, // 18: jarvis.facility.ListAlexaDevicesResponse.devices:type_name -> jarvis.facility.AlexaDevice
+	20, // 19: jarvis.facility.SendAlexaCommandRequest.meta:type_name -> jarvis.common.RequestMeta
+	18, // 20: jarvis.facility.SendAlexaCommandRequest.parameters:type_name -> jarvis.facility.SendAlexaCommandRequest.ParametersEntry
+	21, // 21: jarvis.facility.SendAlexaCommandResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,  // 22: jarvis.facility.FacilityService.ControlSystem:input_type -> jarvis.facility.ControlSystemRequest
+	6,  // 23: jarvis.facility.FacilityService.ManageAccess:input_type -> jarvis.facility.ManageAccessRequest
+	8,  // 24: jarvis.facility.FacilityService.GetEnvironmentReading:input_type -> jarvis.facility.GetEnvironmentReadingRequest
+	10, // 25: jarvis.facility.FacilityService.StreamEnvironment:input_type -> jarvis.facility.StreamEnvironmentRequest
+	13, // 26: jarvis.facility.FacilityService.ListAlexaDevices:input_type -> jarvis.facility.ListAlexaDevicesRequest
+	15, // 27: jarvis.facility.FacilityService.SendAlexaCommand:input_type -> jarvis.facility.SendAlexaCommandRequest
+	5,  // 28: jarvis.facility.FacilityService.ControlSystem:output_type -> jarvis.facility.ControlSystemResponse
+	7,  // 29: jarvis.facility.FacilityService.ManageAccess:output_type -> jarvis.facility.ManageAccessResponse
+	9,  // 30: jarvis.facility.FacilityService.GetEnvironmentReading:output_type -> jarvis.facility.GetEnvironmentReadingResponse
+	11, // 31: jarvis.facility.FacilityService.StreamEnvironment:output_type -> jarvis.facility.StreamEnvironmentResponse
+	14, // 32: jarvis.facility.FacilityService.ListAlexaDevices:output_type -> jarvis.facility.ListAlexaDevicesResponse
+	16, // 33: jarvis.facility.FacilityService.SendAlexaCommand:output_type -> jarvis.facility.SendAlexaCommandResponse
+	28, // [28:34] is the sub-list for method output_type
+	22, // [22:28] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_pb_facility_facility_proto_init() }
@@ -978,7 +1341,7 @@ func file_pb_facility_facility_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_facility_facility_proto_rawDesc), len(file_pb_facility_facility_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

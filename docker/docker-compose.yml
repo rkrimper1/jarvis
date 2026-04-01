@@ -113,9 +113,14 @@ services:
       - FACE_OUTPUT_FONT_SIZE=${FACE_OUTPUT_FONT_SIZE:-0}
       - FACE_MAX_IMAGE_BYTES=${FACE_MAX_IMAGE_BYTES:-0}
       - SECURITY_ANALYTICS_DB_PATH=${SECURITY_ANALYTICS_DB_PATH:-/home/vagrant/.jarvis/analytics.db}
+
+      # ── Alexa smart home ──────────────────────────────────────────
+      - ALEXA_COOKIES_PATH=${ALEXA_COOKIES_PATH:-}
+      - ALEXA_DEBUG=${ALEXA_DEBUG:-false}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis
+      - /home/vagrant/credentials/jarvis:/home/vagrant/credentials/jarvis:ro
     ports:
       - "50051:50051"
       - "8080:8080"

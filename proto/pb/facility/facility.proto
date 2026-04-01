@@ -95,6 +95,38 @@ message StreamEnvironmentResponse {
   EnvironmentReading reading      = 2;
 }
 
+message AlexaDevice {
+  string serial_number         = 1;
+  string name                  = 2;
+  string device_family         = 3; // ECHO, TABLET, WHA, UNKNOWN
+  string device_type           = 4; // manufacturer/model description
+  bool   online                = 5;
+  bool   is_smart_home         = 6; // true → appliance; supports SendAlexaCommand
+  string appliance_id          = 7; // populated for smart home devices
+  repeated string capabilities = 8; // LIGHT, THERMOSTAT, LOCK, SWITCH, etc.
+  string power_state           = 9; // ON, OFF, or empty if unknown
+}
+
+message ListAlexaDevicesRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message ListAlexaDevicesResponse {
+  jarvis.common.ResponseMeta meta    = 1;
+  repeated AlexaDevice       devices = 2;
+}
+
+message SendAlexaCommandRequest {
+  jarvis.common.RequestMeta meta     = 1;
+  string appliance_id                = 2;
+  string action                      = 3; // turnOn, turnOff, setBrightness, setTargetTemperature, lock, unlock
+  map<string, string> parameters     = 4; // e.g. brightness=50, targetTemperature=72
+}
+
+message SendAlexaCommandResponse {
+  jarvis.common.ResponseMeta meta = 1;
+}
+
 service FacilityService {
   rpc ControlSystem(ControlSystemRequest) returns (ControlSystemResponse) {
     option (google.api.http) = { post: "/v1/facility/zones/{zone_id}/system" body: "*" };
@@ -106,4 +138,10 @@ service FacilityService {
     option (google.api.http) = { get: "/v1/facility/zones/{zone_id}/environment" };
   }
   rpc StreamEnvironment(StreamEnvironmentRequest) returns (stream StreamEnvironmentResponse);
+  rpc ListAlexaDevices(ListAlexaDevicesRequest) returns (ListAlexaDevicesResponse) {
+    option (google.api.http) = { get: "/v1/facility/alexa/devices" };
+  }
+  rpc SendAlexaCommand(SendAlexaCommandRequest) returns (SendAlexaCommandResponse) {
+    option (google.api.http) = { post: "/v1/facility/alexa/command" body: "*" };
+  }
 }

@@ -5,13 +5,16 @@ import (
 	"log/slog"
 	"time"
 
+	"strings"
+
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
+	commonv1   "github.com/rkrimper1/jarvis/api/pb/common"
 	facilityv1 "github.com/rkrimper1/jarvis/api/pb/facility"
+	"github.com/rkrimper1/jarvis/api/internal/facility/alexa"
 	"github.com/rkrimper1/jarvis/api/internal/facility/environment"
 	"github.com/rkrimper1/jarvis/api/internal/facility/zone"
 	"github.com/rkrimper1/jarvis/api/middleware"
@@ -19,12 +22,25 @@ import (
 
 type FacilityServer struct {
 	facilityv1.UnimplementedFacilityServiceServer
-	zones *zone.Store
-	log   *slog.Logger
+	zones      *zone.Store
+	alexa      *alexa.Client // nil if ALEXA_COOKIES_PATH not set
+	alexaDebug bool          // controlled by ALEXA_DEBUG env var
+	log        *slog.Logger
 }
 
 func New(log *slog.Logger) *FacilityServer {
 	return &FacilityServer{zones: zone.New(), log: log}
+}
+
+func NewWithAlexa(log *slog.Logger, client *alexa.Client, debug bool) *FacilityServer {
+	return &FacilityServer{zones: zone.New(), alexa: client, alexaDebug: debug, log: log}
+}
+
+func (s *FacilityServer) alexaRequired() error {
+	if s.alexa == nil {
+		return status.Error(codes.FailedPrecondition, "alexa not configured (set ALEXA_COOKIES_PATH)")
+	}
+	return nil
 }
 
 func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.ControlSystemRequest) (*facilityv1.ControlSystemResponse, error) {
@@ -72,7 +88,6 @@ func (s *FacilityServer) ManageAccess(ctx context.Context, req *facilityv1.Manag
 		return nil, status.Errorf(codes.NotFound, "zone %q not found", req.ZoneId)
 	}
 
-	// Simplified access policy: only tony-stark has admin access everywhere
 	granted := req.SubjectId == "tony-stark" || req.Action == "QUERY"
 	reason := "access policy check passed"
 	if !granted {
@@ -116,6 +131,153 @@ func (s *FacilityServer) StreamEnvironment(req *facilityv1.StreamEnvironmentRequ
 		}
 	}
 }
+
+// ── Alexa ─────────────────────────────────────────────────────────────────────
+
+func (s *FacilityServer) ListAlexaDevices(ctx context.Context, req *facilityv1.ListAlexaDevicesRequest) (*facilityv1.ListAlexaDevicesResponse, error) {
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if err := s.alexaRequired(); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "facility/ListAlexaDevices")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	// Fetch current power states — best-effort, doesn't fail the whole request.
+	states, err := s.alexa.GetDeviceStates(ctx)
+	if err != nil {
+		s.log.WarnContext(ctx, "ListAlexaDevices: power states unavailable", slog.Any("err", err))
+		states = map[string]alexa.DeviceState{}
+	} else if s.alexaDebug {
+		s.log.InfoContext(ctx, "ListAlexaDevices: device states fetched", slog.Int("count", len(states)))
+		for id, st := range states {
+			s.log.InfoContext(ctx, "alexa device state",
+				slog.String("id", id),
+				slog.String("power", st.PowerState),
+			)
+		}
+	}
+
+	var out []*facilityv1.AlexaDevice
+
+	// Echo devices
+	echoDevices, err := s.alexa.ListDevices(ctx)
+	if err != nil {
+		s.log.WarnContext(ctx, "ListAlexaDevices: echo devices failed", slog.Any("err", err))
+	}
+	for _, d := range echoDevices {
+		out = append(out, &facilityv1.AlexaDevice{
+			SerialNumber: d.SerialNumber,
+			Name:         d.AccountName,
+			DeviceFamily: d.DeviceFamily,
+			DeviceType:   d.DeviceType,
+			Online:       d.Online,
+			IsSmartHome:  false,
+		})
+	}
+
+	// Smart home appliances
+	smDevices, err := s.alexa.ListSmartHomeDevices(ctx)
+	if err != nil {
+		s.log.WarnContext(ctx, "ListAlexaDevices: smart home devices failed", slog.Any("err", err))
+	}
+	for _, d := range smDevices {
+		ps := states[d.ID].PowerState
+		out = append(out, &facilityv1.AlexaDevice{
+			Name:         d.DisplayName,
+			ApplianceId:  d.ID,
+			DeviceType:   d.Description,
+			IsSmartHome:  true,
+			Online:       true, // behaviors/entities only returns enabled devices
+			Capabilities: capabilityTypes(d.SupportedProperties),
+			PowerState:   ps,
+		})
+	}
+
+	span.AddAttributes(trace.Int64Attribute("device_count", int64(len(out))))
+	return &facilityv1.ListAlexaDevicesResponse{
+		Meta:    metaOK(req.Meta.RequestId),
+		Devices: out,
+	}, nil
+}
+
+func (s *FacilityServer) SendAlexaCommand(ctx context.Context, req *facilityv1.SendAlexaCommandRequest) (*facilityv1.SendAlexaCommandResponse, error) {
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if err := s.alexaRequired(); err != nil {
+		return nil, err
+	}
+	if req.ApplianceId == "" {
+		return nil, status.Error(codes.InvalidArgument, "appliance_id is required")
+	}
+	if req.Action == "" {
+		return nil, status.Error(codes.InvalidArgument, "action is required")
+	}
+
+	ctx, span := trace.StartSpan(ctx, "facility/SendAlexaCommand")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+	span.AddAttributes(
+		trace.StringAttribute("appliance_id", req.ApplianceId),
+		trace.StringAttribute("action", req.Action),
+	)
+
+	s.log.InfoContext(ctx, "SendAlexaCommand",
+		slog.String("appliance_id", req.ApplianceId),
+		slog.String("action", req.Action),
+	)
+
+	if err := s.alexa.SendCommand(ctx, req.ApplianceId, alexa.CommandParams{
+		Action:     req.Action,
+		Parameters: req.Parameters,
+	}); err != nil {
+		return nil, status.Errorf(codes.Internal, "alexa command: %v", err)
+	}
+
+	return &facilityv1.SendAlexaCommandResponse{Meta: metaOK(req.Meta.RequestId)}, nil
+}
+
+// capabilityTypes derives a human-readable capability list from the raw
+// supportedProperties strings returned by the Alexa behaviors/entities API.
+// Properties arrive both as short tokens ("setBrightness") and long-form
+// controller strings ("Alexa.Operation.ConnectedDevice#Alexa.LockController#3#Lock"),
+// so we check both exact match and substring.
+func capabilityTypes(props []string) []string {
+	var light, thermostat, lock, color bool
+	for _, p := range props {
+		switch {
+		case p == "setBrightness" || p == "rampBrightness" || p == "adjustBrightness" ||
+			strings.Contains(p, "BrightnessController"):
+			light = true
+		case p == "setTargetTemperature" || p == "setThermostatMode" ||
+			strings.Contains(p, "ThermostatController"):
+			thermostat = true
+		case p == "lock" || p == "unlock" || p == "lockAction" || p == "unlockAction" ||
+			strings.Contains(p, "LockController"):
+			lock = true
+		case p == "setColor" || p == "setColorTemperature" ||
+			strings.Contains(p, "ColorController"):
+			color = true
+		}
+	}
+	switch {
+	case thermostat:
+		return []string{"THERMOSTAT"}
+	case lock:
+		return []string{"LOCK"}
+	case color:
+		return []string{"LIGHT", "COLOR"}
+	case light:
+		return []string{"LIGHT"}
+	default:
+		return []string{"SWITCH"}
+	}
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 func validateMeta(meta *commonv1.RequestMeta) error {
 	if meta == nil {
