@@ -2,10 +2,14 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log/slog"
-	"time"
-
+	"net/http"
+	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
@@ -22,25 +26,184 @@ import (
 
 type FacilityServer struct {
 	facilityv1.UnimplementedFacilityServiceServer
-	zones      *zone.Store
-	alexa      *alexa.Client // nil if ALEXA_COOKIES_PATH not set
-	alexaDebug bool          // controlled by ALEXA_DEBUG env var
-	log        *slog.Logger
+	zones       *zone.Store
+	mu          sync.RWMutex
+	alexa       *alexa.Client // nil if ALEXA_COOKIES_PATH not set
+	alexaDebug  bool          // controlled by ALEXA_DEBUG env var
+	cookiesPath string
+	log         *slog.Logger
 }
 
 func New(log *slog.Logger) *FacilityServer {
 	return &FacilityServer{zones: zone.New(), log: log}
 }
 
-func NewWithAlexa(log *slog.Logger, client *alexa.Client, debug bool) *FacilityServer {
-	return &FacilityServer{zones: zone.New(), alexa: client, alexaDebug: debug, log: log}
+func NewWithAlexa(log *slog.Logger, client *alexa.Client, debug bool, cookiesPath string) *FacilityServer {
+	return &FacilityServer{zones: zone.New(), alexa: client, alexaDebug: debug, cookiesPath: cookiesPath, log: log}
+}
+
+func (s *FacilityServer) getAlexaClient() *alexa.Client {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.alexa
 }
 
 func (s *FacilityServer) alexaRequired() error {
-	if s.alexa == nil {
+	if s.getAlexaClient() == nil {
 		return status.Error(codes.FailedPrecondition, "alexa not configured (set ALEXA_COOKIES_PATH)")
 	}
 	return nil
+}
+
+// TextCommandHandler returns an HTTP handler for POST /alexa/text-command.
+// Body: {"text":"<command>","serial_number":"<optional>","device_type":"<optional>"}
+// If serial_number is omitted, the first online Echo device is used.
+func (s *FacilityServer) TextCommandHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		ac := s.getAlexaClient()
+		if ac == nil {
+			http.Error(w, "alexa not configured", http.StatusPreconditionFailed)
+			return
+		}
+		var req struct {
+			Text         string `json:"text"`
+			SerialNumber string `json:"serial_number"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		if req.Text == "" {
+			http.Error(w, "text is required", http.StatusBadRequest)
+			return
+		}
+		// Always fetch device list to get full device info (including customerID).
+		devices, err := ac.ListDevices(r.Context())
+		if err != nil {
+			http.Error(w, "list devices: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var target *alexa.Device
+		if req.SerialNumber != "" {
+			// Explicit device requested.
+			for i, d := range devices {
+				if d.SerialNumber == req.SerialNumber {
+					target = &devices[i]
+					break
+				}
+			}
+		} else {
+			// Auto-select: prefer online ECHO-family devices over web/app clients (VOX).
+			for i, d := range devices {
+				if !d.Online {
+					continue
+				}
+				if d.DeviceFamily == "ECHO" {
+					target = &devices[i]
+					break
+				}
+				if target == nil {
+					target = &devices[i] // fallback to first online device of any type
+				}
+			}
+		}
+		if target == nil {
+			http.Error(w, "no online Echo device available", http.StatusServiceUnavailable)
+			return
+		}
+		s.log.Info("sending text command",
+			slog.String("text", req.Text),
+			slog.String("device", target.AccountName),
+			slog.String("serial", target.SerialNumber),
+			slog.String("customer_id", target.DeviceOwnerCustomerID),
+		)
+		if err := ac.SendTextCommand(r.Context(), req.Text, *target); err != nil {
+			s.log.Warn("text command failed", slog.Any("err", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"ok": true})
+	}
+}
+
+// CookieStatusHandler returns an HTTP handler for GET /alexa/cookie-status.
+func (s *FacilityServer) CookieStatusHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		if s.cookiesPath == "" {
+			json.NewEncoder(w).Encode(map[string]any{"configured": false})
+			return
+		}
+		expiry, err := alexa.CookiesExpiry(s.cookiesPath)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		daysLeft := 0
+		expired := false
+		if !expiry.IsZero() {
+			d := expiry.Sub(time.Now())
+			daysLeft = int(d.Hours() / 24)
+			expired = d <= 0
+		}
+		json.NewEncoder(w).Encode(map[string]any{
+			"configured":        true,
+			"expires_at":        expiry.UTC().Format(time.RFC3339),
+			"days_until_expiry": daysLeft,
+			"expired":           expired,
+		})
+	}
+}
+
+// CookieUploadHandler returns an HTTP handler for POST /alexa/cookies.
+// It accepts a Cookie-Editor JSON export, writes it to cookiesPath, and
+// hot-reloads the Alexa client without a server restart.
+func (s *FacilityServer) CookieUploadHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if s.cookiesPath == "" {
+			http.Error(w, "alexa not configured", http.StatusPreconditionFailed)
+			return
+		}
+		body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20)) // 1 MiB max
+		if err != nil {
+			http.Error(w, "read body: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		// Validate it parses as a cookie array before overwriting the file.
+		var cookies []map[string]any
+		if err := json.Unmarshal(body, &cookies); err != nil {
+			http.Error(w, "invalid cookie JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := os.WriteFile(s.cookiesPath, body, 0600); err != nil {
+			http.Error(w, "save cookies: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		newClient, err := alexa.New(r.Context(), s.cookiesPath)
+		if err != nil {
+			http.Error(w, "reload client: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		s.mu.Lock()
+		s.alexa = newClient
+		s.mu.Unlock()
+		s.log.Info("alexa cookies refreshed", slog.String("path", s.cookiesPath))
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"ok": true})
+	}
 }
 
 func (s *FacilityServer) ControlSystem(ctx context.Context, req *facilityv1.ControlSystemRequest) (*facilityv1.ControlSystemResponse, error) {
@@ -145,8 +308,10 @@ func (s *FacilityServer) ListAlexaDevices(ctx context.Context, req *facilityv1.L
 	defer span.End()
 	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
 
+	ac := s.getAlexaClient()
+
 	// Fetch current power states — best-effort, doesn't fail the whole request.
-	states, err := s.alexa.GetDeviceStates(ctx)
+	states, err := ac.GetDeviceStates(ctx)
 	if err != nil {
 		s.log.WarnContext(ctx, "ListAlexaDevices: power states unavailable", slog.Any("err", err))
 		states = map[string]alexa.DeviceState{}
@@ -163,7 +328,7 @@ func (s *FacilityServer) ListAlexaDevices(ctx context.Context, req *facilityv1.L
 	var out []*facilityv1.AlexaDevice
 
 	// Echo devices
-	echoDevices, err := s.alexa.ListDevices(ctx)
+	echoDevices, err := ac.ListDevices(ctx)
 	if err != nil {
 		s.log.WarnContext(ctx, "ListAlexaDevices: echo devices failed", slog.Any("err", err))
 	}
@@ -179,7 +344,7 @@ func (s *FacilityServer) ListAlexaDevices(ctx context.Context, req *facilityv1.L
 	}
 
 	// Smart home appliances
-	smDevices, err := s.alexa.ListSmartHomeDevices(ctx)
+	smDevices, err := ac.ListSmartHomeDevices(ctx)
 	if err != nil {
 		s.log.WarnContext(ctx, "ListAlexaDevices: smart home devices failed", slog.Any("err", err))
 	}
@@ -230,7 +395,7 @@ func (s *FacilityServer) SendAlexaCommand(ctx context.Context, req *facilityv1.S
 		slog.String("action", req.Action),
 	)
 
-	if err := s.alexa.SendCommand(ctx, req.ApplianceId, alexa.CommandParams{
+	if err := s.getAlexaClient().SendCommand(ctx, req.ApplianceId, alexa.CommandParams{
 		Action:     req.Action,
 		Parameters: req.Parameters,
 	}); err != nil {

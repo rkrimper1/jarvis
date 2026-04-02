@@ -6,6 +6,40 @@
 	let error = $state('');
 	let commandStatus = $state<Record<string, string>>({}); // applianceId → 'ok' | 'err' | 'sending'
 
+	// Ask Jarvis command bar
+	let cmdText = $state('');
+	let cmdFocused = $state(false);
+	let cmdStatus = $state<'idle' | 'sending' | 'ok' | 'err'>('idle');
+	let cmdError = $state('');
+
+	async function submitTextCommand() {
+		const text = cmdText.trim();
+		if (!text) return;
+		cmdStatus = 'sending';
+		cmdError = '';
+		try {
+			await facility.sendAlexaTextCommand(text);
+			cmdStatus = 'ok';
+			cmdText = '';
+			setTimeout(() => { cmdStatus = 'idle'; }, 2000);
+		} catch (e) {
+			cmdStatus = 'err';
+			cmdError = e instanceof Error ? e.message : String(e);
+		}
+	}
+
+	function onCmdKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') submitTextCommand();
+	}
+
+	// Cookie expiry state
+	let cookieDaysLeft = $state<number | null>(null);
+	let cookieExpired = $state(false);
+	let showRefreshModal = $state(false);
+	let cookiePaste = $state('');
+	let refreshError = $state('');
+	let refreshing = $state(false);
+
 	async function loadDevices() {
 		loading = true;
 		error = '';
@@ -16,6 +50,37 @@
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function checkCookieExpiry() {
+		try {
+			const s = await facility.alexaCookieStatus();
+			if (s.configured) {
+				cookieDaysLeft = s.days_until_expiry ?? null;
+				cookieExpired = s.expired ?? false;
+			}
+		} catch {
+			// non-fatal — expiry banner is best-effort
+		}
+	}
+
+	async function submitCookieRefresh() {
+		refreshError = '';
+		if (!cookiePaste.trim()) { refreshError = 'Paste cookie JSON first.'; return; }
+		refreshing = true;
+		try {
+			await facility.refreshAlexaCookies(cookiePaste.trim());
+			showRefreshModal = false;
+			cookiePaste = '';
+			cookieDaysLeft = null;
+			cookieExpired = false;
+			await checkCookieExpiry();
+			await loadDevices();
+		} catch (e) {
+			refreshError = e instanceof Error ? e.message : String(e);
+		} finally {
+			refreshing = false;
 		}
 	}
 
@@ -44,6 +109,7 @@
 	}
 
 	loadDevices();
+	checkCookieExpiry();
 </script>
 
 <div class="facility-page">
@@ -57,8 +123,83 @@
 		</button>
 	</div>
 
+	<div class="cmd-bar" class:focused={cmdFocused} class:sending={cmdStatus === 'sending'} class:ok={cmdStatus === 'ok'} class:err={cmdStatus === 'err'}>
+		{#if !cmdFocused && !cmdText}
+			<span class="cmd-prefix font-hud">ASK JARVIS</span>
+		{/if}
+		<input
+			class="cmd-input"
+			type="text"
+			bind:value={cmdText}
+			onfocus={() => cmdFocused = true}
+			onblur={() => cmdFocused = false}
+			onkeydown={onCmdKeydown}
+			placeholder={cmdFocused ? 'e.g. turn on the kitchen lights...' : ''}
+			disabled={cmdStatus === 'sending'}
+			aria-label="Ask Jarvis"
+		/>
+		<button class="cmd-submit" onclick={submitTextCommand} disabled={cmdStatus === 'sending' || !cmdText.trim()} aria-label="Send">
+			{#if cmdStatus === 'sending'}
+				<span class="cmd-spinner">◌</span>
+			{:else if cmdStatus === 'ok'}
+				<span class="cmd-ok">✓</span>
+			{:else}
+				<span class="cmd-arrow">→</span>
+			{/if}
+		</button>
+	</div>
+	{#if cmdStatus === 'err' && cmdError}
+		<div class="cmd-error">{cmdError}</div>
+	{/if}
+
+	{#if cookieExpired}
+		<div class="cookie-banner expired">
+			<span>⚠ ALEXA SESSION EXPIRED — devices unavailable until cookies are refreshed</span>
+			<button class="hud-btn warn" onclick={() => showRefreshModal = true}>REFRESH COOKIES</button>
+		</div>
+	{:else if cookieDaysLeft !== null && cookieDaysLeft < 14}
+		<div class="cookie-banner warning">
+			<span>⚠ ALEXA COOKIES EXPIRE IN {cookieDaysLeft} DAY{cookieDaysLeft === 1 ? '' : 'S'}</span>
+			<button class="hud-btn warn" onclick={() => showRefreshModal = true}>REFRESH NOW</button>
+		</div>
+	{/if}
+
 	{#if error}
 		<div class="error-banner">{error}</div>
+	{/if}
+
+	{#if showRefreshModal}
+		<div class="modal-backdrop" onclick={() => showRefreshModal = false} role="presentation">
+			<div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+				<div class="modal-header font-hud">REFRESH ALEXA COOKIES</div>
+				<ol class="modal-steps">
+					<li>
+						<a href="https://alexa.amazon.com" target="_blank" rel="noopener" class="alexa-link">Open alexa.amazon.com ↗</a>
+						and log in if needed.
+					</li>
+					<li>
+						Open the <strong>Cookie-Editor</strong> browser extension, click <strong>Export → Export as JSON</strong>,
+						and copy the result.
+					</li>
+					<li>Paste the JSON below and click <strong>SAVE &amp; RELOAD</strong>.</li>
+				</ol>
+				<textarea
+					class="cookie-input"
+					placeholder={'[{"name":"x-main","value":"..."}]'}
+					bind:value={cookiePaste}
+					rows="6"
+				></textarea>
+				{#if refreshError}
+					<div class="refresh-error">{refreshError}</div>
+				{/if}
+				<div class="modal-actions">
+					<button class="hud-btn" onclick={() => { showRefreshModal = false; cookiePaste = ''; refreshError = ''; }}>CANCEL</button>
+					<button class="hud-btn primary" onclick={submitCookieRefresh} disabled={refreshing}>
+						{refreshing ? 'SAVING...' : 'SAVE & RELOAD'}
+					</button>
+				</div>
+			</div>
+		</div>
 	{/if}
 
 	{#if loading && !devices.length}
@@ -191,4 +332,85 @@
 	.error-banner { background: #1a0505; border: 1px solid #ef444466; color: #ef4444; padding: 10px 14px; font-size: 12px; margin-bottom: 20px; }
 	.scan-msg { color: var(--hud-cyan); font-size: 13px; letter-spacing: 0.2em; padding: 40px 0; text-align: center; }
 	.empty { color: var(--hud-muted); font-size: 12px; letter-spacing: 0.15em; padding: 40px 0; text-align: center; }
+
+	/* Ask Jarvis command bar */
+	.cmd-bar {
+		display: flex;
+		align-items: center;
+		position: relative;
+		background: #060a0f;
+		border: 1px solid var(--hud-dim);
+		margin-bottom: 20px;
+		transition: border-color 0.15s, box-shadow 0.15s;
+		clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+	}
+	.cmd-bar.focused { border-color: var(--hud-cyan); box-shadow: 0 0 10px #00d4ff22; }
+	.cmd-bar.ok      { border-color: #22c55e; box-shadow: 0 0 10px #22c55e22; }
+	.cmd-bar.err     { border-color: #ef4444; }
+	.cmd-prefix {
+		position: absolute;
+		left: 14px;
+		font-size: 12px;
+		letter-spacing: 0.2em;
+		color: var(--hud-cyan);
+		text-shadow: var(--glow-cyan);
+		pointer-events: none;
+		user-select: none;
+	}
+	.cmd-input {
+		flex: 1;
+		background: transparent;
+		border: none;
+		outline: none;
+		color: var(--hud-text);
+		font-family: var(--hud-font-hud);
+		font-size: 13px;
+		letter-spacing: 0.05em;
+		padding: 14px 10px 14px 124px; /* left pad leaves room for ASK JARVIS */
+		width: 100%;
+	}
+	.cmd-input::placeholder { color: var(--hud-dim); font-size: 11px; letter-spacing: 0.05em; }
+	.cmd-input:disabled { opacity: 0.5; }
+	.cmd-submit {
+		background: transparent;
+		border: none;
+		border-left: 1px solid var(--hud-dim);
+		color: var(--hud-cyan);
+		font-size: 20px;
+		padding: 10px 18px;
+		cursor: pointer;
+		transition: color 0.15s, background 0.15s;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+	.cmd-submit:hover:not(:disabled) { background: #00d4ff14; }
+	.cmd-submit:disabled { color: var(--hud-dim); cursor: default; }
+	.cmd-spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+	.cmd-ok  { color: #22c55e; }
+	.cmd-arrow { font-family: monospace; }
+	@keyframes spin { to { transform: rotate(360deg); } }
+	.cmd-error { color: #ef4444; font-size: 11px; margin: -14px 0 14px; padding: 0 4px; }
+
+	/* Cookie expiry banners */
+	.cookie-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 11px; font-family: var(--hud-font-hud); letter-spacing: 0.1em; margin-bottom: 16px; }
+	.cookie-banner.warning { background: #1a1200; border: 1px solid #f59e0b66; color: #f59e0b; }
+	.cookie-banner.expired  { background: #1a0505; border: 1px solid #ef444466; color: #ef4444; }
+	.hud-btn.warn { color: #f59e0b; border-color: #f59e0b66; }
+	.hud-btn.warn:hover { background: #f59e0b18; }
+	.hud-btn.primary { color: var(--hud-cyan); border-color: var(--hud-cyan); }
+	.hud-btn.primary:hover { background: #00d4ff18; }
+
+	/* Refresh modal */
+	.modal-backdrop { position: fixed; inset: 0; background: #00000099; display: flex; align-items: center; justify-content: center; z-index: 100; }
+	.modal { background: #0d1117; border: 1px solid var(--hud-cyan); padding: 28px; width: 480px; max-width: 95vw; clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%); }
+	.modal-header { font-size: 13px; font-weight: 900; letter-spacing: 0.25em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); margin-bottom: 20px; }
+	.modal-steps { padding-left: 18px; margin: 0 0 18px; color: var(--hud-text); font-size: 12px; line-height: 1.8; }
+	.modal-steps li { margin-bottom: 6px; }
+	.modal-steps strong { color: var(--hud-cyan); }
+	.alexa-link { color: var(--hud-cyan); text-decoration: none; }
+	.alexa-link:hover { text-decoration: underline; }
+	.cookie-input { width: 100%; background: #060a0f; border: 1px solid var(--hud-dim); color: var(--hud-text); font-family: monospace; font-size: 11px; padding: 10px; resize: vertical; box-sizing: border-box; }
+	.cookie-input:focus { outline: none; border-color: var(--hud-cyan); }
+	.refresh-error { color: #ef4444; font-size: 11px; margin-top: 8px; }
+	.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
 </style>

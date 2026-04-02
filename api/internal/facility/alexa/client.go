@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -26,12 +27,13 @@ type Client struct {
 
 // Device represents an Amazon Echo device (speaker, display, etc.).
 type Device struct {
-	AccountName     string `json:"accountName"`
-	SerialNumber    string `json:"serialNumber"`
-	DeviceType      string `json:"deviceType"`
-	DeviceFamily    string `json:"deviceFamily"`
-	SoftwareVersion string `json:"softwareVersion"`
-	Online          bool   `json:"online"`
+	AccountName            string `json:"accountName"`
+	SerialNumber           string `json:"serialNumber"`
+	DeviceType             string `json:"deviceType"`
+	DeviceFamily           string `json:"deviceFamily"`
+	SoftwareVersion        string `json:"softwareVersion"`
+	Online                 bool   `json:"online"`
+	DeviceOwnerCustomerID  string `json:"deviceOwnerCustomerId"`
 }
 
 // SmartHomeDevice represents a smart home appliance registered with Alexa.
@@ -288,7 +290,83 @@ func (c *Client) SendCommand(ctx context.Context, applianceID string, cmd Comman
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 {
-		return fmt.Errorf("send command: HTTP %d", resp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		return fmt.Errorf("send command: HTTP %d — %s", resp.StatusCode, bytes.TrimSpace(body))
+	}
+	return nil
+}
+
+// SendTextCommand sends a natural-language text command to a specific Echo device
+// via the Alexa behaviors/preview API — equivalent to typing a command in the Alexa app.
+// device must be from a Device returned by ListDevices.
+func (c *Client) SendTextCommand(ctx context.Context, text string, device Device) error {
+	// Refresh CSRF — behaviors/preview requires it.
+	_ = c.refreshCSRF(ctx)
+
+	// operationPayload must itself be a JSON-encoded string (Amazon double-encodes it).
+	opPayload, err := json.Marshal(map[string]string{
+		"deviceType":         device.DeviceType,
+		"deviceSerialNumber": device.SerialNumber,
+		"locale":             "en-US",
+		"customerId":         device.DeviceOwnerCustomerID,
+		"text":               text,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal operation payload: %w", err)
+	}
+
+	// sequenceJson is itself a JSON-encoded string inside the outer payload.
+	type startNode struct {
+		Type             string          `json:"@type"`
+		OperationType    string          `json:"type"`
+		OperationPayload json.RawMessage `json:"operationPayload"`
+	}
+	type sequence struct {
+		Type      string    `json:"@type"`
+		Version   string    `json:"@version"`
+		StartNode startNode `json:"startNode"`
+	}
+	inner, err := json.Marshal(sequence{
+		Type:    "com.amazon.alexa.behaviors.model.Sequence",
+		Version: "1",
+		StartNode: startNode{
+			Type:             "com.amazon.alexa.behaviors.model.OpaquePayloadOperationNode",
+			OperationType:    "Alexa.Operation.Ubi.UbiNodeType",
+			OperationPayload: opPayload,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("marshal sequence: %w", err)
+	}
+
+	outer, err := json.Marshal(map[string]any{
+		"behaviorId":   "PREVIEW",
+		"sequenceJson": string(inner),
+		"customerId":   device.DeviceOwnerCustomerID,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal text command: %w", err)
+	}
+
+	// Log the exact payload for debugging.
+	slog.Info("behaviors/preview payload", slog.String("body", string(outer)))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		alexaBase+"/api/behaviors/preview", bytes.NewReader(outer))
+	if err != nil {
+		return err
+	}
+	c.setHeaders(req, true)
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("send text command: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		return fmt.Errorf("send text command: HTTP %d — %s", resp.StatusCode, bytes.TrimSpace(body))
 	}
 	return nil
 }

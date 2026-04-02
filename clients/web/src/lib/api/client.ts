@@ -269,6 +269,35 @@ export const facility = {
 			action,
 			parameters
 		});
+	},
+	async alexaCookieStatus(): Promise<{ configured: boolean; expires_at?: string; days_until_expiry?: number; expired?: boolean }> {
+		const res = await fetch('/alexa/cookie-status');
+		if (!res.ok) throw new Error(`cookie status: HTTP ${res.status}`);
+		return res.json();
+	},
+	async sendAlexaTextCommand(text: string, serialNumber?: string): Promise<void> {
+		const res = await fetch('/alexa/text-command', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ text, serial_number: serialNumber ?? '' })
+		});
+		if (!res.ok) {
+			const t = await res.text();
+			throw new Error(t || `HTTP ${res.status}`);
+		}
+	},
+	async refreshAlexaCookies(cookieJson: string): Promise<void> {
+		// Validate it parses before sending.
+		JSON.parse(cookieJson);
+		const res = await fetch('/alexa/cookies', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: cookieJson
+		});
+		if (!res.ok) {
+			const text = await res.text();
+			throw new Error(text || `HTTP ${res.status}`);
+		}
 	}
 };
 

@@ -12,6 +12,10 @@ export default defineConfig({
 			'/faces': {
 				target: 'http://localhost:8080',
 				changeOrigin: true
+			},
+			'/alexa': {
+				target: 'http://localhost:8080',
+				changeOrigin: true
 			}
 		}
 	}

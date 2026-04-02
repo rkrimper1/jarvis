@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -59,7 +60,7 @@ var serviceNames = []string{
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -97,7 +98,12 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	businessv1.RegisterBusinessOpsServiceServer(grpcSrv, businessserver.New(log))
 
 	// ── Service: facility ─────────────────────────────────────────────
-	facilitySrv := facilityserver.NewWithAlexa(log, alexaClient, alexaDebug)
+	facilitySrv := facilityserver.NewWithAlexa(log, alexaClient, alexaDebug, cookiesPath)
+	if cookiesPath != "" {
+		httpMux.HandleFunc("/alexa/cookie-status", facilitySrv.CookieStatusHandler())
+		httpMux.HandleFunc("/alexa/cookies", facilitySrv.CookieUploadHandler())
+		httpMux.HandleFunc("/alexa/text-command", facilitySrv.TextCommandHandler())
+	}
 	facilityv1.RegisterFacilityServiceServer(grpcSrv, facilitySrv)
 
 	// ── Service: intelligence ─────────────────────────────────────────
