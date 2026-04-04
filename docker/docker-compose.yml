@@ -18,6 +18,8 @@ services:
     build:
       context: ..
       dockerfile: docker/jarvis/Dockerfile
+    env_file:
+      - /home/vagrant/credentials/jarvis/.env
     environment:
       # ── Server ────────────────────────────────────────────────────
       - GRPC_PORT=50051
@@ -36,7 +38,7 @@ services:
       - DIALOGUE_CONFIDENCE_THRESH=${DIALOGUE_CONFIDENCE_THRESH:-0.6}
 
       # ── Claude AI (dialogue manager) ──────────────────────────────
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
       - CLAUDE_MAX_TOKENS=${CLAUDE_MAX_TOKENS:-1024}
 
@@ -113,9 +115,14 @@ services:
       - FACE_OUTPUT_FONT_SIZE=${FACE_OUTPUT_FONT_SIZE:-0}
       - FACE_MAX_IMAGE_BYTES=${FACE_MAX_IMAGE_BYTES:-0}
       - SECURITY_ANALYTICS_DB_PATH=${SECURITY_ANALYTICS_DB_PATH:-/home/vagrant/.jarvis/analytics.db}
+
+      # ── Alexa smart home ──────────────────────────────────────────
+      - ALEXA_COOKIES_PATH=${ALEXA_COOKIES_PATH:-}
+      - ALEXA_DEBUG=${ALEXA_DEBUG:-false}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis
+      - /home/vagrant/credentials/jarvis:/home/vagrant/credentials/jarvis
     ports:
       - "50051:50051"
       - "8080:8080"

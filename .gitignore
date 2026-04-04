@@ -6,3 +6,12 @@ bin/
 .claude/
 secrets/
 .env
+*.env
+.env*
+*.env.local
+credentials/
+alexa-cookies.json
+*.pem
+*.key
+*.p12
+*.pfx

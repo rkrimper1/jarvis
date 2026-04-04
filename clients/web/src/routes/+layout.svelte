@@ -18,6 +18,7 @@
 		{ path: '/intel',    label: 'Intel',    icon: '◎' },
 		{ path: '/learning', label: 'Learning', icon: '◈' },
 		{ path: '/security', label: 'Security', icon: '◬' },
+		{ path: '/facility', label: 'Facility', icon: '⬡' },
 	];
 
 	function handleLogout() {

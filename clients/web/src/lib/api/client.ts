@@ -229,6 +229,23 @@ export const intel = {
 
 // ── Facility ─────────────────────────────────────────────────────────
 
+export interface AlexaDevice {
+	serialNumber?: string;
+	name: string;
+	deviceFamily?: string;
+	deviceType?: string;
+	online: boolean;
+	isSmartHome: boolean;
+	applianceId?: string;
+	capabilities?: string[];
+	powerState?: string; // "ON", "OFF", or empty if unknown
+}
+
+export interface ListAlexaDevicesResponse {
+	meta: ResponseMeta;
+	devices: AlexaDevice[];
+}
+
 export const facility = {
 	getEnvironment(zoneId: string) {
 		return call('GET', `/facility/zones/${zoneId}/environment`);
@@ -241,6 +258,47 @@ export const facility = {
 			command,
 			settings
 		});
+	},
+	listAlexaDevices(): Promise<ListAlexaDevicesResponse> {
+		return call('GET', `/facility/alexa/devices?meta.request_id=${reqId()}`);
+	},
+	sendAlexaCommand(applianceId: string, action: string, parameters: Record<string, string> = {}): Promise<{ meta: ResponseMeta }> {
+		return call('POST', '/facility/alexa/command', {
+			meta: { request_id: reqId() },
+			appliance_id: applianceId,
+			action,
+			parameters
+		});
+	},
+	async alexaCookieStatus(): Promise<{ configured: boolean; expires_at?: string; days_until_expiry?: number; expired?: boolean }> {
+		const res = await fetch('/alexa/cookie-status');
+		if (!res.ok) throw new Error(`cookie status: HTTP ${res.status}`);
+		return res.json();
+	},
+	async sendAlexaTextCommand(text: string): Promise<{ device?: string; action?: string }> {
+		const res = await fetch('/alexa/text-command', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ text })
+		});
+		if (!res.ok) {
+			const t = await res.text();
+			throw new Error(t || `HTTP ${res.status}`);
+		}
+		return res.json();
+	},
+	async refreshAlexaCookies(cookieJson: string): Promise<void> {
+		// Validate it parses before sending.
+		JSON.parse(cookieJson);
+		const res = await fetch('/alexa/cookies', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: cookieJson
+		});
+		if (!res.ok) {
+			const text = await res.text();
+			throw new Error(text || `HTTP ${res.status}`);
+		}
 	}
 };
 

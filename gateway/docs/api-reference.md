@@ -323,6 +323,69 @@ curl http://localhost:8080/v1/facility/zones/lab-01/environment \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### List Alexa Devices
+
+Returns all Echo and smart home appliances visible to the authenticated Amazon account. Smart home devices include their current power state (`ON`/`OFF`), capability set, and `applianceId` required for `SendAlexaCommand`. Requires `ALEXA_COOKIES_PATH` to be configured.
+
+```bash
+curl http://localhost:8080/v1/facility/alexa/devices \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "fac-alexa-001", "success": true},
+  "devices": [
+    {"name": "Office Lights", "isSmartHome": true, "applianceId": "amzn1.alexa.endpoint.<uuid>", "capabilities": ["LIGHT"], "powerState": "ON", "online": true},
+    {"name": "Living Room Echo", "deviceFamily": "ECHO", "online": true, "isSmartHome": false}
+  ]
+}
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "fac-alexa-001"}}' \
+  localhost:50051 jarvis.facility.FacilityService/ListAlexaDevices
+```
+
+### Send Alexa Command
+
+Sends a device control command to a smart home appliance via the Alexa GraphQL API. `action` must be one of: `turnOn`, `turnOff`, `lock`, `unlock`, `setTargetTemperature`, `setBrightness`. Use the `applianceId` returned by `ListAlexaDevices`.
+
+```bash
+curl -X POST http://localhost:8080/v1/facility/alexa/command \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "fac-cmd-001"},
+    "appliance_id": "amzn1.alexa.endpoint.<uuid>",
+    "action": "turnOn"
+  }'
+```
+
+**With parameters (e.g. brightness):**
+```bash
+curl -X POST http://localhost:8080/v1/facility/alexa/command \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "fac-cmd-002"},
+    "appliance_id": "amzn1.alexa.endpoint.<uuid>",
+    "action": "setTargetTemperature",
+    "parameters": {"targetTemperature": "72"}
+  }'
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "fac-cmd-001"},
+  "appliance_id": "amzn1.alexa.endpoint.<uuid>",
+  "action": "turnOff"
+}' localhost:50051 jarvis.facility.FacilityService/SendAlexaCommand
+```
+
 ---
 
 ## Intelligence Service
@@ -742,6 +805,7 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  /tmp/profiles ──────────────────────┐   │
                   │  ~/.jarvis (knowledge + users +    ───┤   │
                   │            analytics DBs, faces/)      │   │
+                  │  ~/credentials/jarvis/ (cookies)  ────┤   │
                   └──────────────┬───────────────────────┼───┘
                                  │                        │ volume mounts
                   ┌──────────────▼──────────────┐   ┌────▼──────────────────┐
@@ -750,8 +814,10 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  · NLP dialogue              │   │  *.prof  *.gif        │
                   │  · knowledge search          │   │  ~/.jarvis/           │
                   │  · face sentiment analysis   │   │  knowledge.db         │
-                  │  SMTP → iCal email invites   │   │  users.db             │
-                  └──────────────────────────────┘   │  analytics.db         │
-                                                      │  faces/ (annotated)   │
+                  │  Alexa GraphQL API           │   │  users.db             │
+                  │  · smart home device control │   │  analytics.db         │
+                  │  SMTP → iCal email invites   │   │  faces/ (annotated)   │
+                  └──────────────────────────────┘   │  ~/credentials/jarvis/│
+                                                      │  alexa-cookies.json   │
                                                       └───────────────────────┘
 ```

@@ -15,6 +15,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
 
+	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
@@ -39,6 +40,21 @@ func main() {
 
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	defer rootCancel()
+
+	alexaDebug    := envString("ALEXA_DEBUG", "false") == "true"
+	alexaCookies  := envString("ALEXA_COOKIES_PATH", "")
+
+	var alexaClient *alexaclient.Client
+	if alexaCookies != "" {
+		var err error
+		alexaClient, err = alexaclient.New(rootCtx, alexaCookies, alexaDebug)
+		if err != nil {
+			log.Warn("alexa client init failed — Alexa features disabled", slog.Any("err", err))
+		} else {
+			log.Info("alexa client ready", slog.String("cookies", alexaCookies))
+			alexaClient.StartKeepAlive(rootCtx, envDuration("ALEXA_KEEPALIVE_INTERVAL", 12*time.Hour))
+		}
+	}
 
 	hp := &profiler.HeapProfiler{
 		OutDir:   envString("PPROF_DIR", "/tmp/profiles"),
@@ -68,6 +84,9 @@ func main() {
 	faceMaxImageBytes  := envInt("FACE_MAX_IMAGE_BYTES", 0) // 0 → server default (5 MiB)
 	analyticsDBPath    := envString("SECURITY_ANALYTICS_DB_PATH", "")
 
+	// Create the HTTP mux first so newServer can register /alexa/* handlers on it.
+	httpMux := http.NewServeMux()
+
 	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
 		CascadePath:     faceCascadePath,
 		OutputDir:       faceOutputDir,
@@ -83,7 +102,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	})
+	}, alexaClient, alexaDebug, alexaCookies, httpMux)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -99,7 +118,6 @@ func main() {
 
 	// ── HTTP/REST listener (grpc-gateway + static face images) ───────
 	httpAddr := fmt.Sprintf(":%d", httpPort)
-	httpMux := http.NewServeMux()
 	httpMux.Handle("/v1/", gwMux)
 	if faceOutputDir != "" {
 		httpMux.Handle("/faces/", http.StripPrefix("/faces/", http.FileServer(http.Dir(faceOutputDir))))
