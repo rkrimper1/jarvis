@@ -41,16 +41,18 @@ func main() {
 	rootCtx, rootCancel := context.WithCancel(context.Background())
 	defer rootCancel()
 
-	alexaDebug := envString("ALEXA_DEBUG", "false") == "true"
+	alexaDebug    := envString("ALEXA_DEBUG", "false") == "true"
+	alexaCookies  := envString("ALEXA_COOKIES_PATH", "")
 
 	var alexaClient *alexaclient.Client
-	if cp := envString("ALEXA_COOKIES_PATH", ""); cp != "" {
+	if alexaCookies != "" {
 		var err error
-		alexaClient, err = alexaclient.New(rootCtx, cp)
+		alexaClient, err = alexaclient.New(rootCtx, alexaCookies, alexaDebug)
 		if err != nil {
 			log.Warn("alexa client init failed — Alexa features disabled", slog.Any("err", err))
 		} else {
-			log.Info("alexa client ready", slog.String("cookies", cp))
+			log.Info("alexa client ready", slog.String("cookies", alexaCookies))
+			alexaClient.StartKeepAlive(rootCtx, envDuration("ALEXA_KEEPALIVE_INTERVAL", 12*time.Hour))
 		}
 	}
 
@@ -85,7 +87,6 @@ func main() {
 	// Create the HTTP mux first so newServer can register /alexa/* handlers on it.
 	httpMux := http.NewServeMux()
 
-	cookiesPath := envString("ALEXA_COOKIES_PATH", "")
 	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
 		CascadePath:     faceCascadePath,
 		OutputDir:       faceOutputDir,
@@ -101,7 +102,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	}, alexaClient, alexaDebug, cookiesPath, httpMux)
+	}, alexaClient, alexaDebug, alexaCookies, httpMux)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)

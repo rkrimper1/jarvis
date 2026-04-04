@@ -29,14 +29,18 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │  └──────────────────────────────────────────────────────┘   │
   │                                                             │
   │   Claude API (NLP · knowledge search · face sentiment)      │
+  │   Alexa GraphQL API (facility smart home control)           │
   │   Redis (session state)   SMTP (invites)                    │
   │   pigo (face detection)   ~/.jarvis/faces/ (annotated imgs) │
-  │   /tmp/profiles  → ./profiles/        (heap profile mount)  │
-  │   ~/.jarvis/     → host ~/.jarvis/    (knowledge + users)   │
+  │   /tmp/profiles          → ./profiles/    (heap profiles)   │
+  │   ~/.jarvis/             → host ~/.jarvis/ (DBs + faces)    │
+  │   ~/credentials/jarvis/  → host ~/credentials/jarvis/      │
   └─────────────────────────────────────────────────────────────┘
 ```
 
 - NLP and Voice are wired in-process — no network hop between them
+- `ListAlexaDevices` and `SendAlexaCommand` call `alexa.amazon.com/nexus/v1/graphql` using session cookies exported from a logged-in browser; a background goroutine pings the session endpoint every `ALEXA_KEEPALIVE_INTERVAL` to prevent expiry
+- The Alexa cookie file at `~/credentials/jarvis/alexa-cookies.json` is host-mounted read/write so the container can hot-reload updated cookies without a restart
 - Dialogue turns are powered by the Claude API, with session history stored in Redis
 - `SearchKnowledge` uses the Claude API (and optionally web search) as a fallback when no local SQLite result is found
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
@@ -54,7 +58,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 |---|---|
 | `command` | On-demand diagnostics — `RequestMemoryProfile` captures a heap profile and renders a GIF |
 | `business-ops` | Scheduling, tasks, messaging, reports. `ScheduleEvent` emails iCalendar invites via SMTP. |
-| `facility` | Building systems, environment monitoring |
+| `facility` | Building systems, environment monitoring, Alexa smart home device listing and control (`ListAlexaDevices`, `SendAlexaCommand`) |
 | `intelligence` | Research, artifact analysis, cross-referencing |
 | `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
@@ -63,6 +67,24 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
 All 9 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+
+### Facility — Alexa Smart Home
+
+`ListAlexaDevices` returns all Echo and smart home appliances visible to the authenticated Amazon account. Smart home devices include their current power state (`ON`/`OFF`) and capability set (`LIGHT`, `THERMOSTAT`, `LOCK`, `SWITCH`, etc.), resolved via a batch GraphQL call to `alexa.amazon.com/nexus/v1/graphql` — only devices Amazon's GraphQL layer recognises as valid endpoints are returned.
+
+`SendAlexaCommand` sends a device control mutation (`turnOn`, `turnOff`, `lock`, `unlock`, `setTargetTemperature`, `setBrightness`) via the same GraphQL API.
+
+Session authentication is cookie-based. Export cookies from a logged-in browser using the **Cookie-Editor** extension and point `ALEXA_COOKIES_PATH` at the JSON file. A background goroutine pings `/api/bootstrap` every `ALEXA_KEEPALIVE_INTERVAL` to keep the session alive. If `ALEXA_COOKIES_PATH` is unset the service starts normally and all other Facility RPCs remain available; only the Alexa RPCs return an error.
+
+Three REST handlers are registered outside grpc-gateway when `ALEXA_COOKIES_PATH` is set:
+- `GET  /alexa/cookie-status` — returns days until cookie expiry
+- `POST /alexa/cookies`       — accepts a new Cookie-Editor JSON export and hot-reloads the client
+- `POST /alexa/text-command`  — forwards a free-text command string to the Alexa voice API
+
+Required env vars (store outside the repo, e.g. `$HOME/credentials/jarvis/.env`):
+```
+ALEXA_COOKIES_PATH=/path/to/alexa-cookies.json
+```
 
 ### NLP Dialogue — Claude AI
 
@@ -160,6 +182,11 @@ FACE_OUTPUT_OPACITY=1.0                    # optional — HUD overlay opacity 0.
 FACE_OUTPUT_FONT_SIZE=0                    # optional — annotation font size in points (default: 0 = auto from image width)
 FACE_MAX_IMAGE_BYTES=5242880               # optional — max uploaded image size in bytes (default: 5 MiB)
 SECURITY_ANALYTICS_DB_PATH=$HOME/.jarvis/analytics.db  # analytics event store (THREAT + FACES metadata)
+
+# ── Alexa smart home (Facility service) ───────────────────────
+ALEXA_COOKIES_PATH=/path/to/alexa-cookies.json  # optional — Cookie-Editor JSON export from alexa.amazon.com
+ALEXA_DEBUG=false                                # optional — log Alexa HTTP requests/responses (default: false)
+ALEXA_KEEPALIVE_INTERVAL=12h                    # optional — session keep-alive ping interval (default: 12h)
 ```
 
 > STT and TTS default to `stub` — mock responses, no cloud API required.
@@ -259,7 +286,13 @@ jarvis/
 │   │   ├── command/server/       # CommandService — on-demand heap profiling
 │   │   ├── profiler/             # HeapProfiler — runtime/pprof + pprof/graphviz GIF
 │   │   ├── business-ops/server/
-│   │   ├── facility/server/
+│   │   ├── facility/
+│   │   │   ├── alexa/            # Amazon Alexa HTTP client (cookies, GraphQL device control, keep-alive)
+│   │   │   │   └── testharness/  # CLI test tool for Alexa API exploration
+│   │   │   ├── config/
+│   │   │   ├── environment/
+│   │   │   ├── server/           # FacilityService gRPC implementation + Alexa REST handlers
+│   │   │   └── zone/
 │   │   ├── intelligence/server/
 │   │   ├── integrations/
 │   │   │   ├── claude/           # Anthropic Claude API client (NLP dialogue)

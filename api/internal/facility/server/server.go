@@ -56,8 +56,10 @@ func (s *FacilityServer) alexaRequired() error {
 }
 
 // TextCommandHandler returns an HTTP handler for POST /alexa/text-command.
-// Body: {"text":"<command>","serial_number":"<optional>","device_type":"<optional>"}
-// If serial_number is omitted, the first online Echo device is used.
+// Body: {"text":"<natural language command>"}
+// The handler parses the text for a power action (on/off) and a device name,
+// fuzzy-matches the name against valid GraphQL endpoints, then sends the
+// command via SendCommand (same GraphQL path as the device control buttons).
 func (s *FacilityServer) TextCommandHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -70,8 +72,7 @@ func (s *FacilityServer) TextCommandHandler() http.HandlerFunc {
 			return
 		}
 		var req struct {
-			Text         string `json:"text"`
-			SerialNumber string `json:"serial_number"`
+			Text string `json:"text"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
@@ -81,54 +82,119 @@ func (s *FacilityServer) TextCommandHandler() http.HandlerFunc {
 			http.Error(w, "text is required", http.StatusBadRequest)
 			return
 		}
-		// Always fetch device list to get full device info (including customerID).
-		devices, err := ac.ListDevices(r.Context())
+
+		action, deviceHint := parseTextCommand(req.Text)
+		if action == "" {
+			http.Error(w, `could not determine action — try "turn on <device>" or "turn off <device>"`, http.StatusBadRequest)
+			return
+		}
+
+		// Fetch smart home devices and validate via GraphQL (same path as ListAlexaDevices).
+		smDevices, err := ac.ListSmartHomeDevices(r.Context())
 		if err != nil {
 			http.Error(w, "list devices: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		var target *alexa.Device
-		if req.SerialNumber != "" {
-			// Explicit device requested.
-			for i, d := range devices {
-				if d.SerialNumber == req.SerialNumber {
-					target = &devices[i]
-					break
-				}
-			}
-		} else {
-			// Auto-select: prefer online ECHO-family devices over web/app clients (VOX).
-			for i, d := range devices {
-				if !d.Online {
-					continue
-				}
-				if d.DeviceFamily == "ECHO" {
-					target = &devices[i]
-					break
-				}
-				if target == nil {
-					target = &devices[i] // fallback to first online device of any type
-				}
-			}
+		entityIDs := make([]string, 0, len(smDevices))
+		smByID := make(map[string]alexa.SmartHomeDevice, len(smDevices))
+		for _, d := range smDevices {
+			entityIDs = append(entityIDs, d.ID)
+			smByID[d.ID] = d
 		}
-		if target == nil {
-			http.Error(w, "no online Echo device available", http.StatusServiceUnavailable)
+		endpointStates, err := ac.BatchGetEndpointStates(r.Context(), entityIDs)
+		if err != nil {
+			http.Error(w, "get endpoint states: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		s.log.Info("sending text command",
+
+		// Find best matching device by name (case-insensitive substring).
+		matchID, matchName := matchDevice(deviceHint, smByID, endpointStates)
+		if matchID == "" {
+			http.Error(w, `no device matched "`+deviceHint+`" — use the exact device name from the Smart Home list`, http.StatusNotFound)
+			return
+		}
+
+		s.log.Info("text command via GraphQL",
 			slog.String("text", req.Text),
-			slog.String("device", target.AccountName),
-			slog.String("serial", target.SerialNumber),
-			slog.String("customer_id", target.DeviceOwnerCustomerID),
+			slog.String("action", action),
+			slog.String("device", matchName),
+			slog.String("appliance_id", matchID),
 		)
-		if err := ac.SendTextCommand(r.Context(), req.Text, *target); err != nil {
+		if err := ac.SendCommand(r.Context(), matchID, alexa.CommandParams{Action: action}); err != nil {
 			s.log.Warn("text command failed", slog.Any("err", err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"ok": true})
+		json.NewEncoder(w).Encode(map[string]any{"ok": true, "device": matchName, "action": action})
 	}
+}
+
+// parseTextCommand extracts a power action and device name from a natural language
+// command string. Handles patterns like "turn on office lights", "office lights on",
+// "office lights turnOn", etc.
+func parseTextCommand(text string) (action, deviceName string) {
+	s := strings.TrimSpace(text)
+	lower := strings.ToLower(s)
+
+	// Check for action prefix ("turn on <device>", "switch off <device>").
+	prefixes := []struct{ phrase, action string }{
+		{"turn on the ", "turnOn"},
+		{"turn on ", "turnOn"},
+		{"switch on the ", "turnOn"},
+		{"switch on ", "turnOn"},
+		{"turn off the ", "turnOff"},
+		{"turn off ", "turnOff"},
+		{"switch off the ", "turnOff"},
+		{"switch off ", "turnOff"},
+	}
+	for _, p := range prefixes {
+		if strings.HasPrefix(lower, p.phrase) {
+			return p.action, strings.TrimSpace(s[len(p.phrase):])
+		}
+	}
+
+	// Check for action suffix ("office lights on", "office lights turnoff").
+	suffixes := []struct{ phrase, action string }{
+		{" turn on", "turnOn"},
+		{" turn off", "turnOff"},
+		{" turnon", "turnOn"},
+		{" turnoff", "turnOff"},
+		{" on", "turnOn"},
+		{" off", "turnOff"},
+	}
+	for _, sf := range suffixes {
+		if strings.HasSuffix(lower, sf.phrase) {
+			return sf.action, strings.TrimSpace(s[:len(s)-len(sf.phrase)])
+		}
+	}
+
+	return "", s
+}
+
+// matchDevice finds the best smart home device whose DisplayName contains
+// deviceHint (case-insensitive), restricted to IDs present in endpointStates
+// (i.e. valid GraphQL endpoints). Returns empty strings if no match.
+func matchDevice(deviceHint string, smByID map[string]alexa.SmartHomeDevice, endpointStates map[string]alexa.EndpointState) (id, name string) {
+	hint := strings.ToLower(strings.TrimSpace(deviceHint))
+	if hint == "" {
+		return "", ""
+	}
+	// Prefer exact match over substring match.
+	for eid := range endpointStates {
+		d := smByID[eid]
+		if strings.ToLower(d.DisplayName) == hint {
+			return eid, d.DisplayName
+		}
+	}
+	for eid := range endpointStates {
+		d := smByID[eid]
+		nameLower := strings.ToLower(d.DisplayName)
+		if strings.Contains(nameLower, hint) || strings.Contains(hint, nameLower) {
+			return eid, d.DisplayName
+		}
+	}
+	return "", ""
 }
 
 // CookieStatusHandler returns an HTTP handler for GET /alexa/cookie-status.
@@ -192,7 +258,7 @@ func (s *FacilityServer) CookieUploadHandler() http.HandlerFunc {
 			http.Error(w, "save cookies: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		newClient, err := alexa.New(r.Context(), s.cookiesPath)
+		newClient, err := alexa.New(r.Context(), s.cookiesPath, s.alexaDebug)
 		if err != nil {
 			http.Error(w, "reload client: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -310,21 +376,6 @@ func (s *FacilityServer) ListAlexaDevices(ctx context.Context, req *facilityv1.L
 
 	ac := s.getAlexaClient()
 
-	// Fetch current power states — best-effort, doesn't fail the whole request.
-	states, err := ac.GetDeviceStates(ctx)
-	if err != nil {
-		s.log.WarnContext(ctx, "ListAlexaDevices: power states unavailable", slog.Any("err", err))
-		states = map[string]alexa.DeviceState{}
-	} else if s.alexaDebug {
-		s.log.InfoContext(ctx, "ListAlexaDevices: device states fetched", slog.Int("count", len(states)))
-		for id, st := range states {
-			s.log.InfoContext(ctx, "alexa device state",
-				slog.String("id", id),
-				slog.String("power", st.PowerState),
-			)
-		}
-	}
-
 	var out []*facilityv1.AlexaDevice
 
 	// Echo devices
@@ -343,19 +394,43 @@ func (s *FacilityServer) ListAlexaDevices(ctx context.Context, req *facilityv1.L
 		})
 	}
 
-	// Smart home appliances
+	// Smart home appliances — use behaviors/entities as the source of entity IDs,
+	// then batch-validate via GraphQL (which filters out non-endpoint entities like
+	// Cync virtual groups) and get real-time power state in the same request.
 	smDevices, err := ac.ListSmartHomeDevices(ctx)
 	if err != nil {
 		s.log.WarnContext(ctx, "ListAlexaDevices: smart home devices failed", slog.Any("err", err))
 	}
+
+	// Collect entity IDs for batch GraphQL validation.
+	entityIDs := make([]string, 0, len(smDevices))
+	smByID := make(map[string]alexa.SmartHomeDevice, len(smDevices))
 	for _, d := range smDevices {
-		ps := states[d.ID].PowerState
+		entityIDs = append(entityIDs, d.ID)
+		smByID[d.ID] = d
+	}
+
+	// Batch-query GraphQL for power state; only valid endpoints are returned.
+	endpointStates, err := ac.BatchGetEndpointStates(ctx, entityIDs)
+	if err != nil {
+		s.log.WarnContext(ctx, "ListAlexaDevices: endpoint states unavailable", slog.Any("err", err))
+		endpointStates = map[string]alexa.EndpointState{}
+	}
+
+	for id, state := range endpointStates {
+		d := smByID[id]
+		ps := ""
+		if state.PowerOn {
+			ps = "ON"
+		} else {
+			ps = "OFF"
+		}
 		out = append(out, &facilityv1.AlexaDevice{
 			Name:         d.DisplayName,
 			ApplianceId:  d.ID,
 			DeviceType:   d.Description,
 			IsSmartHome:  true,
-			Online:       true, // behaviors/entities only returns enabled devices
+			Online:       state.Online,
 			Capabilities: capabilityTypes(d.SupportedProperties),
 			PowerState:   ps,
 		})

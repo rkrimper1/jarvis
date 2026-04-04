@@ -33,12 +33,16 @@ func CookiesExpiry(path string) (time.Time, error) {
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return time.Time{}, fmt.Errorf("parse cookie file: %w", err)
 	}
+	now := time.Now()
 	var earliest time.Time
 	for _, e := range entries {
 		if e.ExpirationDate == 0 {
-			continue
+			continue // session cookie — no fixed expiry
 		}
 		t := time.Unix(int64(e.ExpirationDate), 0)
+		if t.Before(now) {
+			continue // already-expired short-lived cookie (tracking etc.) — ignore
+		}
 		if earliest.IsZero() || t.Before(earliest) {
 			earliest = t
 		}
@@ -58,9 +62,15 @@ func loadCookies(path string) ([]*http.Cookie, error) {
 	}
 	cookies := make([]*http.Cookie, 0, len(entries))
 	for _, e := range entries {
+		// Go's net/http rejects cookie values containing double-quotes (RFC 6265
+		// allows quoted-string syntax but Go is strict). Strip surrounding quotes.
+		val := e.Value
+		if len(val) >= 2 && val[0] == '"' && val[len(val)-1] == '"' {
+			val = val[1 : len(val)-1]
+		}
 		c := &http.Cookie{
 			Name:     e.Name,
-			Value:    e.Value,
+			Value:    val,
 			Domain:   e.Domain,
 			Path:     e.Path,
 			Secure:   e.Secure,

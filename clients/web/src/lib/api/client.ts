@@ -275,16 +275,17 @@ export const facility = {
 		if (!res.ok) throw new Error(`cookie status: HTTP ${res.status}`);
 		return res.json();
 	},
-	async sendAlexaTextCommand(text: string, serialNumber?: string): Promise<void> {
+	async sendAlexaTextCommand(text: string): Promise<{ device?: string; action?: string }> {
 		const res = await fetch('/alexa/text-command', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ text, serial_number: serialNumber ?? '' })
+			body: JSON.stringify({ text })
 		});
 		if (!res.ok) {
 			const t = await res.text();
 			throw new Error(t || `HTTP ${res.status}`);
 		}
+		return res.json();
 	},
 	async refreshAlexaCookies(cookieJson: string): Promise<void> {
 		// Validate it parses before sending.

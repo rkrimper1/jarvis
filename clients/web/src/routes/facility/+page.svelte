@@ -11,17 +11,19 @@
 	let cmdFocused = $state(false);
 	let cmdStatus = $state<'idle' | 'sending' | 'ok' | 'err'>('idle');
 	let cmdError = $state('');
+	let cmdResult = $state<{ device?: string; action?: string } | null>(null);
 
 	async function submitTextCommand() {
 		const text = cmdText.trim();
 		if (!text) return;
 		cmdStatus = 'sending';
 		cmdError = '';
+		cmdResult = null;
 		try {
-			await facility.sendAlexaTextCommand(text);
+			cmdResult = await facility.sendAlexaTextCommand(text);
 			cmdStatus = 'ok';
 			cmdText = '';
-			setTimeout(() => { cmdStatus = 'idle'; }, 2000);
+			setTimeout(() => { cmdStatus = 'idle'; cmdResult = null; }, 4000);
 		} catch (e) {
 			cmdStatus = 'err';
 			cmdError = e instanceof Error ? e.message : String(e);
@@ -89,6 +91,13 @@
 		try {
 			await facility.sendAlexaCommand(applianceId, action, params);
 			commandStatus = { ...commandStatus, [applianceId]: 'ok' };
+			// Optimistically update power state so the indicator reflects the command immediately.
+			if (action === 'turnOn' || action === 'turnOff') {
+				const newState = action === 'turnOn' ? 'ON' : 'OFF';
+				devices = devices.map(d =>
+					d.applianceId === applianceId ? { ...d, powerState: newState } : d
+				);
+			}
 		} catch (e) {
 			commandStatus = { ...commandStatus, [applianceId]: 'err' };
 		}
@@ -107,6 +116,9 @@
 		};
 		return icons[type] ?? '◈';
 	}
+
+	let smFilter = $state('ALL');
+
 
 	loadDevices();
 	checkCookieExpiry();
@@ -148,6 +160,9 @@
 			{/if}
 		</button>
 	</div>
+	{#if cmdStatus === 'ok' && cmdResult?.device}
+		<div class="cmd-ok-msg font-hud">{cmdResult.device} → {cmdResult.action === 'turnOn' ? 'ON' : 'OFF'}</div>
+	{/if}
 	{#if cmdStatus === 'err' && cmdError}
 		<div class="cmd-error">{cmdError}</div>
 	{/if}
@@ -169,18 +184,12 @@
 	{/if}
 
 	{#if showRefreshModal}
-		<div class="modal-backdrop" onclick={() => showRefreshModal = false} role="presentation">
-			<div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+		<div class="modal-backdrop" onclick={() => showRefreshModal = false} onkeydown={(e) => e.key === 'Escape' && (showRefreshModal = false)} role="presentation" tabindex="-1">
+			<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
 				<div class="modal-header font-hud">REFRESH ALEXA COOKIES</div>
 				<ol class="modal-steps">
-					<li>
-						<a href="https://alexa.amazon.com" target="_blank" rel="noopener" class="alexa-link">Open alexa.amazon.com ↗</a>
-						and log in if needed.
-					</li>
-					<li>
-						Open the <strong>Cookie-Editor</strong> browser extension, click <strong>Export → Export as JSON</strong>,
-						and copy the result.
-					</li>
+					<li>Log in to the <strong>alexa.amazon.com</strong> window that just opened.</li>
+					<li>Open the <strong>Cookie-Editor</strong> browser extension, click <strong>Export → Export as JSON</strong>, and copy the result.</li>
 					<li>Paste the JSON below and click <strong>SAVE &amp; RELOAD</strong>.</li>
 				</ol>
 				<textarea
@@ -213,7 +222,9 @@
 		<div class="columns">
 		{#if echoDevices.length}
 			<section class="col">
-				<h2 class="section-title font-hud">ECHO DEVICES</h2>
+				<div class="section-header">
+					<h2 class="section-title font-hud">ECHO DEVICES</h2>
+				</div>
 				<div class="device-grid">
 					{#each echoDevices as d}
 						<div class="device-card">
@@ -233,10 +244,18 @@
 		{/if}
 
 		{#if smartDevices.length}
+			{@const categories = ['ALL', ...new Set(smartDevices.map(d => primaryType(d.capabilities ?? [])).sort())]}
 			<section class="col">
-				<h2 class="section-title font-hud">SMART HOME</h2>
+				<div class="section-header">
+					<h2 class="section-title font-hud">SMART HOME</h2>
+					<div class="filter-pills">
+						{#each categories as cat}
+							<button class="filter-pill" class:active={smFilter === cat} onclick={() => smFilter = cat}>{cat}</button>
+						{/each}
+					</div>
+				</div>
 				<div class="device-grid">
-					{#each smartDevices as d}
+					{#each smartDevices.filter(d => smFilter === 'ALL' || primaryType(d.capabilities ?? []) === smFilter) as d}
 						{@const type = primaryType(d.capabilities ?? [])}
 						{@const st = commandStatus[d.applianceId ?? ''] ?? ''}
 						<div class="device-card" class:sending={st === 'sending'}>
@@ -282,7 +301,12 @@
 	.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
 	.page-title { font-size: 20px; font-weight: 900; letter-spacing: 0.25em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); margin: 0 0 4px; }
 	.page-sub { font-size: 11px; color: var(--hud-muted); margin: 0; }
-	.section-title { font-size: 11px; letter-spacing: 0.2em; color: var(--hud-muted); margin: 0 0 12px; border-bottom: 1px solid var(--hud-dim); padding-bottom: 6px; }
+	.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--hud-dim); padding-bottom: 6px; }
+	.section-title { font-size: 11px; letter-spacing: 0.2em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); margin: 0; white-space: nowrap; }
+	.filter-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+	.filter-pill { font-size: 9px; letter-spacing: 0.1em; font-family: var(--font-hud, monospace); padding: 2px 7px; border: 1px solid #4a5568; background: transparent; color: var(--hud-text); border-radius: 2px; cursor: pointer; transition: all 0.15s; }
+	.filter-pill:hover { border-color: var(--hud-cyan); color: var(--hud-cyan); }
+	.filter-pill.active { border-color: var(--hud-cyan); color: var(--hud-cyan); background: color-mix(in srgb, var(--hud-cyan) 10%, transparent); }
 	section { margin-bottom: 32px; }
 
 	/* Side-by-side columns above 900px, stacked below */
@@ -389,7 +413,8 @@
 	.cmd-ok  { color: #22c55e; }
 	.cmd-arrow { font-family: monospace; }
 	@keyframes spin { to { transform: rotate(360deg); } }
-	.cmd-error { color: #ef4444; font-size: 11px; margin: -14px 0 14px; padding: 0 4px; }
+	.cmd-error  { color: #ef4444; font-size: 11px; margin: -14px 0 14px; padding: 0 4px; }
+	.cmd-ok-msg { color: #22c55e; font-size: 10px; letter-spacing: 0.15em; margin: -14px 0 14px; padding: 0 4px; }
 
 	/* Cookie expiry banners */
 	.cookie-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 11px; font-family: var(--hud-font-hud); letter-spacing: 0.1em; margin-bottom: 16px; }
@@ -407,8 +432,7 @@
 	.modal-steps { padding-left: 18px; margin: 0 0 18px; color: var(--hud-text); font-size: 12px; line-height: 1.8; }
 	.modal-steps li { margin-bottom: 6px; }
 	.modal-steps strong { color: var(--hud-cyan); }
-	.alexa-link { color: var(--hud-cyan); text-decoration: none; }
-	.alexa-link:hover { text-decoration: underline; }
+
 	.cookie-input { width: 100%; background: #060a0f; border: 1px solid var(--hud-dim); color: var(--hud-text); font-family: monospace; font-size: 11px; padding: 10px; resize: vertical; box-sizing: border-box; }
 	.cookie-input:focus { outline: none; border-color: var(--hud-cyan); }
 	.refresh-error { color: #ef4444; font-size: 11px; margin-top: 8px; }
