@@ -71,7 +71,9 @@ func main() {
 		ClaudeModel:        envString("CLAUDE_MODEL", "claude-sonnet-4-6"),
 	}
 
-	usersDBPath := envString("USERS_DB_PATH", "")
+	usersDBPath  := envString("USERS_DB_PATH", "")
+	tasksDBPath  := envString("TASKS_DB_PATH", "")
+	tokenSecret  := envString("TOKEN_SECRET", "stark-industries-dev-secret-change-in-prod")
 
 	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
 	faceCascadePath    := envString("FACE_CASCADE_PATH", "")
@@ -102,7 +104,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	}, alexaClient, alexaDebug, alexaCookies, httpMux)
+	}, alexaClient, alexaDebug, alexaCookies, httpMux, tasksDBPath, tokenSecret)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)

@@ -1,0 +1,276 @@
+syntax = "proto3";
+package jarvis.task;
+option go_package = "github.com/rkrimper1/jarvis/api/pb/task";
+
+import "pb/common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+enum TaskPriority {
+  TASK_PRIORITY_UNSPECIFIED = 0;
+  TASK_PRIORITY_CRITICAL    = 1;
+  TASK_PRIORITY_HIGH        = 2;
+  TASK_PRIORITY_MEDIUM      = 3;
+  TASK_PRIORITY_LOW         = 4;
+}
+
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_UNASSIGNED  = 1;
+  TASK_STATUS_ASSIGNED    = 2;
+  TASK_STATUS_IN_PROGRESS = 3;
+  TASK_STATUS_TESTING     = 4;
+  TASK_STATUS_REVIEW      = 5;
+  TASK_STATUS_COMPLETED   = 6;
+}
+
+enum SprintStatus {
+  SPRINT_STATUS_UNSPECIFIED = 0;
+  SPRINT_STATUS_ACTIVE      = 1;
+  SPRINT_STATUS_CLOSED      = 2;
+}
+
+message Sprint {
+  string       sprint_id  = 1;
+  string       name       = 2;
+  string       goal       = 3;
+  string       start_date = 4;
+  string       end_date   = 5;
+  SprintStatus status     = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message Task {
+  string       task_id      = 1;
+  string       title        = 2;
+  string       description  = 3;
+  string       assignee_id  = 4;
+  string       reporter_id  = 5;
+  TaskPriority priority     = 6;
+  int32        story_points = 7;
+  string       due_date     = 8;
+  string       sprint_id    = 9;
+  TaskStatus   status       = 10;
+  string       completed_by_id = 11;
+  google.protobuf.Timestamp completed_at = 12;
+  google.protobuf.Timestamp created_at   = 13;
+  google.protobuf.Timestamp updated_at   = 14;
+}
+
+message UserVelocity {
+  string user_id      = 1;
+  int32  story_points = 2;
+}
+
+// ── Task CRUD ────────────────────────────────────────────────────────────────
+
+message CreateTaskRequest {
+  jarvis.common.RequestMeta meta        = 1;
+  string       title        = 2;
+  string       description  = 3;
+  string       assignee_id  = 4;
+  string       reporter_id  = 5;
+  TaskPriority priority     = 6;
+  int32        story_points = 7;
+  string       due_date     = 8;
+  string       sprint_id    = 9;
+}
+
+message CreateTaskResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Task task                       = 2;
+}
+
+message GetTaskRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string task_id                 = 2;
+}
+
+message GetTaskResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Task task                       = 2;
+}
+
+message UpdateTaskRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string       task_id      = 2;
+  string       title        = 3;
+  string       description  = 4;
+  string       assignee_id  = 5;
+  TaskPriority priority     = 6;
+  int32        story_points = 7;
+  string       due_date     = 8;
+}
+
+message UpdateTaskResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Task task                       = 2;
+}
+
+message DeleteTaskRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string task_id                 = 2;
+}
+
+message DeleteTaskResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string task_id                  = 2;
+}
+
+message ListBacklogRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message ListBacklogResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated Task tasks             = 2;
+}
+
+message ListSprintTasksRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2;
+}
+
+message ListSprintTasksResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated Task tasks             = 2;
+}
+
+message AssignTaskToSprintRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string task_id                 = 2;
+  string sprint_id               = 3;
+}
+
+message AssignTaskToSprintResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Task task                       = 2;
+}
+
+message MoveTaskStatusRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string task_id                 = 2;
+  TaskStatus new_status          = 3;
+  string user_id                 = 4;
+}
+
+message MoveTaskStatusResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Task task                       = 2;
+}
+
+// ── Sprint CRUD ──────────────────────────────────────────────────────────────
+
+message CreateSprintRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string name                    = 2;
+  string goal                    = 3;
+  string start_date              = 4;
+  string end_date                = 5;
+}
+
+message CreateSprintResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Sprint sprint                   = 2;
+}
+
+message UpdateSprintRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2;
+  string name                    = 3;
+  string goal                    = 4;
+  string start_date              = 5;
+  string end_date                = 6;
+}
+
+message UpdateSprintResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Sprint sprint                   = 2;
+}
+
+message DeleteSprintRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2;
+}
+
+message DeleteSprintResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  string sprint_id                = 2;
+}
+
+message CloseSprintRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2;
+}
+
+message CloseSprintResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  Sprint sprint                   = 2;
+}
+
+message ListSprintsRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message ListSprintsResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated Sprint sprints         = 2;
+}
+
+message GetSprintVelocityRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2;
+}
+
+message GetSprintVelocityResponse {
+  jarvis.common.ResponseMeta meta    = 1;
+  repeated UserVelocity velocities   = 2;
+}
+
+// ── Service ──────────────────────────────────────────────────────────────────
+
+service TaskService {
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {
+    option (google.api.http) = { post: "/v1/tasks" body: "*" };
+  }
+  rpc GetTask(GetTaskRequest) returns (GetTaskResponse) {
+    option (google.api.http) = { get: "/v1/tasks/{task_id}" };
+  }
+  rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse) {
+    option (google.api.http) = { patch: "/v1/tasks/{task_id}" body: "*" };
+  }
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {
+    option (google.api.http) = { delete: "/v1/tasks/{task_id}" };
+  }
+  rpc ListBacklog(ListBacklogRequest) returns (ListBacklogResponse) {
+    option (google.api.http) = { get: "/v1/tasks/backlog" };
+  }
+  rpc ListSprintTasks(ListSprintTasksRequest) returns (ListSprintTasksResponse) {
+    option (google.api.http) = { get: "/v1/sprints/{sprint_id}/tasks" };
+  }
+  rpc AssignTaskToSprint(AssignTaskToSprintRequest) returns (AssignTaskToSprintResponse) {
+    option (google.api.http) = { post: "/v1/tasks/{task_id}/sprint" body: "*" };
+  }
+  rpc MoveTaskStatus(MoveTaskStatusRequest) returns (MoveTaskStatusResponse) {
+    option (google.api.http) = { post: "/v1/tasks/{task_id}/status" body: "*" };
+  }
+  rpc CreateSprint(CreateSprintRequest) returns (CreateSprintResponse) {
+    option (google.api.http) = { post: "/v1/sprints" body: "*" };
+  }
+  rpc UpdateSprint(UpdateSprintRequest) returns (UpdateSprintResponse) {
+    option (google.api.http) = { patch: "/v1/sprints/{sprint_id}" body: "*" };
+  }
+  rpc DeleteSprint(DeleteSprintRequest) returns (DeleteSprintResponse) {
+    option (google.api.http) = { delete: "/v1/sprints/{sprint_id}" };
+  }
+  rpc CloseSprint(CloseSprintRequest) returns (CloseSprintResponse) {
+    option (google.api.http) = { post: "/v1/sprints/{sprint_id}/close" body: "*" };
+  }
+  rpc ListSprints(ListSprintsRequest) returns (ListSprintsResponse) {
+    option (google.api.http) = { get: "/v1/sprints" };
+  }
+  rpc GetSprintVelocity(GetSprintVelocityRequest) returns (GetSprintVelocityResponse) {
+    option (google.api.http) = { get: "/v1/sprints/{sprint_id}/velocity" };
+  }
+}

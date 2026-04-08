@@ -22,6 +22,7 @@ import (
 	learningv1 "github.com/rkrimper1/jarvis/api/pb/learning"
 	nlpv1      "github.com/rkrimper1/jarvis/api/pb/nlp"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
+	taskv1     "github.com/rkrimper1/jarvis/api/pb/task"
 	userv1     "github.com/rkrimper1/jarvis/api/pb/user"
 	voicev1    "github.com/rkrimper1/jarvis/api/pb/voice"
 
@@ -33,6 +34,8 @@ import (
 	learningserver "github.com/rkrimper1/jarvis/api/internal/learning/server"
 	nlpserver      "github.com/rkrimper1/jarvis/api/internal/nlp/server"
 	securityserver "github.com/rkrimper1/jarvis/api/internal/security/server"
+	taskserver     "github.com/rkrimper1/jarvis/api/internal/task/server"
+	taskstore      "github.com/rkrimper1/jarvis/api/internal/task/store"
 	userserver     "github.com/rkrimper1/jarvis/api/internal/user/server"
 	userstore      "github.com/rkrimper1/jarvis/api/internal/user/store"
 	voiceserver    "github.com/rkrimper1/jarvis/api/internal/voice/server"
@@ -54,13 +57,14 @@ var serviceNames = []string{
 	"jarvis.learning.LearningService",
 	"jarvis.nlp.NLPService",
 	"jarvis.security.SecurityService",
+	"jarvis.task.TaskService",
 	"jarvis.user.UserService",
 	"jarvis.voice.VoiceService",
 }
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tasksDBPath string, tokenSecret string) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -131,6 +135,21 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	secSrv := securityserver.NewWithUserStoreFace(secCfg, log, uStore, faceCfg)
 	securityv1.RegisterSecurityServiceServer(grpcSrv, secSrv)
 
+	// ── Service: task ─────────────────────────────────────────────────
+	var taskSrv *taskserver.TaskServer
+	if tasksDBPath != "" {
+		tStore, err := taskstore.New(tasksDBPath, log)
+		if err != nil {
+			log.Error("task store init failed", slog.Any("err", err))
+		} else {
+			taskSrv = taskserver.New(tStore, tokenSecret, log)
+		}
+	}
+	if taskSrv == nil {
+		taskSrv = taskserver.New(nil, tokenSecret, log)
+	}
+	taskv1.RegisterTaskServiceServer(grpcSrv, taskSrv)
+
 	// ── Service: user ─────────────────────────────────────────────────
 	userSrv := userserver.New(uStore, log)
 	userv1.RegisterUserServiceServer(grpcSrv, userSrv)
@@ -181,6 +200,9 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	}
 	if err := securityv1.RegisterSecurityServiceHandlerServer(ctx, gwMux, secSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway security: %w", err)
+	}
+	if err := taskv1.RegisterTaskServiceHandlerServer(ctx, gwMux, taskSrv); err != nil {
+		return nil, nil, nil, fmt.Errorf("gateway task: %w", err)
 	}
 	if err := userv1.RegisterUserServiceHandlerServer(ctx, gwMux, userSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway user: %w", err)

@@ -11,14 +11,14 @@
 	auth.subscribe(($auth) => setToken($auth.token));
 
 	const navItems = [
-		{ path: '/',         label: 'System',   icon: '◈' },
-		{ path: '/dialogue', label: 'Dialogue', icon: '◉' },
-		{ path: '/schedule', label: 'Schedule', icon: '◷' },
-		{ path: '/tasks',    label: 'Tasks',    icon: '◧' },
-		{ path: '/intel',    label: 'Intel',    icon: '◎' },
-		{ path: '/learning', label: 'Learning', icon: '◈' },
-		{ path: '/security', label: 'Security', icon: '◬' },
-		{ path: '/facility', label: 'Facility', icon: '⬡' },
+		{ path: '/',              label: 'System',   icon: '◈' },
+		{ path: '/dialogue',      label: 'Dialogue', icon: '◉' },
+		{ path: '/schedule',      label: 'Schedule', icon: '◷' },
+		{ path: '/tasks/backlog', label: 'Tasks',    icon: '◧' },
+		{ path: '/intel',         label: 'Intel',    icon: '◎' },
+		{ path: '/learning',      label: 'Learning', icon: '◈' },
+		{ path: '/security',      label: 'Security', icon: '◬' },
+		{ path: '/facility',      label: 'Facility', icon: '⬡' },
 	];
 
 	function handleLogout() {
@@ -43,7 +43,7 @@
 		<div class="hud-brand font-hud">J.A.R.V.I.S.</div>
 		<nav class="hud-nav">
 			{#each navItems as item}
-				<a href={item.path} class="hud-nav-link" class:active={$page.url.pathname === item.path}>
+				<a href={item.path} class="hud-nav-link" class:active={item.path.startsWith('/tasks') ? $page.url.pathname.startsWith('/tasks') : $page.url.pathname === item.path}>
 					<span class="nav-icon">{item.icon}</span>
 					<span class="nav-label">{item.label}</span>
 				</a>
