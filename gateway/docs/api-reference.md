@@ -3,7 +3,7 @@
 Base URL: `http://localhost:8080`
 gRPC direct: `localhost:50051`
 
-All 9 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
+All 10 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
 ---
 
@@ -726,6 +726,181 @@ grpcurl -plaintext -d '{"user_id": "<user-uuid>"}' \
 
 ---
 
+---
+
+## Task Service
+
+Tasks support full Scrum hierarchy: `TASK_TYPE_EPIC` → `TASK_TYPE_STORY` → `TASK_TYPE_TASK` / `TASK_TYPE_SUBTASK` / `TASK_TYPE_BUG` via `parent_id`. Display IDs (`JARVIS-0001`) are auto-assigned.
+
+### Create Task
+```bash
+curl -X POST http://localhost:8080/v1/tasks \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "task-001"},
+    "title": "Upgrade Mark VII repulsor array",
+    "description": "Replace palladium core with vibranium.",
+    "assignee_id": "<user-uuid>",
+    "reporter_id": "<user-uuid>",
+    "priority": "TASK_PRIORITY_HIGH",
+    "task_type": "TASK_TYPE_TASK",
+    "story_points": 5
+  }'
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "task-001"},
+  "title": "Upgrade Mark VII repulsor array",
+  "priority": "TASK_PRIORITY_HIGH",
+  "task_type": "TASK_TYPE_TASK",
+  "story_points": 5
+}' localhost:50051 jarvis.task.TaskService/CreateTask
+```
+
+### List Backlog
+```bash
+curl http://localhost:8080/v1/tasks/backlog \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### List All Tasks
+```bash
+curl http://localhost:8080/v1/tasks \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Get Task
+```bash
+curl http://localhost:8080/v1/tasks/<task-uuid> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Update Task
+```bash
+curl -X PATCH http://localhost:8080/v1/tasks/<task-uuid> \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_id": "<task-uuid>",
+    "title": "Upgrade Mark VII repulsor array — Phase 2",
+    "priority": "TASK_PRIORITY_CRITICAL",
+    "story_points": 8
+  }'
+```
+
+### Move Task Status
+```bash
+curl -X POST http://localhost:8080/v1/tasks/<task-uuid>/status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_id": "<task-uuid>",
+    "new_status": "TASK_STATUS_IN_PROGRESS",
+    "user_id": "<user-uuid>"
+  }'
+```
+
+> Valid status values: `TASK_STATUS_UNASSIGNED`, `TASK_STATUS_ASSIGNED`, `TASK_STATUS_IN_PROGRESS`, `TASK_STATUS_TESTING`, `TASK_STATUS_REVIEW`, `TASK_STATUS_COMPLETED`.
+
+### Delete Task
+```bash
+curl -X DELETE http://localhost:8080/v1/tasks/<task-uuid> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Create Sprint
+```bash
+curl -X POST http://localhost:8080/v1/sprints \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "sprint-001"},
+    "name": "Sprint 1 — Arc Reactor",
+    "goal": "Complete core repulsor upgrade",
+    "start_date": "2026-04-14",
+    "end_date": "2026-04-28"
+  }'
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "sprint-001"},
+  "name": "Sprint 1 — Arc Reactor",
+  "goal": "Complete core repulsor upgrade",
+  "start_date": "2026-04-14",
+  "end_date": "2026-04-28"
+}' localhost:50051 jarvis.task.TaskService/CreateSprint
+```
+
+### List Sprints
+```bash
+curl http://localhost:8080/v1/sprints \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Assign Task to Sprint
+```bash
+curl -X POST http://localhost:8080/v1/tasks/<task-uuid>/sprint \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task_id": "<task-uuid>", "sprint_id": "<sprint-uuid>"}'
+```
+
+### List Sprint Tasks
+```bash
+curl http://localhost:8080/v1/sprints/<sprint-uuid>/tasks \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Get Sprint Velocity
+```bash
+curl http://localhost:8080/v1/sprints/<sprint-uuid>/velocity \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "sprint-vel-001", "success": true},
+  "velocities": [
+    {"userId": "<user-uuid>", "storyPoints": 13},
+    {"userId": "<user-uuid>", "storyPoints": 8}
+  ]
+}
+```
+
+### Close Sprint
+```bash
+curl -X POST http://localhost:8080/v1/sprints/<sprint-uuid>/close \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"sprint_id": "<sprint-uuid>"}'
+```
+
+> Closing a sprint marks its status `SPRINT_STATUS_CLOSED`. Any tasks not yet `COMPLETED` remain in the sprint record for historical reference.
+
+### Update Sprint
+```bash
+curl -X PATCH http://localhost:8080/v1/sprints/<sprint-uuid> \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sprint_id": "<sprint-uuid>",
+    "name": "Sprint 1 — Arc Reactor (revised)",
+    "end_date": "2026-05-05"
+  }'
+```
+
+### Delete Sprint
+```bash
+curl -X DELETE http://localhost:8080/v1/sprints/<sprint-uuid> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ## gRPC Direct Access
 
 ```bash
@@ -793,8 +968,8 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │                                           │
                   │  command      business-ops  facility      │
                   │  intelligence learning      security      │
-                  │  user         nlp ◄────────► voice        │
-                  │               (nlp↔voice in-process)      │
+                  │  task         user                        │
+                  │  nlp ◄────────► voice (in-process)    │
                   │                                           │
                   │  nlp → Claude API (dialogue, streaming)  │
                   │  learning → Claude API (knowledge search) │

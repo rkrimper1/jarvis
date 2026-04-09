@@ -24,8 +24,8 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │                                                             │
   │  ┌──────────────────────────────────────────────────────┐   │
   │  │  command      │ business-ops │ facility              │   │
-  │  │  intelligence │ learning     │ security  │ user      │   │
-  │  │  nlp ◄──────► voice (in-process)                     │   │
+  │  │  intelligence │ learning     │ security  │ task      │   │
+  │  │  user         │ nlp ◄──────► voice (in-process)      │   │
   │  └──────────────────────────────────────────────────────┘   │
   │                                                             │
   │   Claude API (NLP · knowledge search · face sentiment)      │
@@ -63,10 +63,11 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
 | `security` | Auth, threat assessment, emergency protocols, face detection + sentiment analysis, audit log, surroundings analytics |
+| `task` | Task and sprint management — full Scrum backlog (CRUD, priorities, story points, parent/child hierarchy, Epics, Stories) and sprint lifecycle (`CreateSprint`, `CloseSprint`, `GetSprintVelocity`) |
 | `user` | User CRUD, profile management, password change, role-based access (SQLite + bcrypt) |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
-All 9 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+All 10 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
 
 ### Facility — Alexa Smart Home
 
@@ -107,6 +108,20 @@ When `SMTP_*` env vars are configured, `ScheduleEvent` automatically emails an i
 ### Command — Heap Profiler
 
 `RequestMemoryProfile` triggers an immediate heap snapshot. The `.prof` file and rendered `.gif` call-graph are written to `PPROF_DIR` and automatically appear in `./profiles/` on the host via the Docker volume mount.
+
+### Task — Sprint Management
+
+`TaskService` provides a full Scrum-style task tracker backed by a SQLite database (`TASKS_DB_PATH`). Tasks carry type (`TASK`, `EPIC`, `STORY`, `BUG`, `SUBTASK`), priority, story points, due date, assignee, and optional `parent_id` for epic/story hierarchies. Sequential `display_id` values (e.g. `JARVIS-0001`) are auto-assigned.
+
+Sprints have a name, goal, and date range. `CloseSprint` marks the sprint closed and rolls any incomplete tasks back to the backlog. `GetSprintVelocity` returns per-user story-point totals for a completed sprint. `MoveTaskStatus` advances a task through `UNASSIGNED → ASSIGNED → IN_PROGRESS → TESTING → REVIEW → COMPLETED`.
+
+The service starts with a no-op in-memory stub when `TASKS_DB_PATH` is unset; all other services are unaffected.
+
+Required env vars (optional — service degrades gracefully without them):
+```
+TASKS_DB_PATH=$HOME/.jarvis/tasks.db   # optional — SQLite DB path (created by setup.sh)
+TOKEN_SECRET=<random-string>           # optional — JWT signing secret (default: stark-industries-dev-secret-change-in-prod — change in production)
+```
 
 ### Security — Face Analysis
 
@@ -168,8 +183,14 @@ KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per s
 
 # ── User store ────────────────────────────────────────────────────
 USERS_DB_PATH=$HOME/.jarvis/users.db  # optional — SQLite DB path (created by setup.sh)
-SEED_TONY_USER=tony-stark             # optional — seeded admin username (default: tony-stark)
-SEED_TONY_PASSWORD=tony-stark         # optional — seeded admin password (default: tony-stark)
+SEED_TONY_USER=tony-stark             # optional — seeded Tony user username (default: tony-stark)
+SEED_TONY_PASSWORD=tony-stark         # optional — seeded Tony user password (default: tony-stark)
+SEED_ADMIN_USER=rob-krimper           # optional — seeded admin username (default: rob-krimper)
+SEED_ADMIN_PASSWORD=rob-krimper       # optional — seeded admin password (default: rob-krimper)
+
+# ── Task store ─────────────────────────────────────────────────────────────────
+TASKS_DB_PATH=$HOME/.jarvis/tasks.db  # optional — SQLite DB path (created by setup.sh)
+TOKEN_SECRET=stark-industries-dev-secret-change-in-prod  # optional — JWT signing secret (change in production)
 
 # ── Face analysis (Security service) ──────────────────────────────
 FACE_CASCADE_PATH=$HOME/.jarvis/facefinder  # cascade file downloaded by setup.sh
@@ -275,12 +296,13 @@ jarvis/
 │       ├── learning/
 │       ├── nlp/
 │       ├── security/
+│       ├── task/
 │       ├── user/
 │       └── voice/
 ├── api/                          # Single Go module
 │   ├── cmd/grpc-server/          # Entry point
 │   │   ├── main.go               # Listeners, env vars, heap profiler, graceful shutdown
-│   │   ├── server.go             # Wires all 9 services onto gRPC + grpc-gateway
+│   │   ├── server.go             # Wires all 10 services onto gRPC + grpc-gateway
 │   │   └── nlp_adapter.go        # In-process NLP→Voice adapter (no dial)
 │   ├── internal/                 # Service implementations (Go internal package)
 │   │   ├── command/server/       # CommandService — on-demand heap profiling
@@ -316,6 +338,9 @@ jarvis/
 │   │   │   ├── server/           # SecurityService gRPC implementation
 │   │   │   ├── threat/           # Threat assessment logic
 │   │   │   └── token/            # Token store
+│   │   ├── task/
+│   │   │   ├── server/           # TaskService — CRUD, sprint lifecycle, velocity
+│   │   │   └── store/            # SQLite store (tasks, sprints, display_id sequence)
 │   │   ├── user/
 │   │   │   ├── server/           # UserService — CRUD, profile, password, entitlements
 │   │   │   └── store/            # SQLite store (bcrypt, seed users, UUID ids)
@@ -333,7 +358,7 @@ jarvis/
 │       │   ├── lib/
 │       │   │   ├── api/          # Typed fetch wrappers for all 9 REST services
 │       │   │   └── stores/       # Auth store (localStorage + derived state, role, isAdmin)
-│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks, intel, security, profile, admin/users
+│       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks (backlog/board/scrum), intel, security, profile, admin/users
 │       └── static/               # Static assets (hud-bg.png, etc.)
 ├── profiles/                     # Heap profile output — .prof + .gif (volume-mounted from Docker)
 ├── docker/
