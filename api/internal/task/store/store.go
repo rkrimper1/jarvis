@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -14,6 +15,9 @@ import (
 
 	taskv1 "github.com/rkrimper1/jarvis/api/pb/task"
 )
+
+// ErrNotFound is returned by store methods when a requested record does not exist.
+var ErrNotFound = errors.New("not found")
 
 const schema = `
 CREATE TABLE IF NOT EXISTS sprints (
@@ -53,12 +57,6 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE INDEX IF NOT EXISTS idx_tasks_sprint ON tasks(sprint_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id);
-`
-
-// migrations are run after schema creation to add columns to existing databases.
-const migrations = `
-ALTER TABLE tasks ADD COLUMN display_id INTEGER NOT NULL DEFAULT 0;
-INSERT OR IGNORE INTO task_seq VALUES (0);
 `
 
 type Store struct {
@@ -134,7 +132,7 @@ func (s *Store) GetTask(ctx context.Context, id string) (*taskv1.Task, error) {
 		        coalesce(due_date,''),coalesce(sprint_id,''),status,task_type,coalesce(parent_id,''),
 		        coalesce(completed_by_id,''),completed_at,created_at,updated_at
 		 FROM tasks WHERE id=?`, id)
-	return scanTask(row)
+	return s.scanTask(row)
 }
 
 func (s *Store) UpdateTask(ctx context.Context, id, title, description, assigneeID, priority, taskType, parentID string, storyPoints int32, dueDate string) (*taskv1.Task, error) {
@@ -156,7 +154,7 @@ func (s *Store) DeleteTask(ctx context.Context, id string) error {
 	}
 	n, _ := res.RowsAffected()
 	if n == 0 {
-		return fmt.Errorf("task not found")
+		return fmt.Errorf("task %s: %w", id, ErrNotFound)
 	}
 	return nil
 }
@@ -171,7 +169,7 @@ func (s *Store) ListBacklog(ctx context.Context) ([]*taskv1.Task, error) {
 		return nil, fmt.Errorf("task store: list backlog: %w", err)
 	}
 	defer rows.Close()
-	return scanTasks(rows)
+	return s.scanTasks(rows)
 }
 
 func (s *Store) ListBySprintID(ctx context.Context, sprintID string) ([]*taskv1.Task, error) {
@@ -184,7 +182,7 @@ func (s *Store) ListBySprintID(ctx context.Context, sprintID string) ([]*taskv1.
 		return nil, fmt.Errorf("task store: list by sprint: %w", err)
 	}
 	defer rows.Close()
-	return scanTasks(rows)
+	return s.scanTasks(rows)
 }
 
 func (s *Store) ListAll(ctx context.Context) ([]*taskv1.Task, error) {
@@ -197,7 +195,7 @@ func (s *Store) ListAll(ctx context.Context) ([]*taskv1.Task, error) {
 		return nil, fmt.Errorf("task store: list all: %w", err)
 	}
 	defer rows.Close()
-	return scanTasks(rows)
+	return s.scanTasks(rows)
 }
 
 func (s *Store) AssignToSprint(ctx context.Context, taskID, sprintID string) (*taskv1.Task, error) {
@@ -247,7 +245,7 @@ func (s *Store) CreateSprint(ctx context.Context, name, goal, startDate, endDate
 func (s *Store) GetSprint(ctx context.Context, id string) (*taskv1.Sprint, error) {
 	row := s.db.QueryRowContext(ctx,
 		`SELECT id,name,goal,start_date,end_date,status,created_at,updated_at FROM sprints WHERE id=?`, id)
-	return scanSprint(row)
+	return s.scanSprint(row)
 }
 
 func (s *Store) UpdateSprint(ctx context.Context, id, name, goal, startDate, endDate string) (*taskv1.Sprint, error) {
@@ -268,7 +266,7 @@ func (s *Store) DeleteSprint(ctx context.Context, id string) error {
 	}
 	n, _ := res.RowsAffected()
 	if n == 0 {
-		return fmt.Errorf("sprint not found")
+		return fmt.Errorf("sprint %s: %w", id, ErrNotFound)
 	}
 	return nil
 }
@@ -293,7 +291,7 @@ func (s *Store) ListSprints(ctx context.Context) ([]*taskv1.Sprint, error) {
 	defer rows.Close()
 	var out []*taskv1.Sprint
 	for rows.Next() {
-		sp, err := scanSprintRow(rows)
+		sp, err := s.scanSprintRow(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -324,7 +322,7 @@ func (s *Store) GetSprintVelocity(ctx context.Context, sprintID string) ([]*task
 
 // ── scan helpers ──────────────────────────────────────────────────────────────
 
-func scanTask(row *sql.Row) (*taskv1.Task, error) {
+func (s *Store) scanTask(row *sql.Row) (*taskv1.Task, error) {
 	var t taskv1.Task
 	var priorityStr, statusStr, taskTypeStr string
 	var completedAt sql.NullString
@@ -335,7 +333,7 @@ func scanTask(row *sql.Row) (*taskv1.Task, error) {
 		&taskTypeStr, &t.ParentId, &t.CompletedById, &completedAt, &createdAt, &updatedAt,
 	)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("task not found")
+		return nil, fmt.Errorf("task %w", ErrNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("task store: scan task: %w", err)
@@ -344,14 +342,14 @@ func scanTask(row *sql.Row) (*taskv1.Task, error) {
 	t.Status = taskStatusToProto(statusStr)
 	t.TaskType = taskTypeToProto(taskTypeStr)
 	if completedAt.Valid {
-		t.CompletedAt = parseTS(completedAt.String)
+		t.CompletedAt = s.parseTS(completedAt.String)
 	}
-	t.CreatedAt = parseTS(createdAt)
-	t.UpdatedAt = parseTS(updatedAt)
+	t.CreatedAt = s.parseTS(createdAt)
+	t.UpdatedAt = s.parseTS(updatedAt)
 	return &t, nil
 }
 
-func scanTasks(rows *sql.Rows) ([]*taskv1.Task, error) {
+func (s *Store) scanTasks(rows *sql.Rows) ([]*taskv1.Task, error) {
 	var out []*taskv1.Task
 	for rows.Next() {
 		var t taskv1.Task
@@ -370,32 +368,32 @@ func scanTasks(rows *sql.Rows) ([]*taskv1.Task, error) {
 		t.Status = taskStatusToProto(statusStr)
 		t.TaskType = taskTypeToProto(taskTypeStr)
 		if completedAt.Valid {
-			t.CompletedAt = parseTS(completedAt.String)
+			t.CompletedAt = s.parseTS(completedAt.String)
 		}
-		t.CreatedAt = parseTS(createdAt)
-		t.UpdatedAt = parseTS(updatedAt)
+		t.CreatedAt = s.parseTS(createdAt)
+		t.UpdatedAt = s.parseTS(updatedAt)
 		out = append(out, &t)
 	}
 	return out, rows.Err()
 }
 
-func scanSprint(row *sql.Row) (*taskv1.Sprint, error) {
+func (s *Store) scanSprint(row *sql.Row) (*taskv1.Sprint, error) {
 	var sp taskv1.Sprint
 	var statusStr, createdAt, updatedAt string
 	err := row.Scan(&sp.SprintId, &sp.Name, &sp.Goal, &sp.StartDate, &sp.EndDate, &statusStr, &createdAt, &updatedAt)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("sprint not found")
+		return nil, fmt.Errorf("sprint %w", ErrNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("task store: scan sprint: %w", err)
 	}
 	sp.Status = sprintStatusToProto(statusStr)
-	sp.CreatedAt = parseTS(createdAt)
-	sp.UpdatedAt = parseTS(updatedAt)
+	sp.CreatedAt = s.parseTS(createdAt)
+	sp.UpdatedAt = s.parseTS(updatedAt)
 	return &sp, nil
 }
 
-func scanSprintRow(rows *sql.Rows) (*taskv1.Sprint, error) {
+func (s *Store) scanSprintRow(rows *sql.Rows) (*taskv1.Sprint, error) {
 	var sp taskv1.Sprint
 	var statusStr, createdAt, updatedAt string
 	err := rows.Scan(&sp.SprintId, &sp.Name, &sp.Goal, &sp.StartDate, &sp.EndDate, &statusStr, &createdAt, &updatedAt)
@@ -403,8 +401,8 @@ func scanSprintRow(rows *sql.Rows) (*taskv1.Sprint, error) {
 		return nil, fmt.Errorf("task store: scan sprint row: %w", err)
 	}
 	sp.Status = sprintStatusToProto(statusStr)
-	sp.CreatedAt = parseTS(createdAt)
-	sp.UpdatedAt = parseTS(updatedAt)
+	sp.CreatedAt = s.parseTS(createdAt)
+	sp.UpdatedAt = s.parseTS(updatedAt)
 	return &sp, nil
 }
 
@@ -517,13 +515,14 @@ func sprintStatusToProto(s string) taskv1.SprintStatus {
 	}
 }
 
-func parseTS(s string) *timestamppb.Timestamp {
+func (s *Store) parseTS(raw string) *timestamppb.Timestamp {
 	for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02T15:04:05Z"} {
-		if t, err := time.Parse(layout, s); err == nil {
+		if t, err := time.Parse(layout, raw); err == nil {
 			return timestamppb.New(t)
 		}
 	}
-	return timestamppb.Now()
+	s.log.Warn("task store: unrecognised timestamp format", "value", raw)
+	return timestamppb.New(time.Time{})
 }
 
 // exported for server use

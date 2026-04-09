@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 	"time"
@@ -196,7 +197,10 @@ func (s *TaskServer) DeleteTask(ctx context.Context, req *taskv1.DeleteTaskReque
 	}
 
 	if err := s.store.DeleteTask(ctx, req.TaskId); err != nil {
-		return nil, status.Errorf(codes.NotFound, "%v", err)
+		if errors.Is(err, store.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "%v", err)
+		}
+		return nil, status.Errorf(codes.Internal, "delete task: %v", err)
 	}
 	s.log.InfoContext(ctx, "DeleteTask", slog.String("task_id", req.TaskId))
 	return &taskv1.DeleteTaskResponse{Meta: metaOK(req.Meta.RequestId), TaskId: req.TaskId}, nil
@@ -419,7 +423,10 @@ func (s *TaskServer) DeleteSprint(ctx context.Context, req *taskv1.DeleteSprintR
 		return nil, status.Error(codes.InvalidArgument, "sprint_id is required")
 	}
 	if err := s.store.DeleteSprint(ctx, req.SprintId); err != nil {
-		return nil, status.Errorf(codes.NotFound, "%v", err)
+		if errors.Is(err, store.ErrNotFound) {
+			return nil, status.Errorf(codes.NotFound, "%v", err)
+		}
+		return nil, status.Errorf(codes.Internal, "delete sprint: %v", err)
 	}
 	s.log.InfoContext(ctx, "DeleteSprint", slog.String("sprint_id", req.SprintId))
 	return &taskv1.DeleteSprintResponse{Meta: metaOK(req.Meta.RequestId), SprintId: req.SprintId}, nil

@@ -1,4 +1,7 @@
-// Typed REST client for all 9 JARVIS services via grpc-gateway (:8080)
+// Typed REST client for all 10 JARVIS services via grpc-gateway (:8080)
+
+import { get } from 'svelte/store';
+import { userId } from '$lib/stores/auth';
 
 let _token: string | null = null;
 let _onUnauthorized: (() => void) | null = null;
@@ -451,9 +454,6 @@ export interface UserVelocity {
 	userId: string;
 	storyPoints: number;
 }
-
-import { get } from 'svelte/store';
-import { userId } from '$lib/stores/auth';
 
 export const tasks = {
 	createTask(params: {
