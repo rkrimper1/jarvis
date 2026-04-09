@@ -92,8 +92,9 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *taskv1.CreateTaskReque
 	}
 
 	priority := store.PriorityToString(req.Priority)
+	taskType := store.TaskTypeToString(req.TaskType)
 	t, err := s.store.CreateTask(ctx, req.Title, req.Description, req.AssigneeId, req.ReporterId,
-		priority, req.StoryPoints, req.DueDate, req.SprintId)
+		priority, taskType, req.ParentId, req.StoryPoints, req.DueDate, req.SprintId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "create task: %v", err)
 	}
@@ -156,7 +157,8 @@ func (s *TaskServer) UpdateTask(ctx context.Context, req *taskv1.UpdateTaskReque
 	}
 
 	priority := store.PriorityToString(req.Priority)
-	t, err := s.store.UpdateTask(ctx, req.TaskId, req.Title, req.Description, req.AssigneeId, priority, req.StoryPoints, req.DueDate)
+	taskType := store.TaskTypeToString(req.TaskType)
+	t, err := s.store.UpdateTask(ctx, req.TaskId, req.Title, req.Description, req.AssigneeId, priority, taskType, req.ParentId, req.StoryPoints, req.DueDate)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "update task: %v", err)
 	}
@@ -220,6 +222,28 @@ func (s *TaskServer) ListBacklog(ctx context.Context, req *taskv1.ListBacklogReq
 		return nil, status.Errorf(codes.Internal, "list backlog: %v", err)
 	}
 	return &taskv1.ListBacklogResponse{Meta: metaOK(req.Meta.RequestId), Tasks: tasks}, nil
+}
+
+func (s *TaskServer) ListAllTasks(ctx context.Context, req *taskv1.ListAllTasksRequest) (*taskv1.ListAllTasksResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/ListAllTasks")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+
+	tasks, err := s.store.ListAll(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list all tasks: %v", err)
+	}
+	return &taskv1.ListAllTasksResponse{Meta: metaOK(req.Meta.RequestId), Tasks: tasks}, nil
 }
 
 func (s *TaskServer) ListSprintTasks(ctx context.Context, req *taskv1.ListSprintTasksRequest) (*taskv1.ListSprintTasksResponse, error) {

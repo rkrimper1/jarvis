@@ -27,8 +27,13 @@ CREATE TABLE IF NOT EXISTS sprints (
     updated_at DATETIME DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS task_seq (
+    last_id INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS tasks (
     id              TEXT PRIMARY KEY,
+    display_id      INTEGER NOT NULL DEFAULT 0,
     title           TEXT NOT NULL,
     description     TEXT NOT NULL DEFAULT '',
     assignee_id     TEXT NOT NULL,
@@ -38,6 +43,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     due_date        TEXT,
     sprint_id       TEXT REFERENCES sprints(id) ON DELETE SET NULL,
     status          TEXT NOT NULL DEFAULT 'unassigned' CHECK(status IN ('unassigned','assigned','in_progress','testing','review','completed')),
+    task_type       TEXT NOT NULL DEFAULT 'task' CHECK(task_type IN ('task','epic','story','bug','subtask')),
+    parent_id       TEXT REFERENCES tasks(id) ON DELETE SET NULL,
     completed_by_id TEXT,
     completed_at    DATETIME,
     created_at      DATETIME DEFAULT (datetime('now')),
@@ -46,6 +53,12 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE INDEX IF NOT EXISTS idx_tasks_sprint ON tasks(sprint_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id);
+`
+
+// migrations are run after schema creation to add columns to existing databases.
+const migrations = `
+ALTER TABLE tasks ADD COLUMN display_id INTEGER NOT NULL DEFAULT 0;
+INSERT OR IGNORE INTO task_seq VALUES (0);
 `
 
 type Store struct {
@@ -61,6 +74,15 @@ func New(dbPath string, log *slog.Logger) (*Store, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("task store: apply schema: %w", err)
 	}
+	// Apply migrations best-effort — statements may fail if column already exists.
+	for _, stmt := range []string{
+		`ALTER TABLE tasks ADD COLUMN display_id INTEGER NOT NULL DEFAULT 0`,
+		`INSERT OR IGNORE INTO task_seq VALUES (0)`,
+		`ALTER TABLE tasks ADD COLUMN task_type TEXT NOT NULL DEFAULT 'task'`,
+		`ALTER TABLE tasks ADD COLUMN parent_id TEXT`,
+	} {
+		_, _ = db.Exec(stmt)
+	}
 	return &Store{db: db, log: log}, nil
 }
 
@@ -68,18 +90,38 @@ func (s *Store) Close() error { return s.db.Close() }
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
 
-func (s *Store) CreateTask(ctx context.Context, title, description, assigneeID, reporterID, priority string, storyPoints int32, dueDate, sprintID string) (*taskv1.Task, error) {
+func (s *Store) CreateTask(ctx context.Context, title, description, assigneeID, reporterID, priority, taskType, parentID string, storyPoints int32, dueDate, sprintID string) (*taskv1.Task, error) {
 	id := uuid.New().String()
 	statusStr := "unassigned"
 	if sprintID != "" {
 		statusStr = "assigned"
 	}
-	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO tasks (id, title, description, assignee_id, reporter_id, priority, story_points, due_date, sprint_id, status)
-		 VALUES (?,?,?,?,?,?,?,nullif(?,?),nullif(?,?),?)`,
-		id, title, description, assigneeID, reporterID, priority, storyPoints,
-		dueDate, "", sprintID, "", statusStr,
-	)
+
+	// Allocate display_id atomically using the task_seq counter.
+	var displayID int32
+	err := func() error {
+		tx, err := s.db.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
+		if _, err := tx.ExecContext(ctx, `UPDATE task_seq SET last_id = last_id + 1`); err != nil {
+			return err
+		}
+		if err := tx.QueryRowContext(ctx, `SELECT last_id FROM task_seq`).Scan(&displayID); err != nil {
+			return err
+		}
+		_, err = tx.ExecContext(ctx,
+			`INSERT INTO tasks (id, display_id, title, description, assignee_id, reporter_id, priority, task_type, parent_id, story_points, due_date, sprint_id, status)
+			 VALUES (?,?,?,?,?,?,?,?,nullif(?,?),?,nullif(?,?),nullif(?,?),?)`,
+			id, displayID, title, description, assigneeID, reporterID, priority, taskType,
+			parentID, "", storyPoints, dueDate, "", sprintID, "", statusStr,
+		)
+		if err != nil {
+			return err
+		}
+		return tx.Commit()
+	}()
 	if err != nil {
 		return nil, fmt.Errorf("task store: insert task: %w", err)
 	}
@@ -88,18 +130,18 @@ func (s *Store) CreateTask(ctx context.Context, title, description, assigneeID, 
 
 func (s *Store) GetTask(ctx context.Context, id string) (*taskv1.Task, error) {
 	row := s.db.QueryRowContext(ctx,
-		`SELECT id,title,description,assignee_id,reporter_id,priority,story_points,
-		        coalesce(due_date,''),coalesce(sprint_id,''),status,
+		`SELECT id,display_id,title,description,assignee_id,reporter_id,priority,story_points,
+		        coalesce(due_date,''),coalesce(sprint_id,''),status,task_type,coalesce(parent_id,''),
 		        coalesce(completed_by_id,''),completed_at,created_at,updated_at
 		 FROM tasks WHERE id=?`, id)
 	return scanTask(row)
 }
 
-func (s *Store) UpdateTask(ctx context.Context, id, title, description, assigneeID, priority string, storyPoints int32, dueDate string) (*taskv1.Task, error) {
+func (s *Store) UpdateTask(ctx context.Context, id, title, description, assigneeID, priority, taskType, parentID string, storyPoints int32, dueDate string) (*taskv1.Task, error) {
 	_, err := s.db.ExecContext(ctx,
-		`UPDATE tasks SET title=?,description=?,assignee_id=?,priority=?,story_points=?,
-		       due_date=nullif(?,?),updated_at=datetime('now') WHERE id=?`,
-		title, description, assigneeID, priority, storyPoints, dueDate, "", id,
+		`UPDATE tasks SET title=?,description=?,assignee_id=?,priority=?,task_type=?,
+		       parent_id=nullif(?,?),story_points=?,due_date=nullif(?,?),updated_at=datetime('now') WHERE id=?`,
+		title, description, assigneeID, priority, taskType, parentID, "", storyPoints, dueDate, "", id,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("task store: update task: %w", err)
@@ -121,8 +163,8 @@ func (s *Store) DeleteTask(ctx context.Context, id string) error {
 
 func (s *Store) ListBacklog(ctx context.Context) ([]*taskv1.Task, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id,title,description,assignee_id,reporter_id,priority,story_points,
-		        coalesce(due_date,''),coalesce(sprint_id,''),status,
+		`SELECT id,display_id,title,description,assignee_id,reporter_id,priority,story_points,
+		        coalesce(due_date,''),coalesce(sprint_id,''),status,task_type,coalesce(parent_id,''),
 		        coalesce(completed_by_id,''),completed_at,created_at,updated_at
 		 FROM tasks WHERE sprint_id IS NULL ORDER BY created_at DESC`)
 	if err != nil {
@@ -134,12 +176,25 @@ func (s *Store) ListBacklog(ctx context.Context) ([]*taskv1.Task, error) {
 
 func (s *Store) ListBySprintID(ctx context.Context, sprintID string) ([]*taskv1.Task, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id,title,description,assignee_id,reporter_id,priority,story_points,
-		        coalesce(due_date,''),coalesce(sprint_id,''),status,
+		`SELECT id,display_id,title,description,assignee_id,reporter_id,priority,story_points,
+		        coalesce(due_date,''),coalesce(sprint_id,''),status,task_type,coalesce(parent_id,''),
 		        coalesce(completed_by_id,''),completed_at,created_at,updated_at
 		 FROM tasks WHERE sprint_id=? ORDER BY created_at DESC`, sprintID)
 	if err != nil {
 		return nil, fmt.Errorf("task store: list by sprint: %w", err)
+	}
+	defer rows.Close()
+	return scanTasks(rows)
+}
+
+func (s *Store) ListAll(ctx context.Context) ([]*taskv1.Task, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id,display_id,title,description,assignee_id,reporter_id,priority,story_points,
+		        coalesce(due_date,''),coalesce(sprint_id,''),status,task_type,coalesce(parent_id,''),
+		        coalesce(completed_by_id,''),completed_at,created_at,updated_at
+		 FROM tasks ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("task store: list all: %w", err)
 	}
 	defer rows.Close()
 	return scanTasks(rows)
@@ -271,13 +326,13 @@ func (s *Store) GetSprintVelocity(ctx context.Context, sprintID string) ([]*task
 
 func scanTask(row *sql.Row) (*taskv1.Task, error) {
 	var t taskv1.Task
-	var priorityStr, statusStr string
+	var priorityStr, statusStr, taskTypeStr string
 	var completedAt sql.NullString
 	var createdAt, updatedAt string
 	err := row.Scan(
-		&t.TaskId, &t.Title, &t.Description, &t.AssigneeId, &t.ReporterId,
+		&t.TaskId, &t.DisplayId, &t.Title, &t.Description, &t.AssigneeId, &t.ReporterId,
 		&priorityStr, &t.StoryPoints, &t.DueDate, &t.SprintId, &statusStr,
-		&t.CompletedById, &completedAt, &createdAt, &updatedAt,
+		&taskTypeStr, &t.ParentId, &t.CompletedById, &completedAt, &createdAt, &updatedAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("task not found")
@@ -287,6 +342,7 @@ func scanTask(row *sql.Row) (*taskv1.Task, error) {
 	}
 	t.Priority = priorityToProto(priorityStr)
 	t.Status = taskStatusToProto(statusStr)
+	t.TaskType = taskTypeToProto(taskTypeStr)
 	if completedAt.Valid {
 		t.CompletedAt = parseTS(completedAt.String)
 	}
@@ -299,19 +355,20 @@ func scanTasks(rows *sql.Rows) ([]*taskv1.Task, error) {
 	var out []*taskv1.Task
 	for rows.Next() {
 		var t taskv1.Task
-		var priorityStr, statusStr string
+		var priorityStr, statusStr, taskTypeStr string
 		var completedAt sql.NullString
 		var createdAt, updatedAt string
 		err := rows.Scan(
-			&t.TaskId, &t.Title, &t.Description, &t.AssigneeId, &t.ReporterId,
+			&t.TaskId, &t.DisplayId, &t.Title, &t.Description, &t.AssigneeId, &t.ReporterId,
 			&priorityStr, &t.StoryPoints, &t.DueDate, &t.SprintId, &statusStr,
-			&t.CompletedById, &completedAt, &createdAt, &updatedAt,
+			&taskTypeStr, &t.ParentId, &t.CompletedById, &completedAt, &createdAt, &updatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("task store: scan tasks row: %w", err)
 		}
 		t.Priority = priorityToProto(priorityStr)
 		t.Status = taskStatusToProto(statusStr)
+		t.TaskType = taskTypeToProto(taskTypeStr)
 		if completedAt.Valid {
 			t.CompletedAt = parseTS(completedAt.String)
 		}
@@ -419,6 +476,36 @@ func taskStatusToString(s taskv1.TaskStatus) string {
 	}
 }
 
+func taskTypeToProto(s string) taskv1.TaskType {
+	switch s {
+	case "epic":
+		return taskv1.TaskType_TASK_TYPE_EPIC
+	case "story":
+		return taskv1.TaskType_TASK_TYPE_STORY
+	case "bug":
+		return taskv1.TaskType_TASK_TYPE_BUG
+	case "subtask":
+		return taskv1.TaskType_TASK_TYPE_SUBTASK
+	default:
+		return taskv1.TaskType_TASK_TYPE_TASK
+	}
+}
+
+func taskTypeToString(t taskv1.TaskType) string {
+	switch t {
+	case taskv1.TaskType_TASK_TYPE_EPIC:
+		return "epic"
+	case taskv1.TaskType_TASK_TYPE_STORY:
+		return "story"
+	case taskv1.TaskType_TASK_TYPE_BUG:
+		return "bug"
+	case taskv1.TaskType_TASK_TYPE_SUBTASK:
+		return "subtask"
+	default:
+		return "task"
+	}
+}
+
 func sprintStatusToProto(s string) taskv1.SprintStatus {
 	switch s {
 	case "active":
@@ -442,3 +529,4 @@ func parseTS(s string) *timestamppb.Timestamp {
 // exported for server use
 var PriorityToString = priorityToString
 var TaskStatusToString = taskStatusToString
+var TaskTypeToString = taskTypeToString

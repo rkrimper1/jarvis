@@ -6,6 +6,15 @@ import "pb/common/common.proto";
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
+enum TaskType {
+  TASK_TYPE_UNSPECIFIED = 0;
+  TASK_TYPE_TASK        = 1;
+  TASK_TYPE_EPIC        = 2;
+  TASK_TYPE_STORY       = 3;
+  TASK_TYPE_BUG         = 4;
+  TASK_TYPE_SUBTASK     = 5;
+}
+
 enum TaskPriority {
   TASK_PRIORITY_UNSPECIFIED = 0;
   TASK_PRIORITY_CRITICAL    = 1;
@@ -56,6 +65,9 @@ message Task {
   google.protobuf.Timestamp completed_at = 12;
   google.protobuf.Timestamp created_at   = 13;
   google.protobuf.Timestamp updated_at   = 14;
+  int32        display_id   = 15;
+  TaskType     task_type    = 16;
+  string       parent_id    = 17;
 }
 
 message UserVelocity {
@@ -75,6 +87,8 @@ message CreateTaskRequest {
   int32        story_points = 7;
   string       due_date     = 8;
   string       sprint_id    = 9;
+  TaskType     task_type    = 10;
+  string       parent_id    = 11;
 }
 
 message CreateTaskResponse {
@@ -101,6 +115,8 @@ message UpdateTaskRequest {
   TaskPriority priority     = 6;
   int32        story_points = 7;
   string       due_date     = 8;
+  TaskType     task_type    = 9;
+  string       parent_id    = 10;
 }
 
 message UpdateTaskResponse {
@@ -123,6 +139,15 @@ message ListBacklogRequest {
 }
 
 message ListBacklogResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated Task tasks             = 2;
+}
+
+message ListAllTasksRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message ListAllTasksResponse {
   jarvis.common.ResponseMeta meta = 1;
   repeated Task tasks             = 2;
 }
@@ -245,6 +270,9 @@ service TaskService {
   }
   rpc ListBacklog(ListBacklogRequest) returns (ListBacklogResponse) {
     option (google.api.http) = { get: "/v1/tasks/backlog" };
+  }
+  rpc ListAllTasks(ListAllTasksRequest) returns (ListAllTasksResponse) {
+    option (google.api.http) = { get: "/v1/tasks" };
   }
   rpc ListSprintTasks(ListSprintTasksRequest) returns (ListSprintTasksResponse) {
     option (google.api.http) = { get: "/v1/sprints/{sprint_id}/tasks" };

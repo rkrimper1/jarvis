@@ -1,12 +1,29 @@
 <script lang="ts">
-	import { tasks, users, type Task, type Sprint, type User, type TaskPriority } from '$lib/api/client';
+	import { tasks, users, type Task, type Sprint, type User, type TaskPriority, type TaskType, type TaskStatus } from '$lib/api/client';
 	import { userId, canManageSprints } from '$lib/stores/auth';
 
 	let backlog = $state<Task[]>([]);
+	let allTasks = $state<Task[]>([]);
 	let sprints = $state<Sprint[]>([]);
 	let userList = $state<User[]>([]);
 	let loading = $state(true);
 	let error = $state('');
+	let rightTab = $state<'sprints' | 'stories' | 'epics'>('sprints');
+
+	const ACTIVE_STATUSES: TaskStatus[] = [
+		'TASK_STATUS_UNASSIGNED', 'TASK_STATUS_ASSIGNED', 'TASK_STATUS_IN_PROGRESS',
+		'TASK_STATUS_TESTING', 'TASK_STATUS_REVIEW'
+	];
+
+	const filteredBacklog = $derived(
+		backlog.filter(t => t.taskType !== 'TASK_TYPE_EPIC' && t.taskType !== 'TASK_TYPE_STORY')
+	);
+	const stories = $derived(
+		allTasks.filter(t => t.taskType === 'TASK_TYPE_STORY' && ACTIVE_STATUSES.includes(t.status))
+	);
+	const epics = $derived(
+		allTasks.filter(t => t.taskType === 'TASK_TYPE_EPIC' && ACTIVE_STATUSES.includes(t.status))
+	);
 
 	// Create task form
 	let showCreateTask = $state(false);
@@ -14,6 +31,8 @@
 	let newDescription = $state('');
 	let newAssigneeId = $state('');
 	let newPriority = $state<TaskPriority>('TASK_PRIORITY_MEDIUM');
+	let newTaskType = $state<TaskType>('TASK_TYPE_TASK');
+	let newParentId = $state('');
 	let newStoryPoints = $state(0);
 	let newDueDate = $state('');
 	let newSprintId = $state('');
@@ -26,6 +45,8 @@
 	let editDescription = $state('');
 	let editAssigneeId = $state('');
 	let editPriority = $state<TaskPriority>('TASK_PRIORITY_MEDIUM');
+	let editTaskType = $state<TaskType>('TASK_TYPE_TASK');
+	let editParentId = $state('');
 	let editStoryPoints = $state(0);
 	let editDueDate = $state('');
 	let editSprintId = $state('');
@@ -75,18 +96,44 @@
 		return 0;
 	}
 
+	function displayId(id: number): string {
+		return id > 0 ? `JARVIS-${String(id).padStart(4, '0')}` : '';
+	}
+
+	function taskTypeLabel(t: TaskType): string {
+		switch (t) {
+			case 'TASK_TYPE_EPIC':    return 'EPIC';
+			case 'TASK_TYPE_STORY':   return 'STORY';
+			case 'TASK_TYPE_BUG':     return 'BUG';
+			case 'TASK_TYPE_SUBTASK': return 'SUBTASK';
+			default:                   return 'TASK';
+		}
+	}
+
+	function taskTypeClass(t: TaskType): string {
+		switch (t) {
+			case 'TASK_TYPE_EPIC':    return 'type-epic';
+			case 'TASK_TYPE_STORY':   return 'type-story';
+			case 'TASK_TYPE_BUG':     return 'type-bug';
+			case 'TASK_TYPE_SUBTASK': return 'type-subtask';
+			default:                   return 'type-task';
+		}
+	}
+
 	async function load() {
 		loading = true;
 		error = '';
 		try {
-			const [bl, sp, ul] = await Promise.all([
+			const [bl, sp, ul, all] = await Promise.all([
 				tasks.listBacklog(),
 				tasks.listSprints(),
-				users.list()
+				users.list(),
+				tasks.listAllTasks()
 			]);
 			backlog = bl.tasks ?? [];
 			sprints = sp.sprints ?? [];
 			userList = ul.users ?? [];
+			allTasks = all.tasks ?? [];
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -106,11 +153,14 @@
 				assigneeId: newAssigneeId,
 				reporterId: $userId ?? '',
 				priority: newPriority,
+				taskType: newTaskType,
+				parentId: newParentId || undefined,
 				storyPoints: newStoryPoints,
 				dueDate: newDueDate,
 				sprintId: newSprintId || undefined
 			});
 			newTitle = ''; newDescription = ''; newAssigneeId = ''; newPriority = 'TASK_PRIORITY_MEDIUM';
+			newTaskType = 'TASK_TYPE_TASK'; newParentId = '';
 			newStoryPoints = 0; newDueDate = ''; newSprintId = '';
 			showCreateTask = false;
 			await load();
@@ -127,6 +177,8 @@
 		editDescription = task.description ?? '';
 		editAssigneeId = task.assigneeId;
 		editPriority = task.priority;
+		editTaskType = task.taskType ?? 'TASK_TYPE_TASK';
+		editParentId = task.parentId ?? '';
 		editStoryPoints = task.storyPoints ?? 0;
 		editDueDate = task.dueDate ?? '';
 		editSprintId = task.sprintId ?? '';
@@ -145,6 +197,8 @@
 				description: editDescription.trim(),
 				assigneeId: editAssigneeId,
 				priority: editPriority,
+				taskType: editTaskType,
+				parentId: editParentId || undefined,
 				storyPoints: editStoryPoints,
 				dueDate: editDueDate
 			});
@@ -267,7 +321,7 @@
 		<!-- Left: Backlog -->
 		<section class="backlog-col">
 			<div class="section-header">
-				<h2 class="section-title font-hud">BACKLOG <span class="count">({backlog.length})</span></h2>
+				<h2 class="section-title font-hud">BACKLOG <span class="count">({filteredBacklog.length})</span></h2>
 				<button class="hud-btn small" onclick={() => showCreateTask = !showCreateTask}>
 					{showCreateTask ? 'CANCEL' : '+ CREATE TASK'}
 				</button>
@@ -286,6 +340,16 @@
 					</div>
 					<div class="form-row">
 						<div class="field">
+							<label class="field-label" for="ct-type">TYPE</label>
+							<select id="ct-type" class="hud-input" bind:value={newTaskType}>
+								<option value="TASK_TYPE_TASK">Task</option>
+								<option value="TASK_TYPE_EPIC">Epic</option>
+								<option value="TASK_TYPE_STORY">Story</option>
+								<option value="TASK_TYPE_BUG">Bug</option>
+								<option value="TASK_TYPE_SUBTASK">Sub-task</option>
+							</select>
+						</div>
+						<div class="field">
 							<label class="field-label" for="ct-assignee">ASSIGNEE *</label>
 							<select id="ct-assignee" class="hud-input" bind:value={newAssigneeId}>
 								<option value="">— select —</option>
@@ -294,6 +358,8 @@
 								{/each}
 							</select>
 						</div>
+					</div>
+					<div class="form-row">
 						<div class="field">
 							<label class="field-label" for="ct-priority">PRIORITY</label>
 							<select id="ct-priority" class="hud-input" bind:value={newPriority}>
@@ -301,6 +367,15 @@
 								<option value="TASK_PRIORITY_HIGH">HIGH</option>
 								<option value="TASK_PRIORITY_MEDIUM">MEDIUM</option>
 								<option value="TASK_PRIORITY_LOW">LOW</option>
+							</select>
+						</div>
+						<div class="field">
+							<label class="field-label" for="ct-parent">PARENT TASK</label>
+							<select id="ct-parent" class="hud-input" bind:value={newParentId}>
+								<option value="">— none —</option>
+								{#each allTasks as t}
+									<option value={t.taskId}>{displayId(t.displayId) ? `${displayId(t.displayId)}: ` : ''}{t.title}</option>
+								{/each}
 							</select>
 						</div>
 					</div>
@@ -332,13 +407,13 @@
 				</div>
 			{/if}
 
-			{#if loading && !backlog.length}
+			{#if loading && !filteredBacklog.length}
 				<div class="empty-msg font-hud">LOADING BACKLOG...</div>
-			{:else if !backlog.length}
+			{:else if !filteredBacklog.length}
 				<div class="empty-msg font-hud">BACKLOG EMPTY</div>
 			{:else}
 				<div class="task-list">
-					{#each backlog as task}
+					{#each filteredBacklog as task}
 						<div
 							class="task-card"
 							draggable="true"
@@ -346,8 +421,9 @@
 							role="listitem"
 						>
 							<div class="task-header">
-								<span class="task-title">{task.title}</span>
+								<span class="task-title">{#if task.displayId}<span class="task-id">{displayId(task.displayId)}:</span> {/if}{task.title}</span>
 								<div class="task-header-right">
+									<span class="type-badge {taskTypeClass(task.taskType)}">{taskTypeLabel(task.taskType)}</span>
 									<span class="priority-badge {priorityClass(task.priority)}">{priorityLabel(task.priority)}</span>
 									<button class="act-btn" onclick={(e) => { e.stopPropagation(); openEditTask(task); }}>EDIT</button>
 								</div>
@@ -367,97 +443,179 @@
 			{/if}
 		</section>
 
-		<!-- Right: Sprints -->
+		<!-- Right: Sprints / Stories / Epics -->
 		<section class="sprint-col">
 			<div class="section-header">
-				<h2 class="section-title font-hud">SPRINTS</h2>
-				{#if $canManageSprints}
+				<div class="tab-bar">
+					<button class="tab-btn" class:tab-active={rightTab === 'sprints'} onclick={() => rightTab = 'sprints'}>SPRINTS</button>
+					<button class="tab-btn" class:tab-active={rightTab === 'stories'} onclick={() => rightTab = 'stories'}>STORIES <span class="tab-count">{stories.length}</span></button>
+					<button class="tab-btn" class:tab-active={rightTab === 'epics'} onclick={() => rightTab = 'epics'}>EPICS <span class="tab-count">{epics.length}</span></button>
+				</div>
+				{#if rightTab === 'sprints' && $canManageSprints}
 					<button class="hud-btn small" onclick={openSprintCreate}>+ NEW SPRINT</button>
 				{/if}
 			</div>
 
-			{#if showSprintForm}
-				<div class="create-form">
-					<div class="form-title font-hud">{editingSprint ? 'EDIT SPRINT' : 'NEW SPRINT'}</div>
-					<div class="field">
-						<label class="field-label" for="sp-name">NAME *</label>
-						<input id="sp-name" class="hud-input" bind:value={sprintName} placeholder="Sprint name..." />
-					</div>
-					<div class="field">
-						<label class="field-label" for="sp-goal">GOAL</label>
-						<input id="sp-goal" class="hud-input" bind:value={sprintGoal} placeholder="Sprint goal..." />
-					</div>
-					<div class="form-row">
+			{#if rightTab === 'sprints'}
+				{#if showSprintForm}
+					<div class="create-form">
+						<div class="form-title font-hud">{editingSprint ? 'EDIT SPRINT' : 'NEW SPRINT'}</div>
 						<div class="field">
-							<label class="field-label" for="sp-start">START DATE</label>
-							<input id="sp-start" class="hud-input" type="date" bind:value={sprintStartDate} />
+							<label class="field-label" for="sp-name">NAME *</label>
+							<input id="sp-name" class="hud-input" bind:value={sprintName} placeholder="Sprint name..." />
 						</div>
 						<div class="field">
-							<label class="field-label" for="sp-end">END DATE</label>
-							<input id="sp-end" class="hud-input" type="date" bind:value={sprintEndDate} />
+							<label class="field-label" for="sp-goal">GOAL</label>
+							<input id="sp-goal" class="hud-input" bind:value={sprintGoal} placeholder="Sprint goal..." />
+						</div>
+						<div class="form-row">
+							<div class="field">
+								<label class="field-label" for="sp-start">START DATE</label>
+								<input id="sp-start" class="hud-input" type="date" bind:value={sprintStartDate} />
+							</div>
+							<div class="field">
+								<label class="field-label" for="sp-end">END DATE</label>
+								<input id="sp-end" class="hud-input" type="date" bind:value={sprintEndDate} />
+							</div>
+						</div>
+						{#if sprintFormError}
+							<div class="form-error">{sprintFormError}</div>
+						{/if}
+						<div class="form-row">
+							<button class="hud-btn full-width" onclick={() => showSprintForm = false}>CANCEL</button>
+							<button class="hud-btn primary full-width" onclick={submitSprintForm} disabled={savingSprint}>
+								{savingSprint ? 'SAVING...' : 'SAVE'}
+							</button>
 						</div>
 					</div>
-					{#if sprintFormError}
-						<div class="form-error">{sprintFormError}</div>
-					{/if}
-					<div class="form-row">
-						<button class="hud-btn full-width" onclick={() => showSprintForm = false}>CANCEL</button>
-						<button class="hud-btn primary full-width" onclick={submitSprintForm} disabled={savingSprint}>
-							{savingSprint ? 'SAVING...' : 'SAVE'}
-						</button>
-					</div>
-				</div>
-			{/if}
+				{/if}
 
-			{#if !sprints.length && !loading}
-				<div class="empty-msg font-hud">NO SPRINTS</div>
-			{:else}
-				<div class="sprint-list">
-					{#each sprints as sp}
-						<div
-							class="sprint-card"
-							class:active={sp.status === 'SPRINT_STATUS_ACTIVE'}
-							class:closed={sp.status === 'SPRINT_STATUS_CLOSED'}
-							ondragover={onDragOver}
-							ondrop={(e) => onDropSprint(e, sp.sprintId)}
-							role="region"
-							aria-label="Sprint {sp.name}"
-						>
-							<div class="sprint-header">
-								<span class="sprint-name font-hud">{sp.name}</span>
-								<span class="sprint-status-badge" class:status-active={sp.status === 'SPRINT_STATUS_ACTIVE'} class:status-closed={sp.status === 'SPRINT_STATUS_CLOSED'}>
-									{sp.status === 'SPRINT_STATUS_ACTIVE' ? 'ACTIVE' : 'CLOSED'}
-								</span>
-							</div>
-							{#if sp.goal}
-								<div class="sprint-goal">{sp.goal}</div>
-							{/if}
-							<div class="sprint-dates">
-								{sp.startDate || '—'} → {sp.endDate || '—'}
-							</div>
-							{#if $canManageSprints && sp.status === 'SPRINT_STATUS_ACTIVE'}
-								<div class="sprint-actions">
-									<button class="act-btn" onclick={() => openSprintEdit(sp)}>EDIT</button>
-									<button class="act-btn danger" onclick={() => closeSprint(sp)}>CLOSE</button>
-									<button class="act-btn danger" onclick={() => deleteSprint(sp)}>DELETE</button>
+				{#if !sprints.length && !loading}
+					<div class="empty-msg font-hud">NO SPRINTS</div>
+				{:else}
+					<div class="sprint-list">
+						{#each sprints as sp}
+							<div
+								class="sprint-card"
+								class:active={sp.status === 'SPRINT_STATUS_ACTIVE'}
+								class:closed={sp.status === 'SPRINT_STATUS_CLOSED'}
+								ondragover={onDragOver}
+								ondrop={(e) => onDropSprint(e, sp.sprintId)}
+								role="region"
+								aria-label="Sprint {sp.name}"
+							>
+								<div class="sprint-header">
+									<span class="sprint-name font-hud">{sp.name}</span>
+									<span class="sprint-status-badge" class:status-active={sp.status === 'SPRINT_STATUS_ACTIVE'} class:status-closed={sp.status === 'SPRINT_STATUS_CLOSED'}>
+										{sp.status === 'SPRINT_STATUS_ACTIVE' ? 'ACTIVE' : 'CLOSED'}
+									</span>
 								</div>
-							{:else if $canManageSprints}
-								<div class="sprint-actions">
-									<button class="act-btn danger" onclick={() => deleteSprint(sp)}>DELETE</button>
+								{#if sp.goal}
+									<div class="sprint-goal">{sp.goal}</div>
+								{/if}
+								<div class="sprint-dates">
+									{sp.startDate || '—'} → {sp.endDate || '—'}
 								</div>
-							{/if}
-						</div>
-					{/each}
-				</div>
+								{#if $canManageSprints && sp.status === 'SPRINT_STATUS_ACTIVE'}
+									<div class="sprint-actions">
+										<button class="act-btn" onclick={() => openSprintEdit(sp)}>EDIT</button>
+										<button class="act-btn danger" onclick={() => closeSprint(sp)}>CLOSE</button>
+										<button class="act-btn danger" onclick={() => deleteSprint(sp)}>DELETE</button>
+									</div>
+								{:else if $canManageSprints}
+									<div class="sprint-actions">
+										<button class="act-btn danger" onclick={() => deleteSprint(sp)}>DELETE</button>
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+			{:else if rightTab === 'stories'}
+				{#if !stories.length && !loading}
+					<div class="empty-msg font-hud">NO ACTIVE STORIES</div>
+				{:else}
+					<div class="task-list">
+						{#each stories as task}
+							<div class="task-card story-card" role="listitem">
+								<div class="task-header">
+									<span class="task-title">{#if task.displayId}<span class="task-id">{displayId(task.displayId)}:</span> {/if}{task.title}</span>
+									<div class="task-header-right">
+										<span class="priority-badge {priorityClass(task.priority)}">{priorityLabel(task.priority)}</span>
+										<button class="act-btn" onclick={() => openEditTask(task)}>EDIT</button>
+									</div>
+								</div>
+								<div class="task-meta">
+									<span class="meta-item">◉ {userDisplayName(task.assigneeId)}</span>
+									{#if task.storyPoints > 0}
+										<span class="meta-item pts">{task.storyPoints} pts</span>
+									{/if}
+									{#if task.sprintId}
+										<span class="meta-item sprint-ref">sprint assigned</span>
+									{:else}
+										<span class="meta-item">backlog</span>
+									{/if}
+									{#if task.dueDate}
+										<span class="meta-item due">due {task.dueDate}</span>
+									{/if}
+								</div>
+								{#if task.description}
+									<div class="task-desc">{task.description}</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+			{:else if rightTab === 'epics'}
+				{#if !epics.length && !loading}
+					<div class="empty-msg font-hud">NO ACTIVE EPICS</div>
+				{:else}
+					<div class="task-list">
+						{#each epics as task}
+							<div class="task-card epic-card" role="listitem">
+								<div class="task-header">
+									<span class="task-title">{#if task.displayId}<span class="task-id">{displayId(task.displayId)}:</span> {/if}{task.title}</span>
+									<div class="task-header-right">
+										<span class="priority-badge {priorityClass(task.priority)}">{priorityLabel(task.priority)}</span>
+										<button class="act-btn" onclick={() => openEditTask(task)}>EDIT</button>
+									</div>
+								</div>
+								<div class="task-meta">
+									<span class="meta-item">◉ {userDisplayName(task.assigneeId)}</span>
+									{#if task.storyPoints > 0}
+										<span class="meta-item pts">{task.storyPoints} pts</span>
+									{/if}
+									{#if task.sprintId}
+										<span class="meta-item sprint-ref">sprint assigned</span>
+									{:else}
+										<span class="meta-item">backlog</span>
+									{/if}
+									{#if task.dueDate}
+										<span class="meta-item due">due {task.dueDate}</span>
+									{/if}
+								</div>
+								{#if task.description}
+									<div class="task-desc">{task.description}</div>
+								{/if}
+								{#if allTasks.filter(t => t.parentId === task.taskId).length > 0}
+									<div class="epic-children">
+										<span class="meta-item">{allTasks.filter(t => t.parentId === task.taskId).length} linked task(s)</span>
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
 			{/if}
 		</section>
 	</div>
 </div>
 
 {#if editingTask}
-	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-	<div class="modal-overlay" onclick={() => editingTask = null}>
-		<div class="modal-panel" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+	<div class="modal-overlay" onclick={() => editingTask = null} onkeydown={(e) => { if (e.key === 'Escape') editingTask = null; }} role="presentation">
+		<div class="modal-panel" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="0">
 			<div class="modal-header">
 				<span class="form-title font-hud">EDIT TASK</span>
 				<button class="act-btn" onclick={() => editingTask = null}>✕</button>
@@ -472,6 +630,16 @@
 			</div>
 			<div class="form-row">
 				<div class="field">
+					<label class="field-label" for="et-type">TYPE</label>
+					<select id="et-type" class="hud-input" bind:value={editTaskType}>
+						<option value="TASK_TYPE_TASK">Task</option>
+						<option value="TASK_TYPE_EPIC">Epic</option>
+						<option value="TASK_TYPE_STORY">Story</option>
+						<option value="TASK_TYPE_BUG">Bug</option>
+						<option value="TASK_TYPE_SUBTASK">Sub-task</option>
+					</select>
+				</div>
+				<div class="field">
 					<label class="field-label" for="et-assignee">ASSIGNEE *</label>
 					<select id="et-assignee" class="hud-input" bind:value={editAssigneeId}>
 						<option value="">— select —</option>
@@ -480,6 +648,8 @@
 						{/each}
 					</select>
 				</div>
+			</div>
+			<div class="form-row">
 				<div class="field">
 					<label class="field-label" for="et-priority">PRIORITY</label>
 					<select id="et-priority" class="hud-input" bind:value={editPriority}>
@@ -487,6 +657,15 @@
 						<option value="TASK_PRIORITY_HIGH">HIGH</option>
 						<option value="TASK_PRIORITY_MEDIUM">MEDIUM</option>
 						<option value="TASK_PRIORITY_LOW">LOW</option>
+					</select>
+				</div>
+				<div class="field">
+					<label class="field-label" for="et-parent">PARENT TASK</label>
+					<select id="et-parent" class="hud-input" bind:value={editParentId}>
+						<option value="">— none —</option>
+						{#each allTasks.filter(t => t.taskId !== editingTask?.taskId) as t}
+							<option value={t.taskId}>{displayId(t.displayId) ? `${displayId(t.displayId)}: ` : ''}{t.title}</option>
+						{/each}
 					</select>
 				</div>
 			</div>
@@ -535,9 +714,16 @@
 		.two-col { grid-template-columns: 3fr 2fr; align-items: start; }
 	}
 
-	.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--hud-dim); padding-bottom: 6px; }
+	.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--hud-dim); padding-bottom: 6px; gap: 8px; }
 	.section-title { font-size: 11px; letter-spacing: 0.2em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); margin: 0; }
 	.count { color: var(--hud-muted); }
+	.tab-bar { display: flex; gap: 0; }
+	.tab-btn { font-family: var(--font-hud, monospace); font-size: 10px; letter-spacing: 0.15em; padding: 4px 12px; border: 1px solid var(--hud-dim); border-right: none; background: transparent; color: var(--hud-muted); cursor: pointer; transition: all 0.15s; }
+	.tab-btn:last-child { border-right: 1px solid var(--hud-dim); }
+	.tab-btn:hover { color: var(--hud-cyan); border-color: #00d4ff44; }
+	.tab-btn.tab-active { color: var(--hud-cyan); border-color: var(--hud-cyan); background: #00d4ff0d; text-shadow: var(--glow-cyan); }
+	.tab-count { font-size: 9px; color: var(--hud-muted); margin-left: 4px; }
+	.tab-btn.tab-active .tab-count { color: var(--hud-cyan); }
 	.hud-btn.small { font-size: 9px; padding: 4px 10px; }
 	.hud-btn.primary { color: var(--hud-cyan); border-color: var(--hud-cyan); }
 	.hud-btn.primary:hover { background: #00d4ff18; }
@@ -565,7 +751,14 @@
 	.task-card:active { cursor: grabbing; }
 	.task-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 	.task-header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+	.task-id { color: var(--hud-cyan); opacity: 0.7; font-size: 9px; letter-spacing: 0.05em; }
 	.task-title { font-size: 12px; color: var(--hud-text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.type-badge { font-size: 8px; font-family: var(--font-hud, monospace); letter-spacing: 0.1em; padding: 2px 5px; border: 1px solid; flex-shrink: 0; }
+	.type-task    { color: #94a3b8; border-color: #94a3b844; }
+	.type-epic    { color: #a78bfa; border-color: #a78bfa66; }
+	.type-story   { color: #34d399; border-color: #34d39966; }
+	.type-bug     { color: #f87171; border-color: #f8717166; }
+	.type-subtask { color: #60a5fa; border-color: #60a5fa66; }
 	.priority-badge { font-size: 9px; font-family: var(--font-hud, monospace); letter-spacing: 0.1em; padding: 2px 6px; border: 1px solid; flex-shrink: 0; }
 	.priority-critical { color: #ef4444; border-color: #ef444466; }
 	.priority-high { color: #f97316; border-color: #f9731666; }
@@ -575,6 +768,13 @@
 	.meta-item { font-size: 10px; color: var(--hud-muted); font-family: var(--font-hud, monospace); }
 	.pts { color: #a78bfa; }
 	.due { color: #f59e0b; }
+	.sprint-ref { color: #22c55e; }
+	.story-card { border-color: #34d39933; }
+	.story-card:hover { border-color: #34d399; }
+	.epic-card { border-color: #a78bfa33; }
+	.epic-card:hover { border-color: #a78bfa; }
+	.task-desc { font-size: 10px; color: var(--hud-muted); margin-top: 6px; line-height: 1.4; white-space: pre-wrap; }
+	.epic-children { margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--hud-dim); }
 
 	/* Sprint list */
 	.sprint-list { display: flex; flex-direction: column; gap: 12px; }

@@ -380,6 +380,14 @@ export const learning = {
 
 // ── Tasks ─────────────────────────────────────────────────────────────
 
+export type TaskType =
+	| 'TASK_TYPE_UNSPECIFIED'
+	| 'TASK_TYPE_TASK'
+	| 'TASK_TYPE_EPIC'
+	| 'TASK_TYPE_STORY'
+	| 'TASK_TYPE_BUG'
+	| 'TASK_TYPE_SUBTASK';
+
 export type TaskPriority =
 	| 'TASK_PRIORITY_UNSPECIFIED'
 	| 'TASK_PRIORITY_CRITICAL'
@@ -403,11 +411,14 @@ export type SprintStatus =
 
 export interface Task {
 	taskId: string;
+	displayId: number;
 	title: string;
 	description: string;
 	assigneeId: string;
 	reporterId: string;
 	priority: TaskPriority;
+	taskType: TaskType;
+	parentId: string;
 	storyPoints: number;
 	dueDate: string;
 	sprintId: string;
@@ -444,6 +455,8 @@ export const tasks = {
 		assigneeId: string;
 		reporterId: string;
 		priority?: TaskPriority;
+		taskType?: TaskType;
+		parentId?: string;
 		storyPoints?: number;
 		dueDate?: string;
 		sprintId?: string;
@@ -455,6 +468,8 @@ export const tasks = {
 			assignee_id: params.assigneeId,
 			reporter_id: params.reporterId,
 			priority: params.priority ?? 'TASK_PRIORITY_MEDIUM',
+			task_type: params.taskType ?? 'TASK_TYPE_TASK',
+			parent_id: params.parentId ?? '',
 			story_points: params.storyPoints ?? 0,
 			due_date: params.dueDate ?? '',
 			sprint_id: params.sprintId ?? ''
@@ -468,6 +483,8 @@ export const tasks = {
 		description?: string;
 		assigneeId?: string;
 		priority?: TaskPriority;
+		taskType?: TaskType;
+		parentId?: string;
 		storyPoints?: number;
 		dueDate?: string;
 	}): Promise<{ meta: ResponseMeta; task: Task }> {
@@ -478,6 +495,8 @@ export const tasks = {
 			description: params.description ?? '',
 			assignee_id: params.assigneeId ?? '',
 			priority: params.priority ?? 'TASK_PRIORITY_UNSPECIFIED',
+			task_type: params.taskType ?? 'TASK_TYPE_UNSPECIFIED',
+			parent_id: params.parentId ?? '',
 			story_points: params.storyPoints ?? 0,
 			due_date: params.dueDate ?? ''
 		});
@@ -487,6 +506,9 @@ export const tasks = {
 	},
 	listBacklog(): Promise<{ meta: ResponseMeta; tasks: Task[] }> {
 		return call('GET', `/tasks/backlog?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	listAllTasks(): Promise<{ meta: ResponseMeta; tasks: Task[] }> {
+		return call('GET', `/tasks?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
 	},
 	listSprintTasks(sprintId: string): Promise<{ meta: ResponseMeta; tasks: Task[] }> {
 		return call('GET', `/sprints/${sprintId}/tasks?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);

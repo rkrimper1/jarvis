@@ -24,6 +24,64 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type TaskType int32
+
+const (
+	TaskType_TASK_TYPE_UNSPECIFIED TaskType = 0
+	TaskType_TASK_TYPE_TASK        TaskType = 1
+	TaskType_TASK_TYPE_EPIC        TaskType = 2
+	TaskType_TASK_TYPE_STORY       TaskType = 3
+	TaskType_TASK_TYPE_BUG         TaskType = 4
+	TaskType_TASK_TYPE_SUBTASK     TaskType = 5
+)
+
+// Enum value maps for TaskType.
+var (
+	TaskType_name = map[int32]string{
+		0: "TASK_TYPE_UNSPECIFIED",
+		1: "TASK_TYPE_TASK",
+		2: "TASK_TYPE_EPIC",
+		3: "TASK_TYPE_STORY",
+		4: "TASK_TYPE_BUG",
+		5: "TASK_TYPE_SUBTASK",
+	}
+	TaskType_value = map[string]int32{
+		"TASK_TYPE_UNSPECIFIED": 0,
+		"TASK_TYPE_TASK":        1,
+		"TASK_TYPE_EPIC":        2,
+		"TASK_TYPE_STORY":       3,
+		"TASK_TYPE_BUG":         4,
+		"TASK_TYPE_SUBTASK":     5,
+	}
+)
+
+func (x TaskType) Enum() *TaskType {
+	p := new(TaskType)
+	*p = x
+	return p
+}
+
+func (x TaskType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TaskType) Descriptor() protoreflect.EnumDescriptor {
+	return file_pb_task_task_proto_enumTypes[0].Descriptor()
+}
+
+func (TaskType) Type() protoreflect.EnumType {
+	return &file_pb_task_task_proto_enumTypes[0]
+}
+
+func (x TaskType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TaskType.Descriptor instead.
+func (TaskType) EnumDescriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{0}
+}
+
 type TaskPriority int32
 
 const (
@@ -63,11 +121,11 @@ func (x TaskPriority) String() string {
 }
 
 func (TaskPriority) Descriptor() protoreflect.EnumDescriptor {
-	return file_pb_task_task_proto_enumTypes[0].Descriptor()
+	return file_pb_task_task_proto_enumTypes[1].Descriptor()
 }
 
 func (TaskPriority) Type() protoreflect.EnumType {
-	return &file_pb_task_task_proto_enumTypes[0]
+	return &file_pb_task_task_proto_enumTypes[1]
 }
 
 func (x TaskPriority) Number() protoreflect.EnumNumber {
@@ -76,7 +134,7 @@ func (x TaskPriority) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TaskPriority.Descriptor instead.
 func (TaskPriority) EnumDescriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{0}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{1}
 }
 
 type TaskStatus int32
@@ -124,11 +182,11 @@ func (x TaskStatus) String() string {
 }
 
 func (TaskStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_pb_task_task_proto_enumTypes[1].Descriptor()
+	return file_pb_task_task_proto_enumTypes[2].Descriptor()
 }
 
 func (TaskStatus) Type() protoreflect.EnumType {
-	return &file_pb_task_task_proto_enumTypes[1]
+	return &file_pb_task_task_proto_enumTypes[2]
 }
 
 func (x TaskStatus) Number() protoreflect.EnumNumber {
@@ -137,7 +195,7 @@ func (x TaskStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TaskStatus.Descriptor instead.
 func (TaskStatus) EnumDescriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{1}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{2}
 }
 
 type SprintStatus int32
@@ -173,11 +231,11 @@ func (x SprintStatus) String() string {
 }
 
 func (SprintStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_pb_task_task_proto_enumTypes[2].Descriptor()
+	return file_pb_task_task_proto_enumTypes[3].Descriptor()
 }
 
 func (SprintStatus) Type() protoreflect.EnumType {
-	return &file_pb_task_task_proto_enumTypes[2]
+	return &file_pb_task_task_proto_enumTypes[3]
 }
 
 func (x SprintStatus) Number() protoreflect.EnumNumber {
@@ -186,7 +244,7 @@ func (x SprintStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SprintStatus.Descriptor instead.
 func (SprintStatus) EnumDescriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{2}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{3}
 }
 
 type Sprint struct {
@@ -305,6 +363,9 @@ type Task struct {
 	CompletedAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DisplayId     int32                  `protobuf:"varint,15,opt,name=display_id,json=displayId,proto3" json:"display_id,omitempty"`
+	TaskType      TaskType               `protobuf:"varint,16,opt,name=task_type,json=taskType,proto3,enum=jarvis.task.TaskType" json:"task_type,omitempty"`
+	ParentId      string                 `protobuf:"bytes,17,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -437,6 +498,27 @@ func (x *Task) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Task) GetDisplayId() int32 {
+	if x != nil {
+		return x.DisplayId
+	}
+	return 0
+}
+
+func (x *Task) GetTaskType() TaskType {
+	if x != nil {
+		return x.TaskType
+	}
+	return TaskType_TASK_TYPE_UNSPECIFIED
+}
+
+func (x *Task) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
 type UserVelocity struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -500,6 +582,8 @@ type CreateTaskRequest struct {
 	StoryPoints   int32                  `protobuf:"varint,7,opt,name=story_points,json=storyPoints,proto3" json:"story_points,omitempty"`
 	DueDate       string                 `protobuf:"bytes,8,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`
 	SprintId      string                 `protobuf:"bytes,9,opt,name=sprint_id,json=sprintId,proto3" json:"sprint_id,omitempty"`
+	TaskType      TaskType               `protobuf:"varint,10,opt,name=task_type,json=taskType,proto3,enum=jarvis.task.TaskType" json:"task_type,omitempty"`
+	ParentId      string                 `protobuf:"bytes,11,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -593,6 +677,20 @@ func (x *CreateTaskRequest) GetDueDate() string {
 func (x *CreateTaskRequest) GetSprintId() string {
 	if x != nil {
 		return x.SprintId
+	}
+	return ""
+}
+
+func (x *CreateTaskRequest) GetTaskType() TaskType {
+	if x != nil {
+		return x.TaskType
+	}
+	return TaskType_TASK_TYPE_UNSPECIFIED
+}
+
+func (x *CreateTaskRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
 	}
 	return ""
 }
@@ -763,6 +861,8 @@ type UpdateTaskRequest struct {
 	Priority      TaskPriority           `protobuf:"varint,6,opt,name=priority,proto3,enum=jarvis.task.TaskPriority" json:"priority,omitempty"`
 	StoryPoints   int32                  `protobuf:"varint,7,opt,name=story_points,json=storyPoints,proto3" json:"story_points,omitempty"`
 	DueDate       string                 `protobuf:"bytes,8,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`
+	TaskType      TaskType               `protobuf:"varint,9,opt,name=task_type,json=taskType,proto3,enum=jarvis.task.TaskType" json:"task_type,omitempty"`
+	ParentId      string                 `protobuf:"bytes,10,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -849,6 +949,20 @@ func (x *UpdateTaskRequest) GetStoryPoints() int32 {
 func (x *UpdateTaskRequest) GetDueDate() string {
 	if x != nil {
 		return x.DueDate
+	}
+	return ""
+}
+
+func (x *UpdateTaskRequest) GetTaskType() TaskType {
+	if x != nil {
+		return x.TaskType
+	}
+	return TaskType_TASK_TYPE_UNSPECIFIED
+}
+
+func (x *UpdateTaskRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
 	}
 	return ""
 }
@@ -1105,6 +1219,102 @@ func (x *ListBacklogResponse) GetTasks() []*Task {
 	return nil
 }
 
+type ListAllTasksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAllTasksRequest) Reset() {
+	*x = ListAllTasksRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAllTasksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAllTasksRequest) ProtoMessage() {}
+
+func (x *ListAllTasksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAllTasksRequest.ProtoReflect.Descriptor instead.
+func (*ListAllTasksRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListAllTasksRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type ListAllTasksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Tasks         []*Task                `protobuf:"bytes,2,rep,name=tasks,proto3" json:"tasks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAllTasksResponse) Reset() {
+	*x = ListAllTasksResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAllTasksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAllTasksResponse) ProtoMessage() {}
+
+func (x *ListAllTasksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAllTasksResponse.ProtoReflect.Descriptor instead.
+func (*ListAllTasksResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListAllTasksResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ListAllTasksResponse) GetTasks() []*Task {
+	if x != nil {
+		return x.Tasks
+	}
+	return nil
+}
+
 type ListSprintTasksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
@@ -1115,7 +1325,7 @@ type ListSprintTasksRequest struct {
 
 func (x *ListSprintTasksRequest) Reset() {
 	*x = ListSprintTasksRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[13]
+	mi := &file_pb_task_task_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1127,7 +1337,7 @@ func (x *ListSprintTasksRequest) String() string {
 func (*ListSprintTasksRequest) ProtoMessage() {}
 
 func (x *ListSprintTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[13]
+	mi := &file_pb_task_task_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1140,7 +1350,7 @@ func (x *ListSprintTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSprintTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListSprintTasksRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{13}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListSprintTasksRequest) GetMeta() *common.RequestMeta {
@@ -1167,7 +1377,7 @@ type ListSprintTasksResponse struct {
 
 func (x *ListSprintTasksResponse) Reset() {
 	*x = ListSprintTasksResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[14]
+	mi := &file_pb_task_task_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1179,7 +1389,7 @@ func (x *ListSprintTasksResponse) String() string {
 func (*ListSprintTasksResponse) ProtoMessage() {}
 
 func (x *ListSprintTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[14]
+	mi := &file_pb_task_task_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1192,7 +1402,7 @@ func (x *ListSprintTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSprintTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListSprintTasksResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{14}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListSprintTasksResponse) GetMeta() *common.ResponseMeta {
@@ -1220,7 +1430,7 @@ type AssignTaskToSprintRequest struct {
 
 func (x *AssignTaskToSprintRequest) Reset() {
 	*x = AssignTaskToSprintRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[15]
+	mi := &file_pb_task_task_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1232,7 +1442,7 @@ func (x *AssignTaskToSprintRequest) String() string {
 func (*AssignTaskToSprintRequest) ProtoMessage() {}
 
 func (x *AssignTaskToSprintRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[15]
+	mi := &file_pb_task_task_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1245,7 +1455,7 @@ func (x *AssignTaskToSprintRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignTaskToSprintRequest.ProtoReflect.Descriptor instead.
 func (*AssignTaskToSprintRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{15}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AssignTaskToSprintRequest) GetMeta() *common.RequestMeta {
@@ -1279,7 +1489,7 @@ type AssignTaskToSprintResponse struct {
 
 func (x *AssignTaskToSprintResponse) Reset() {
 	*x = AssignTaskToSprintResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[16]
+	mi := &file_pb_task_task_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1291,7 +1501,7 @@ func (x *AssignTaskToSprintResponse) String() string {
 func (*AssignTaskToSprintResponse) ProtoMessage() {}
 
 func (x *AssignTaskToSprintResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[16]
+	mi := &file_pb_task_task_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1304,7 +1514,7 @@ func (x *AssignTaskToSprintResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignTaskToSprintResponse.ProtoReflect.Descriptor instead.
 func (*AssignTaskToSprintResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{16}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AssignTaskToSprintResponse) GetMeta() *common.ResponseMeta {
@@ -1333,7 +1543,7 @@ type MoveTaskStatusRequest struct {
 
 func (x *MoveTaskStatusRequest) Reset() {
 	*x = MoveTaskStatusRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[17]
+	mi := &file_pb_task_task_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1345,7 +1555,7 @@ func (x *MoveTaskStatusRequest) String() string {
 func (*MoveTaskStatusRequest) ProtoMessage() {}
 
 func (x *MoveTaskStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[17]
+	mi := &file_pb_task_task_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1358,7 +1568,7 @@ func (x *MoveTaskStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveTaskStatusRequest.ProtoReflect.Descriptor instead.
 func (*MoveTaskStatusRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{17}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *MoveTaskStatusRequest) GetMeta() *common.RequestMeta {
@@ -1399,7 +1609,7 @@ type MoveTaskStatusResponse struct {
 
 func (x *MoveTaskStatusResponse) Reset() {
 	*x = MoveTaskStatusResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[18]
+	mi := &file_pb_task_task_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1411,7 +1621,7 @@ func (x *MoveTaskStatusResponse) String() string {
 func (*MoveTaskStatusResponse) ProtoMessage() {}
 
 func (x *MoveTaskStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[18]
+	mi := &file_pb_task_task_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1424,7 +1634,7 @@ func (x *MoveTaskStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveTaskStatusResponse.ProtoReflect.Descriptor instead.
 func (*MoveTaskStatusResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{18}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *MoveTaskStatusResponse) GetMeta() *common.ResponseMeta {
@@ -1454,7 +1664,7 @@ type CreateSprintRequest struct {
 
 func (x *CreateSprintRequest) Reset() {
 	*x = CreateSprintRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[19]
+	mi := &file_pb_task_task_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1466,7 +1676,7 @@ func (x *CreateSprintRequest) String() string {
 func (*CreateSprintRequest) ProtoMessage() {}
 
 func (x *CreateSprintRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[19]
+	mi := &file_pb_task_task_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1479,7 +1689,7 @@ func (x *CreateSprintRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSprintRequest.ProtoReflect.Descriptor instead.
 func (*CreateSprintRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{19}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateSprintRequest) GetMeta() *common.RequestMeta {
@@ -1527,7 +1737,7 @@ type CreateSprintResponse struct {
 
 func (x *CreateSprintResponse) Reset() {
 	*x = CreateSprintResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[20]
+	mi := &file_pb_task_task_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1539,7 +1749,7 @@ func (x *CreateSprintResponse) String() string {
 func (*CreateSprintResponse) ProtoMessage() {}
 
 func (x *CreateSprintResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[20]
+	mi := &file_pb_task_task_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1552,7 +1762,7 @@ func (x *CreateSprintResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSprintResponse.ProtoReflect.Descriptor instead.
 func (*CreateSprintResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{20}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CreateSprintResponse) GetMeta() *common.ResponseMeta {
@@ -1583,7 +1793,7 @@ type UpdateSprintRequest struct {
 
 func (x *UpdateSprintRequest) Reset() {
 	*x = UpdateSprintRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[21]
+	mi := &file_pb_task_task_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1595,7 +1805,7 @@ func (x *UpdateSprintRequest) String() string {
 func (*UpdateSprintRequest) ProtoMessage() {}
 
 func (x *UpdateSprintRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[21]
+	mi := &file_pb_task_task_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1608,7 +1818,7 @@ func (x *UpdateSprintRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSprintRequest.ProtoReflect.Descriptor instead.
 func (*UpdateSprintRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{21}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateSprintRequest) GetMeta() *common.RequestMeta {
@@ -1663,7 +1873,7 @@ type UpdateSprintResponse struct {
 
 func (x *UpdateSprintResponse) Reset() {
 	*x = UpdateSprintResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[22]
+	mi := &file_pb_task_task_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1675,7 +1885,7 @@ func (x *UpdateSprintResponse) String() string {
 func (*UpdateSprintResponse) ProtoMessage() {}
 
 func (x *UpdateSprintResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[22]
+	mi := &file_pb_task_task_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1688,7 +1898,7 @@ func (x *UpdateSprintResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSprintResponse.ProtoReflect.Descriptor instead.
 func (*UpdateSprintResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{22}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateSprintResponse) GetMeta() *common.ResponseMeta {
@@ -1715,7 +1925,7 @@ type DeleteSprintRequest struct {
 
 func (x *DeleteSprintRequest) Reset() {
 	*x = DeleteSprintRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[23]
+	mi := &file_pb_task_task_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1727,7 +1937,7 @@ func (x *DeleteSprintRequest) String() string {
 func (*DeleteSprintRequest) ProtoMessage() {}
 
 func (x *DeleteSprintRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[23]
+	mi := &file_pb_task_task_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1740,7 +1950,7 @@ func (x *DeleteSprintRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSprintRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSprintRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{23}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DeleteSprintRequest) GetMeta() *common.RequestMeta {
@@ -1767,7 +1977,7 @@ type DeleteSprintResponse struct {
 
 func (x *DeleteSprintResponse) Reset() {
 	*x = DeleteSprintResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[24]
+	mi := &file_pb_task_task_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1779,7 +1989,7 @@ func (x *DeleteSprintResponse) String() string {
 func (*DeleteSprintResponse) ProtoMessage() {}
 
 func (x *DeleteSprintResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[24]
+	mi := &file_pb_task_task_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1792,7 +2002,7 @@ func (x *DeleteSprintResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSprintResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSprintResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{24}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteSprintResponse) GetMeta() *common.ResponseMeta {
@@ -1819,7 +2029,7 @@ type CloseSprintRequest struct {
 
 func (x *CloseSprintRequest) Reset() {
 	*x = CloseSprintRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[25]
+	mi := &file_pb_task_task_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1831,7 +2041,7 @@ func (x *CloseSprintRequest) String() string {
 func (*CloseSprintRequest) ProtoMessage() {}
 
 func (x *CloseSprintRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[25]
+	mi := &file_pb_task_task_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1844,7 +2054,7 @@ func (x *CloseSprintRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseSprintRequest.ProtoReflect.Descriptor instead.
 func (*CloseSprintRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{25}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CloseSprintRequest) GetMeta() *common.RequestMeta {
@@ -1871,7 +2081,7 @@ type CloseSprintResponse struct {
 
 func (x *CloseSprintResponse) Reset() {
 	*x = CloseSprintResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[26]
+	mi := &file_pb_task_task_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1883,7 +2093,7 @@ func (x *CloseSprintResponse) String() string {
 func (*CloseSprintResponse) ProtoMessage() {}
 
 func (x *CloseSprintResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[26]
+	mi := &file_pb_task_task_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1896,7 +2106,7 @@ func (x *CloseSprintResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseSprintResponse.ProtoReflect.Descriptor instead.
 func (*CloseSprintResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{26}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *CloseSprintResponse) GetMeta() *common.ResponseMeta {
@@ -1922,7 +2132,7 @@ type ListSprintsRequest struct {
 
 func (x *ListSprintsRequest) Reset() {
 	*x = ListSprintsRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[27]
+	mi := &file_pb_task_task_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1934,7 +2144,7 @@ func (x *ListSprintsRequest) String() string {
 func (*ListSprintsRequest) ProtoMessage() {}
 
 func (x *ListSprintsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[27]
+	mi := &file_pb_task_task_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1947,7 +2157,7 @@ func (x *ListSprintsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSprintsRequest.ProtoReflect.Descriptor instead.
 func (*ListSprintsRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{27}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListSprintsRequest) GetMeta() *common.RequestMeta {
@@ -1967,7 +2177,7 @@ type ListSprintsResponse struct {
 
 func (x *ListSprintsResponse) Reset() {
 	*x = ListSprintsResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[28]
+	mi := &file_pb_task_task_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1979,7 +2189,7 @@ func (x *ListSprintsResponse) String() string {
 func (*ListSprintsResponse) ProtoMessage() {}
 
 func (x *ListSprintsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[28]
+	mi := &file_pb_task_task_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1992,7 +2202,7 @@ func (x *ListSprintsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSprintsResponse.ProtoReflect.Descriptor instead.
 func (*ListSprintsResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{28}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListSprintsResponse) GetMeta() *common.ResponseMeta {
@@ -2019,7 +2229,7 @@ type GetSprintVelocityRequest struct {
 
 func (x *GetSprintVelocityRequest) Reset() {
 	*x = GetSprintVelocityRequest{}
-	mi := &file_pb_task_task_proto_msgTypes[29]
+	mi := &file_pb_task_task_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2031,7 +2241,7 @@ func (x *GetSprintVelocityRequest) String() string {
 func (*GetSprintVelocityRequest) ProtoMessage() {}
 
 func (x *GetSprintVelocityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[29]
+	mi := &file_pb_task_task_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2044,7 +2254,7 @@ func (x *GetSprintVelocityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSprintVelocityRequest.ProtoReflect.Descriptor instead.
 func (*GetSprintVelocityRequest) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{29}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetSprintVelocityRequest) GetMeta() *common.RequestMeta {
@@ -2071,7 +2281,7 @@ type GetSprintVelocityResponse struct {
 
 func (x *GetSprintVelocityResponse) Reset() {
 	*x = GetSprintVelocityResponse{}
-	mi := &file_pb_task_task_proto_msgTypes[30]
+	mi := &file_pb_task_task_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2083,7 +2293,7 @@ func (x *GetSprintVelocityResponse) String() string {
 func (*GetSprintVelocityResponse) ProtoMessage() {}
 
 func (x *GetSprintVelocityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_task_task_proto_msgTypes[30]
+	mi := &file_pb_task_task_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2096,7 +2306,7 @@ func (x *GetSprintVelocityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSprintVelocityResponse.ProtoReflect.Descriptor instead.
 func (*GetSprintVelocityResponse) Descriptor() ([]byte, []int) {
-	return file_pb_task_task_proto_rawDescGZIP(), []int{30}
+	return file_pb_task_task_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetSprintVelocityResponse) GetMeta() *common.ResponseMeta {
@@ -2129,7 +2339,7 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xb9\x04\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa9\x05\n" +
 	"\x04Task\x12\x17\n" +
 	"\atask_id\x18\x01 \x01(\tR\x06taskId\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -2149,10 +2359,14 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"J\n" +
+	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"display_id\x18\x0f \x01(\x05R\tdisplayId\x122\n" +
+	"\ttask_type\x18\x10 \x01(\x0e2\x15.jarvis.task.TaskTypeR\btaskType\x12\x1b\n" +
+	"\tparent_id\x18\x11 \x01(\tR\bparentId\"J\n" +
 	"\fUserVelocity\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
-	"\fstory_points\x18\x02 \x01(\x05R\vstoryPoints\"\xcf\x02\n" +
+	"\fstory_points\x18\x02 \x01(\x05R\vstoryPoints\"\xa0\x03\n" +
 	"\x11CreateTaskRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -2164,7 +2378,10 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\bpriority\x18\x06 \x01(\x0e2\x19.jarvis.task.TaskPriorityR\bpriority\x12!\n" +
 	"\fstory_points\x18\a \x01(\x05R\vstoryPoints\x12\x19\n" +
 	"\bdue_date\x18\b \x01(\tR\adueDate\x12\x1b\n" +
-	"\tsprint_id\x18\t \x01(\tR\bsprintId\"l\n" +
+	"\tsprint_id\x18\t \x01(\tR\bsprintId\x122\n" +
+	"\ttask_type\x18\n" +
+	" \x01(\x0e2\x15.jarvis.task.TaskTypeR\btaskType\x12\x1b\n" +
+	"\tparent_id\x18\v \x01(\tR\bparentId\"l\n" +
 	"\x12CreateTaskResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12%\n" +
 	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"Y\n" +
@@ -2173,7 +2390,7 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\atask_id\x18\x02 \x01(\tR\x06taskId\"i\n" +
 	"\x0fGetTaskResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12%\n" +
-	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"\xaa\x02\n" +
+	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"\xfb\x02\n" +
 	"\x11UpdateTaskRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x17\n" +
 	"\atask_id\x18\x02 \x01(\tR\x06taskId\x12\x14\n" +
@@ -2183,7 +2400,10 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"assigneeId\x125\n" +
 	"\bpriority\x18\x06 \x01(\x0e2\x19.jarvis.task.TaskPriorityR\bpriority\x12!\n" +
 	"\fstory_points\x18\a \x01(\x05R\vstoryPoints\x12\x19\n" +
-	"\bdue_date\x18\b \x01(\tR\adueDate\"l\n" +
+	"\bdue_date\x18\b \x01(\tR\adueDate\x122\n" +
+	"\ttask_type\x18\t \x01(\x0e2\x15.jarvis.task.TaskTypeR\btaskType\x12\x1b\n" +
+	"\tparent_id\x18\n" +
+	" \x01(\tR\bparentId\"l\n" +
 	"\x12UpdateTaskResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12%\n" +
 	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"\\\n" +
@@ -2196,6 +2416,11 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\x12ListBacklogRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"o\n" +
 	"\x13ListBacklogResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12'\n" +
+	"\x05tasks\x18\x02 \x03(\v2\x11.jarvis.task.TaskR\x05tasks\"E\n" +
+	"\x13ListAllTasksRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"p\n" +
+	"\x14ListAllTasksResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12'\n" +
 	"\x05tasks\x18\x02 \x03(\v2\x11.jarvis.task.TaskR\x05tasks\"e\n" +
 	"\x16ListSprintTasksRequest\x12.\n" +
@@ -2265,7 +2490,14 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x129\n" +
 	"\n" +
 	"velocities\x18\x02 \x03(\v2\x19.jarvis.task.UserVelocityR\n" +
-	"velocities*\x92\x01\n" +
+	"velocities*\x8c\x01\n" +
+	"\bTaskType\x12\x19\n" +
+	"\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
+	"\x0eTASK_TYPE_TASK\x10\x01\x12\x12\n" +
+	"\x0eTASK_TYPE_EPIC\x10\x02\x12\x13\n" +
+	"\x0fTASK_TYPE_STORY\x10\x03\x12\x11\n" +
+	"\rTASK_TYPE_BUG\x10\x04\x12\x15\n" +
+	"\x11TASK_TYPE_SUBTASK\x10\x05*\x92\x01\n" +
 	"\fTaskPriority\x12\x1d\n" +
 	"\x19TASK_PRIORITY_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TASK_PRIORITY_CRITICAL\x10\x01\x12\x16\n" +
@@ -2284,7 +2516,7 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\fSprintStatus\x12\x1d\n" +
 	"\x19SPRINT_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SPRINT_STATUS_ACTIVE\x10\x01\x12\x18\n" +
-	"\x14SPRINT_STATUS_CLOSED\x10\x022\x83\r\n" +
+	"\x14SPRINT_STATUS_CLOSED\x10\x022\xeb\r\n" +
 	"\vTaskService\x12c\n" +
 	"\n" +
 	"CreateTask\x12\x1e.jarvis.task.CreateTaskRequest\x1a\x1f.jarvis.task.CreateTaskResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/tasks\x12a\n" +
@@ -2293,7 +2525,8 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"UpdateTask\x12\x1e.jarvis.task.UpdateTaskRequest\x1a\x1f.jarvis.task.UpdateTaskResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*2\x13/v1/tasks/{task_id}\x12j\n" +
 	"\n" +
 	"DeleteTask\x12\x1e.jarvis.task.DeleteTaskRequest\x1a\x1f.jarvis.task.DeleteTaskResponse\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/v1/tasks/{task_id}\x12k\n" +
-	"\vListBacklog\x12\x1f.jarvis.task.ListBacklogRequest\x1a .jarvis.task.ListBacklogResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/tasks/backlog\x12\x83\x01\n" +
+	"\vListBacklog\x12\x1f.jarvis.task.ListBacklogRequest\x1a .jarvis.task.ListBacklogResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/tasks/backlog\x12f\n" +
+	"\fListAllTasks\x12 .jarvis.task.ListAllTasksRequest\x1a!.jarvis.task.ListAllTasksResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/tasks\x12\x83\x01\n" +
 	"\x0fListSprintTasks\x12#.jarvis.task.ListSprintTasksRequest\x1a$.jarvis.task.ListSprintTasksResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/sprints/{sprint_id}/tasks\x12\x8c\x01\n" +
 	"\x12AssignTaskToSprint\x12&.jarvis.task.AssignTaskToSprintRequest\x1a'.jarvis.task.AssignTaskToSprintResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/tasks/{task_id}/sprint\x12\x80\x01\n" +
 	"\x0eMoveTaskStatus\x12\".jarvis.task.MoveTaskStatusRequest\x1a#.jarvis.task.MoveTaskStatusResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/tasks/{task_id}/status\x12k\n" +
@@ -2317,132 +2550,143 @@ func file_pb_task_task_proto_rawDescGZIP() []byte {
 	return file_pb_task_task_proto_rawDescData
 }
 
-var file_pb_task_task_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_pb_task_task_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_pb_task_task_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_pb_task_task_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_pb_task_task_proto_goTypes = []any{
-	(TaskPriority)(0),                  // 0: jarvis.task.TaskPriority
-	(TaskStatus)(0),                    // 1: jarvis.task.TaskStatus
-	(SprintStatus)(0),                  // 2: jarvis.task.SprintStatus
-	(*Sprint)(nil),                     // 3: jarvis.task.Sprint
-	(*Task)(nil),                       // 4: jarvis.task.Task
-	(*UserVelocity)(nil),               // 5: jarvis.task.UserVelocity
-	(*CreateTaskRequest)(nil),          // 6: jarvis.task.CreateTaskRequest
-	(*CreateTaskResponse)(nil),         // 7: jarvis.task.CreateTaskResponse
-	(*GetTaskRequest)(nil),             // 8: jarvis.task.GetTaskRequest
-	(*GetTaskResponse)(nil),            // 9: jarvis.task.GetTaskResponse
-	(*UpdateTaskRequest)(nil),          // 10: jarvis.task.UpdateTaskRequest
-	(*UpdateTaskResponse)(nil),         // 11: jarvis.task.UpdateTaskResponse
-	(*DeleteTaskRequest)(nil),          // 12: jarvis.task.DeleteTaskRequest
-	(*DeleteTaskResponse)(nil),         // 13: jarvis.task.DeleteTaskResponse
-	(*ListBacklogRequest)(nil),         // 14: jarvis.task.ListBacklogRequest
-	(*ListBacklogResponse)(nil),        // 15: jarvis.task.ListBacklogResponse
-	(*ListSprintTasksRequest)(nil),     // 16: jarvis.task.ListSprintTasksRequest
-	(*ListSprintTasksResponse)(nil),    // 17: jarvis.task.ListSprintTasksResponse
-	(*AssignTaskToSprintRequest)(nil),  // 18: jarvis.task.AssignTaskToSprintRequest
-	(*AssignTaskToSprintResponse)(nil), // 19: jarvis.task.AssignTaskToSprintResponse
-	(*MoveTaskStatusRequest)(nil),      // 20: jarvis.task.MoveTaskStatusRequest
-	(*MoveTaskStatusResponse)(nil),     // 21: jarvis.task.MoveTaskStatusResponse
-	(*CreateSprintRequest)(nil),        // 22: jarvis.task.CreateSprintRequest
-	(*CreateSprintResponse)(nil),       // 23: jarvis.task.CreateSprintResponse
-	(*UpdateSprintRequest)(nil),        // 24: jarvis.task.UpdateSprintRequest
-	(*UpdateSprintResponse)(nil),       // 25: jarvis.task.UpdateSprintResponse
-	(*DeleteSprintRequest)(nil),        // 26: jarvis.task.DeleteSprintRequest
-	(*DeleteSprintResponse)(nil),       // 27: jarvis.task.DeleteSprintResponse
-	(*CloseSprintRequest)(nil),         // 28: jarvis.task.CloseSprintRequest
-	(*CloseSprintResponse)(nil),        // 29: jarvis.task.CloseSprintResponse
-	(*ListSprintsRequest)(nil),         // 30: jarvis.task.ListSprintsRequest
-	(*ListSprintsResponse)(nil),        // 31: jarvis.task.ListSprintsResponse
-	(*GetSprintVelocityRequest)(nil),   // 32: jarvis.task.GetSprintVelocityRequest
-	(*GetSprintVelocityResponse)(nil),  // 33: jarvis.task.GetSprintVelocityResponse
-	(*timestamppb.Timestamp)(nil),      // 34: google.protobuf.Timestamp
-	(*common.RequestMeta)(nil),         // 35: jarvis.common.RequestMeta
-	(*common.ResponseMeta)(nil),        // 36: jarvis.common.ResponseMeta
+	(TaskType)(0),                      // 0: jarvis.task.TaskType
+	(TaskPriority)(0),                  // 1: jarvis.task.TaskPriority
+	(TaskStatus)(0),                    // 2: jarvis.task.TaskStatus
+	(SprintStatus)(0),                  // 3: jarvis.task.SprintStatus
+	(*Sprint)(nil),                     // 4: jarvis.task.Sprint
+	(*Task)(nil),                       // 5: jarvis.task.Task
+	(*UserVelocity)(nil),               // 6: jarvis.task.UserVelocity
+	(*CreateTaskRequest)(nil),          // 7: jarvis.task.CreateTaskRequest
+	(*CreateTaskResponse)(nil),         // 8: jarvis.task.CreateTaskResponse
+	(*GetTaskRequest)(nil),             // 9: jarvis.task.GetTaskRequest
+	(*GetTaskResponse)(nil),            // 10: jarvis.task.GetTaskResponse
+	(*UpdateTaskRequest)(nil),          // 11: jarvis.task.UpdateTaskRequest
+	(*UpdateTaskResponse)(nil),         // 12: jarvis.task.UpdateTaskResponse
+	(*DeleteTaskRequest)(nil),          // 13: jarvis.task.DeleteTaskRequest
+	(*DeleteTaskResponse)(nil),         // 14: jarvis.task.DeleteTaskResponse
+	(*ListBacklogRequest)(nil),         // 15: jarvis.task.ListBacklogRequest
+	(*ListBacklogResponse)(nil),        // 16: jarvis.task.ListBacklogResponse
+	(*ListAllTasksRequest)(nil),        // 17: jarvis.task.ListAllTasksRequest
+	(*ListAllTasksResponse)(nil),       // 18: jarvis.task.ListAllTasksResponse
+	(*ListSprintTasksRequest)(nil),     // 19: jarvis.task.ListSprintTasksRequest
+	(*ListSprintTasksResponse)(nil),    // 20: jarvis.task.ListSprintTasksResponse
+	(*AssignTaskToSprintRequest)(nil),  // 21: jarvis.task.AssignTaskToSprintRequest
+	(*AssignTaskToSprintResponse)(nil), // 22: jarvis.task.AssignTaskToSprintResponse
+	(*MoveTaskStatusRequest)(nil),      // 23: jarvis.task.MoveTaskStatusRequest
+	(*MoveTaskStatusResponse)(nil),     // 24: jarvis.task.MoveTaskStatusResponse
+	(*CreateSprintRequest)(nil),        // 25: jarvis.task.CreateSprintRequest
+	(*CreateSprintResponse)(nil),       // 26: jarvis.task.CreateSprintResponse
+	(*UpdateSprintRequest)(nil),        // 27: jarvis.task.UpdateSprintRequest
+	(*UpdateSprintResponse)(nil),       // 28: jarvis.task.UpdateSprintResponse
+	(*DeleteSprintRequest)(nil),        // 29: jarvis.task.DeleteSprintRequest
+	(*DeleteSprintResponse)(nil),       // 30: jarvis.task.DeleteSprintResponse
+	(*CloseSprintRequest)(nil),         // 31: jarvis.task.CloseSprintRequest
+	(*CloseSprintResponse)(nil),        // 32: jarvis.task.CloseSprintResponse
+	(*ListSprintsRequest)(nil),         // 33: jarvis.task.ListSprintsRequest
+	(*ListSprintsResponse)(nil),        // 34: jarvis.task.ListSprintsResponse
+	(*GetSprintVelocityRequest)(nil),   // 35: jarvis.task.GetSprintVelocityRequest
+	(*GetSprintVelocityResponse)(nil),  // 36: jarvis.task.GetSprintVelocityResponse
+	(*timestamppb.Timestamp)(nil),      // 37: google.protobuf.Timestamp
+	(*common.RequestMeta)(nil),         // 38: jarvis.common.RequestMeta
+	(*common.ResponseMeta)(nil),        // 39: jarvis.common.ResponseMeta
 }
 var file_pb_task_task_proto_depIdxs = []int32{
-	2,  // 0: jarvis.task.Sprint.status:type_name -> jarvis.task.SprintStatus
-	34, // 1: jarvis.task.Sprint.created_at:type_name -> google.protobuf.Timestamp
-	34, // 2: jarvis.task.Sprint.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 3: jarvis.task.Task.priority:type_name -> jarvis.task.TaskPriority
-	1,  // 4: jarvis.task.Task.status:type_name -> jarvis.task.TaskStatus
-	34, // 5: jarvis.task.Task.completed_at:type_name -> google.protobuf.Timestamp
-	34, // 6: jarvis.task.Task.created_at:type_name -> google.protobuf.Timestamp
-	34, // 7: jarvis.task.Task.updated_at:type_name -> google.protobuf.Timestamp
-	35, // 8: jarvis.task.CreateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	0,  // 9: jarvis.task.CreateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
-	36, // 10: jarvis.task.CreateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 11: jarvis.task.CreateTaskResponse.task:type_name -> jarvis.task.Task
-	35, // 12: jarvis.task.GetTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 13: jarvis.task.GetTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 14: jarvis.task.GetTaskResponse.task:type_name -> jarvis.task.Task
-	35, // 15: jarvis.task.UpdateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	0,  // 16: jarvis.task.UpdateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
-	36, // 17: jarvis.task.UpdateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 18: jarvis.task.UpdateTaskResponse.task:type_name -> jarvis.task.Task
-	35, // 19: jarvis.task.DeleteTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 20: jarvis.task.DeleteTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	35, // 21: jarvis.task.ListBacklogRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 22: jarvis.task.ListBacklogResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 23: jarvis.task.ListBacklogResponse.tasks:type_name -> jarvis.task.Task
-	35, // 24: jarvis.task.ListSprintTasksRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 25: jarvis.task.ListSprintTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 26: jarvis.task.ListSprintTasksResponse.tasks:type_name -> jarvis.task.Task
-	35, // 27: jarvis.task.AssignTaskToSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 28: jarvis.task.AssignTaskToSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 29: jarvis.task.AssignTaskToSprintResponse.task:type_name -> jarvis.task.Task
-	35, // 30: jarvis.task.MoveTaskStatusRequest.meta:type_name -> jarvis.common.RequestMeta
-	1,  // 31: jarvis.task.MoveTaskStatusRequest.new_status:type_name -> jarvis.task.TaskStatus
-	36, // 32: jarvis.task.MoveTaskStatusResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 33: jarvis.task.MoveTaskStatusResponse.task:type_name -> jarvis.task.Task
-	35, // 34: jarvis.task.CreateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 35: jarvis.task.CreateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	3,  // 36: jarvis.task.CreateSprintResponse.sprint:type_name -> jarvis.task.Sprint
-	35, // 37: jarvis.task.UpdateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 38: jarvis.task.UpdateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	3,  // 39: jarvis.task.UpdateSprintResponse.sprint:type_name -> jarvis.task.Sprint
-	35, // 40: jarvis.task.DeleteSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 41: jarvis.task.DeleteSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	35, // 42: jarvis.task.CloseSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 43: jarvis.task.CloseSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	3,  // 44: jarvis.task.CloseSprintResponse.sprint:type_name -> jarvis.task.Sprint
-	35, // 45: jarvis.task.ListSprintsRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 46: jarvis.task.ListSprintsResponse.meta:type_name -> jarvis.common.ResponseMeta
-	3,  // 47: jarvis.task.ListSprintsResponse.sprints:type_name -> jarvis.task.Sprint
-	35, // 48: jarvis.task.GetSprintVelocityRequest.meta:type_name -> jarvis.common.RequestMeta
-	36, // 49: jarvis.task.GetSprintVelocityResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 50: jarvis.task.GetSprintVelocityResponse.velocities:type_name -> jarvis.task.UserVelocity
-	6,  // 51: jarvis.task.TaskService.CreateTask:input_type -> jarvis.task.CreateTaskRequest
-	8,  // 52: jarvis.task.TaskService.GetTask:input_type -> jarvis.task.GetTaskRequest
-	10, // 53: jarvis.task.TaskService.UpdateTask:input_type -> jarvis.task.UpdateTaskRequest
-	12, // 54: jarvis.task.TaskService.DeleteTask:input_type -> jarvis.task.DeleteTaskRequest
-	14, // 55: jarvis.task.TaskService.ListBacklog:input_type -> jarvis.task.ListBacklogRequest
-	16, // 56: jarvis.task.TaskService.ListSprintTasks:input_type -> jarvis.task.ListSprintTasksRequest
-	18, // 57: jarvis.task.TaskService.AssignTaskToSprint:input_type -> jarvis.task.AssignTaskToSprintRequest
-	20, // 58: jarvis.task.TaskService.MoveTaskStatus:input_type -> jarvis.task.MoveTaskStatusRequest
-	22, // 59: jarvis.task.TaskService.CreateSprint:input_type -> jarvis.task.CreateSprintRequest
-	24, // 60: jarvis.task.TaskService.UpdateSprint:input_type -> jarvis.task.UpdateSprintRequest
-	26, // 61: jarvis.task.TaskService.DeleteSprint:input_type -> jarvis.task.DeleteSprintRequest
-	28, // 62: jarvis.task.TaskService.CloseSprint:input_type -> jarvis.task.CloseSprintRequest
-	30, // 63: jarvis.task.TaskService.ListSprints:input_type -> jarvis.task.ListSprintsRequest
-	32, // 64: jarvis.task.TaskService.GetSprintVelocity:input_type -> jarvis.task.GetSprintVelocityRequest
-	7,  // 65: jarvis.task.TaskService.CreateTask:output_type -> jarvis.task.CreateTaskResponse
-	9,  // 66: jarvis.task.TaskService.GetTask:output_type -> jarvis.task.GetTaskResponse
-	11, // 67: jarvis.task.TaskService.UpdateTask:output_type -> jarvis.task.UpdateTaskResponse
-	13, // 68: jarvis.task.TaskService.DeleteTask:output_type -> jarvis.task.DeleteTaskResponse
-	15, // 69: jarvis.task.TaskService.ListBacklog:output_type -> jarvis.task.ListBacklogResponse
-	17, // 70: jarvis.task.TaskService.ListSprintTasks:output_type -> jarvis.task.ListSprintTasksResponse
-	19, // 71: jarvis.task.TaskService.AssignTaskToSprint:output_type -> jarvis.task.AssignTaskToSprintResponse
-	21, // 72: jarvis.task.TaskService.MoveTaskStatus:output_type -> jarvis.task.MoveTaskStatusResponse
-	23, // 73: jarvis.task.TaskService.CreateSprint:output_type -> jarvis.task.CreateSprintResponse
-	25, // 74: jarvis.task.TaskService.UpdateSprint:output_type -> jarvis.task.UpdateSprintResponse
-	27, // 75: jarvis.task.TaskService.DeleteSprint:output_type -> jarvis.task.DeleteSprintResponse
-	29, // 76: jarvis.task.TaskService.CloseSprint:output_type -> jarvis.task.CloseSprintResponse
-	31, // 77: jarvis.task.TaskService.ListSprints:output_type -> jarvis.task.ListSprintsResponse
-	33, // 78: jarvis.task.TaskService.GetSprintVelocity:output_type -> jarvis.task.GetSprintVelocityResponse
-	65, // [65:79] is the sub-list for method output_type
-	51, // [51:65] is the sub-list for method input_type
-	51, // [51:51] is the sub-list for extension type_name
-	51, // [51:51] is the sub-list for extension extendee
-	0,  // [0:51] is the sub-list for field type_name
+	3,  // 0: jarvis.task.Sprint.status:type_name -> jarvis.task.SprintStatus
+	37, // 1: jarvis.task.Sprint.created_at:type_name -> google.protobuf.Timestamp
+	37, // 2: jarvis.task.Sprint.updated_at:type_name -> google.protobuf.Timestamp
+	1,  // 3: jarvis.task.Task.priority:type_name -> jarvis.task.TaskPriority
+	2,  // 4: jarvis.task.Task.status:type_name -> jarvis.task.TaskStatus
+	37, // 5: jarvis.task.Task.completed_at:type_name -> google.protobuf.Timestamp
+	37, // 6: jarvis.task.Task.created_at:type_name -> google.protobuf.Timestamp
+	37, // 7: jarvis.task.Task.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 8: jarvis.task.Task.task_type:type_name -> jarvis.task.TaskType
+	38, // 9: jarvis.task.CreateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	1,  // 10: jarvis.task.CreateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
+	0,  // 11: jarvis.task.CreateTaskRequest.task_type:type_name -> jarvis.task.TaskType
+	39, // 12: jarvis.task.CreateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 13: jarvis.task.CreateTaskResponse.task:type_name -> jarvis.task.Task
+	38, // 14: jarvis.task.GetTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 15: jarvis.task.GetTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 16: jarvis.task.GetTaskResponse.task:type_name -> jarvis.task.Task
+	38, // 17: jarvis.task.UpdateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	1,  // 18: jarvis.task.UpdateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
+	0,  // 19: jarvis.task.UpdateTaskRequest.task_type:type_name -> jarvis.task.TaskType
+	39, // 20: jarvis.task.UpdateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 21: jarvis.task.UpdateTaskResponse.task:type_name -> jarvis.task.Task
+	38, // 22: jarvis.task.DeleteTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 23: jarvis.task.DeleteTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	38, // 24: jarvis.task.ListBacklogRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 25: jarvis.task.ListBacklogResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 26: jarvis.task.ListBacklogResponse.tasks:type_name -> jarvis.task.Task
+	38, // 27: jarvis.task.ListAllTasksRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 28: jarvis.task.ListAllTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 29: jarvis.task.ListAllTasksResponse.tasks:type_name -> jarvis.task.Task
+	38, // 30: jarvis.task.ListSprintTasksRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 31: jarvis.task.ListSprintTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 32: jarvis.task.ListSprintTasksResponse.tasks:type_name -> jarvis.task.Task
+	38, // 33: jarvis.task.AssignTaskToSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 34: jarvis.task.AssignTaskToSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 35: jarvis.task.AssignTaskToSprintResponse.task:type_name -> jarvis.task.Task
+	38, // 36: jarvis.task.MoveTaskStatusRequest.meta:type_name -> jarvis.common.RequestMeta
+	2,  // 37: jarvis.task.MoveTaskStatusRequest.new_status:type_name -> jarvis.task.TaskStatus
+	39, // 38: jarvis.task.MoveTaskStatusResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,  // 39: jarvis.task.MoveTaskStatusResponse.task:type_name -> jarvis.task.Task
+	38, // 40: jarvis.task.CreateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 41: jarvis.task.CreateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,  // 42: jarvis.task.CreateSprintResponse.sprint:type_name -> jarvis.task.Sprint
+	38, // 43: jarvis.task.UpdateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 44: jarvis.task.UpdateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,  // 45: jarvis.task.UpdateSprintResponse.sprint:type_name -> jarvis.task.Sprint
+	38, // 46: jarvis.task.DeleteSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 47: jarvis.task.DeleteSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	38, // 48: jarvis.task.CloseSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 49: jarvis.task.CloseSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,  // 50: jarvis.task.CloseSprintResponse.sprint:type_name -> jarvis.task.Sprint
+	38, // 51: jarvis.task.ListSprintsRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 52: jarvis.task.ListSprintsResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,  // 53: jarvis.task.ListSprintsResponse.sprints:type_name -> jarvis.task.Sprint
+	38, // 54: jarvis.task.GetSprintVelocityRequest.meta:type_name -> jarvis.common.RequestMeta
+	39, // 55: jarvis.task.GetSprintVelocityResponse.meta:type_name -> jarvis.common.ResponseMeta
+	6,  // 56: jarvis.task.GetSprintVelocityResponse.velocities:type_name -> jarvis.task.UserVelocity
+	7,  // 57: jarvis.task.TaskService.CreateTask:input_type -> jarvis.task.CreateTaskRequest
+	9,  // 58: jarvis.task.TaskService.GetTask:input_type -> jarvis.task.GetTaskRequest
+	11, // 59: jarvis.task.TaskService.UpdateTask:input_type -> jarvis.task.UpdateTaskRequest
+	13, // 60: jarvis.task.TaskService.DeleteTask:input_type -> jarvis.task.DeleteTaskRequest
+	15, // 61: jarvis.task.TaskService.ListBacklog:input_type -> jarvis.task.ListBacklogRequest
+	17, // 62: jarvis.task.TaskService.ListAllTasks:input_type -> jarvis.task.ListAllTasksRequest
+	19, // 63: jarvis.task.TaskService.ListSprintTasks:input_type -> jarvis.task.ListSprintTasksRequest
+	21, // 64: jarvis.task.TaskService.AssignTaskToSprint:input_type -> jarvis.task.AssignTaskToSprintRequest
+	23, // 65: jarvis.task.TaskService.MoveTaskStatus:input_type -> jarvis.task.MoveTaskStatusRequest
+	25, // 66: jarvis.task.TaskService.CreateSprint:input_type -> jarvis.task.CreateSprintRequest
+	27, // 67: jarvis.task.TaskService.UpdateSprint:input_type -> jarvis.task.UpdateSprintRequest
+	29, // 68: jarvis.task.TaskService.DeleteSprint:input_type -> jarvis.task.DeleteSprintRequest
+	31, // 69: jarvis.task.TaskService.CloseSprint:input_type -> jarvis.task.CloseSprintRequest
+	33, // 70: jarvis.task.TaskService.ListSprints:input_type -> jarvis.task.ListSprintsRequest
+	35, // 71: jarvis.task.TaskService.GetSprintVelocity:input_type -> jarvis.task.GetSprintVelocityRequest
+	8,  // 72: jarvis.task.TaskService.CreateTask:output_type -> jarvis.task.CreateTaskResponse
+	10, // 73: jarvis.task.TaskService.GetTask:output_type -> jarvis.task.GetTaskResponse
+	12, // 74: jarvis.task.TaskService.UpdateTask:output_type -> jarvis.task.UpdateTaskResponse
+	14, // 75: jarvis.task.TaskService.DeleteTask:output_type -> jarvis.task.DeleteTaskResponse
+	16, // 76: jarvis.task.TaskService.ListBacklog:output_type -> jarvis.task.ListBacklogResponse
+	18, // 77: jarvis.task.TaskService.ListAllTasks:output_type -> jarvis.task.ListAllTasksResponse
+	20, // 78: jarvis.task.TaskService.ListSprintTasks:output_type -> jarvis.task.ListSprintTasksResponse
+	22, // 79: jarvis.task.TaskService.AssignTaskToSprint:output_type -> jarvis.task.AssignTaskToSprintResponse
+	24, // 80: jarvis.task.TaskService.MoveTaskStatus:output_type -> jarvis.task.MoveTaskStatusResponse
+	26, // 81: jarvis.task.TaskService.CreateSprint:output_type -> jarvis.task.CreateSprintResponse
+	28, // 82: jarvis.task.TaskService.UpdateSprint:output_type -> jarvis.task.UpdateSprintResponse
+	30, // 83: jarvis.task.TaskService.DeleteSprint:output_type -> jarvis.task.DeleteSprintResponse
+	32, // 84: jarvis.task.TaskService.CloseSprint:output_type -> jarvis.task.CloseSprintResponse
+	34, // 85: jarvis.task.TaskService.ListSprints:output_type -> jarvis.task.ListSprintsResponse
+	36, // 86: jarvis.task.TaskService.GetSprintVelocity:output_type -> jarvis.task.GetSprintVelocityResponse
+	72, // [72:87] is the sub-list for method output_type
+	57, // [57:72] is the sub-list for method input_type
+	57, // [57:57] is the sub-list for extension type_name
+	57, // [57:57] is the sub-list for extension extendee
+	0,  // [0:57] is the sub-list for field type_name
 }
 
 func init() { file_pb_task_task_proto_init() }
@@ -2455,8 +2699,8 @@ func file_pb_task_task_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_task_task_proto_rawDesc), len(file_pb_task_task_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   31,
+			NumEnums:      4,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

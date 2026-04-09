@@ -24,6 +24,7 @@ const (
 	TaskService_UpdateTask_FullMethodName         = "/jarvis.task.TaskService/UpdateTask"
 	TaskService_DeleteTask_FullMethodName         = "/jarvis.task.TaskService/DeleteTask"
 	TaskService_ListBacklog_FullMethodName        = "/jarvis.task.TaskService/ListBacklog"
+	TaskService_ListAllTasks_FullMethodName       = "/jarvis.task.TaskService/ListAllTasks"
 	TaskService_ListSprintTasks_FullMethodName    = "/jarvis.task.TaskService/ListSprintTasks"
 	TaskService_AssignTaskToSprint_FullMethodName = "/jarvis.task.TaskService/AssignTaskToSprint"
 	TaskService_MoveTaskStatus_FullMethodName     = "/jarvis.task.TaskService/MoveTaskStatus"
@@ -44,6 +45,7 @@ type TaskServiceClient interface {
 	UpdateTask(ctx context.Context, in *UpdateTaskRequest, opts ...grpc.CallOption) (*UpdateTaskResponse, error)
 	DeleteTask(ctx context.Context, in *DeleteTaskRequest, opts ...grpc.CallOption) (*DeleteTaskResponse, error)
 	ListBacklog(ctx context.Context, in *ListBacklogRequest, opts ...grpc.CallOption) (*ListBacklogResponse, error)
+	ListAllTasks(ctx context.Context, in *ListAllTasksRequest, opts ...grpc.CallOption) (*ListAllTasksResponse, error)
 	ListSprintTasks(ctx context.Context, in *ListSprintTasksRequest, opts ...grpc.CallOption) (*ListSprintTasksResponse, error)
 	AssignTaskToSprint(ctx context.Context, in *AssignTaskToSprintRequest, opts ...grpc.CallOption) (*AssignTaskToSprintResponse, error)
 	MoveTaskStatus(ctx context.Context, in *MoveTaskStatusRequest, opts ...grpc.CallOption) (*MoveTaskStatusResponse, error)
@@ -107,6 +109,16 @@ func (c *taskServiceClient) ListBacklog(ctx context.Context, in *ListBacklogRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListBacklogResponse)
 	err := c.cc.Invoke(ctx, TaskService_ListBacklog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) ListAllTasks(ctx context.Context, in *ListAllTasksRequest, opts ...grpc.CallOption) (*ListAllTasksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAllTasksResponse)
+	err := c.cc.Invoke(ctx, TaskService_ListAllTasks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -212,6 +224,7 @@ type TaskServiceServer interface {
 	UpdateTask(context.Context, *UpdateTaskRequest) (*UpdateTaskResponse, error)
 	DeleteTask(context.Context, *DeleteTaskRequest) (*DeleteTaskResponse, error)
 	ListBacklog(context.Context, *ListBacklogRequest) (*ListBacklogResponse, error)
+	ListAllTasks(context.Context, *ListAllTasksRequest) (*ListAllTasksResponse, error)
 	ListSprintTasks(context.Context, *ListSprintTasksRequest) (*ListSprintTasksResponse, error)
 	AssignTaskToSprint(context.Context, *AssignTaskToSprintRequest) (*AssignTaskToSprintResponse, error)
 	MoveTaskStatus(context.Context, *MoveTaskStatusRequest) (*MoveTaskStatusResponse, error)
@@ -245,6 +258,9 @@ func (UnimplementedTaskServiceServer) DeleteTask(context.Context, *DeleteTaskReq
 }
 func (UnimplementedTaskServiceServer) ListBacklog(context.Context, *ListBacklogRequest) (*ListBacklogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListBacklog not implemented")
+}
+func (UnimplementedTaskServiceServer) ListAllTasks(context.Context, *ListAllTasksRequest) (*ListAllTasksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAllTasks not implemented")
 }
 func (UnimplementedTaskServiceServer) ListSprintTasks(context.Context, *ListSprintTasksRequest) (*ListSprintTasksResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSprintTasks not implemented")
@@ -380,6 +396,24 @@ func _TaskService_ListBacklog_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TaskServiceServer).ListBacklog(ctx, req.(*ListBacklogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_ListAllTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllTasksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).ListAllTasks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_ListAllTasks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).ListAllTasks(ctx, req.(*ListAllTasksRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -572,6 +606,10 @@ var TaskService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBacklog",
 			Handler:    _TaskService_ListBacklog_Handler,
+		},
+		{
+			MethodName: "ListAllTasks",
+			Handler:    _TaskService_ListAllTasks_Handler,
 		},
 		{
 			MethodName: "ListSprintTasks",
