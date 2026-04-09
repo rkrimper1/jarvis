@@ -93,6 +93,9 @@ services:
 
       # ── User store ────────────────────────────────────────────────
       - USERS_DB_PATH=${USERS_DB_PATH:-}
+
+      # ── Task store ────────────────────────────────────────────────
+      - TASKS_DB_PATH=${TASKS_DB_PATH:-}
       - SEED_TONY_USER=${SEED_TONY_USER:-tony-stark}
       - SEED_TONY_PASSWORD=${SEED_TONY_PASSWORD:-tony-stark}
       - SEED_ADMIN_USER=${SEED_ADMIN_USER:-rob-krimper}

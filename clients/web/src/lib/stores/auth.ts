@@ -40,3 +40,5 @@ export const subjectId = derived(auth, ($auth) => $auth.subjectId);
 export const userId = derived(auth, ($auth) => $auth.userId);
 export const role = derived(auth, ($auth) => $auth.role);
 export const isAdmin = derived(auth, ($auth) => $auth.role === 'ROLE_ADMIN');
+export const isEditor = derived(auth, ($auth) => $auth.role === 'ROLE_EDITOR');
+export const canManageSprints = derived(auth, ($auth) => $auth.role === 'ROLE_ADMIN' || $auth.role === 'ROLE_EDITOR');

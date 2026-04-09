@@ -1,8 +1,13 @@
-// Typed REST client for all 9 JARVIS services via grpc-gateway (:8080)
+// Typed REST client for all 10 JARVIS services via grpc-gateway (:8080)
+
+import { get } from 'svelte/store';
+import { userId } from '$lib/stores/auth';
 
 let _token: string | null = null;
+let _onUnauthorized: (() => void) | null = null;
 
 export function setToken(t: string | null) { _token = t; }
+export function onUnauthorized(fn: () => void) { _onUnauthorized = fn; }
 
 function reqId() {
 	return `web-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -17,6 +22,11 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 		headers,
 		body: body ? JSON.stringify(body) : undefined
 	});
+
+	if (res.status === 401) {
+		_onUnauthorized?.();
+		throw new Error('Session expired. Please log in again.');
+	}
 
 	if (!res.ok) {
 		const err = await res.json().catch(() => ({ message: res.statusText }));
@@ -375,6 +385,189 @@ export const learning = {
 			preferred_source: preferredSource,
 			confirmed
 		});
+	}
+};
+
+// ── Tasks ─────────────────────────────────────────────────────────────
+
+export type TaskType =
+	| 'TASK_TYPE_UNSPECIFIED'
+	| 'TASK_TYPE_TASK'
+	| 'TASK_TYPE_EPIC'
+	| 'TASK_TYPE_STORY'
+	| 'TASK_TYPE_BUG'
+	| 'TASK_TYPE_SUBTASK';
+
+export type TaskPriority =
+	| 'TASK_PRIORITY_UNSPECIFIED'
+	| 'TASK_PRIORITY_CRITICAL'
+	| 'TASK_PRIORITY_HIGH'
+	| 'TASK_PRIORITY_MEDIUM'
+	| 'TASK_PRIORITY_LOW';
+
+export type TaskStatus =
+	| 'TASK_STATUS_UNSPECIFIED'
+	| 'TASK_STATUS_UNASSIGNED'
+	| 'TASK_STATUS_ASSIGNED'
+	| 'TASK_STATUS_IN_PROGRESS'
+	| 'TASK_STATUS_TESTING'
+	| 'TASK_STATUS_REVIEW'
+	| 'TASK_STATUS_COMPLETED';
+
+export type SprintStatus =
+	| 'SPRINT_STATUS_UNSPECIFIED'
+	| 'SPRINT_STATUS_ACTIVE'
+	| 'SPRINT_STATUS_CLOSED';
+
+export interface Task {
+	taskId: string;
+	displayId: number;
+	title: string;
+	description: string;
+	assigneeId: string;
+	reporterId: string;
+	priority: TaskPriority;
+	taskType: TaskType;
+	parentId: string;
+	storyPoints: number;
+	dueDate: string;
+	sprintId: string;
+	status: TaskStatus;
+	completedById: string;
+	completedAt: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface Sprint {
+	sprintId: string;
+	name: string;
+	goal: string;
+	startDate: string;
+	endDate: string;
+	status: SprintStatus;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface UserVelocity {
+	userId: string;
+	storyPoints: number;
+}
+
+export const tasks = {
+	createTask(params: {
+		title: string;
+		description?: string;
+		assigneeId: string;
+		reporterId: string;
+		priority?: TaskPriority;
+		taskType?: TaskType;
+		parentId?: string;
+		storyPoints?: number;
+		dueDate?: string;
+		sprintId?: string;
+	}): Promise<{ meta: ResponseMeta; task: Task }> {
+		return call('POST', '/tasks', {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			title: params.title,
+			description: params.description ?? '',
+			assignee_id: params.assigneeId,
+			reporter_id: params.reporterId,
+			priority: params.priority ?? 'TASK_PRIORITY_MEDIUM',
+			task_type: params.taskType ?? 'TASK_TYPE_TASK',
+			parent_id: params.parentId ?? '',
+			story_points: params.storyPoints ?? 0,
+			due_date: params.dueDate ?? '',
+			sprint_id: params.sprintId ?? ''
+		});
+	},
+	getTask(taskId: string): Promise<{ meta: ResponseMeta; task: Task }> {
+		return call('GET', `/tasks/${taskId}?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	updateTask(taskId: string, params: {
+		title?: string;
+		description?: string;
+		assigneeId?: string;
+		priority?: TaskPriority;
+		taskType?: TaskType;
+		parentId?: string;
+		storyPoints?: number;
+		dueDate?: string;
+	}): Promise<{ meta: ResponseMeta; task: Task }> {
+		return call('PATCH', `/tasks/${taskId}`, {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			task_id: taskId,
+			title: params.title ?? '',
+			description: params.description ?? '',
+			assignee_id: params.assigneeId ?? '',
+			priority: params.priority ?? 'TASK_PRIORITY_UNSPECIFIED',
+			task_type: params.taskType ?? 'TASK_TYPE_UNSPECIFIED',
+			parent_id: params.parentId ?? '',
+			story_points: params.storyPoints ?? 0,
+			due_date: params.dueDate ?? ''
+		});
+	},
+	deleteTask(taskId: string): Promise<{ meta: ResponseMeta; taskId: string }> {
+		return call('DELETE', `/tasks/${taskId}?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	listBacklog(): Promise<{ meta: ResponseMeta; tasks: Task[] }> {
+		return call('GET', `/tasks/backlog?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	listAllTasks(): Promise<{ meta: ResponseMeta; tasks: Task[] }> {
+		return call('GET', `/tasks?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	listSprintTasks(sprintId: string): Promise<{ meta: ResponseMeta; tasks: Task[] }> {
+		return call('GET', `/sprints/${sprintId}/tasks?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	assignToSprint(taskId: string, sprintId: string): Promise<{ meta: ResponseMeta; task: Task }> {
+		return call('POST', `/tasks/${taskId}/sprint`, {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			task_id: taskId,
+			sprint_id: sprintId
+		});
+	},
+	moveStatus(taskId: string, newStatus: TaskStatus, opts?: { userId?: string }): Promise<{ meta: ResponseMeta; task: Task }> {
+		return call('POST', `/tasks/${taskId}/status`, {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			task_id: taskId,
+			new_status: newStatus,
+			user_id: opts?.userId ?? get(userId) ?? ''
+		});
+	},
+	createSprint(params: { name: string; goal?: string; startDate?: string; endDate?: string }): Promise<{ meta: ResponseMeta; sprint: Sprint }> {
+		return call('POST', '/sprints', {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			name: params.name,
+			goal: params.goal ?? '',
+			start_date: params.startDate ?? '',
+			end_date: params.endDate ?? ''
+		});
+	},
+	updateSprint(sprintId: string, params: { name?: string; goal?: string; startDate?: string; endDate?: string }): Promise<{ meta: ResponseMeta; sprint: Sprint }> {
+		return call('PATCH', `/sprints/${sprintId}`, {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			sprint_id: sprintId,
+			name: params.name ?? '',
+			goal: params.goal ?? '',
+			start_date: params.startDate ?? '',
+			end_date: params.endDate ?? ''
+		});
+	},
+	deleteSprint(sprintId: string): Promise<{ meta: ResponseMeta; sprintId: string }> {
+		return call('DELETE', `/sprints/${sprintId}?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	closeSprint(sprintId: string): Promise<{ meta: ResponseMeta; sprint: Sprint }> {
+		return call('POST', `/sprints/${sprintId}/close`, {
+			meta: { request_id: reqId(), user_id: get(userId) },
+			sprint_id: sprintId
+		});
+	},
+	listSprints(): Promise<{ meta: ResponseMeta; sprints: Sprint[] }> {
+		return call('GET', `/sprints?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	getSprintVelocity(sprintId: string): Promise<{ meta: ResponseMeta; velocities: UserVelocity[] }> {
+		return call('GET', `/sprints/${sprintId}/velocity?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
 	}
 };
 
