@@ -183,10 +183,8 @@ KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per s
 
 # ── User store ────────────────────────────────────────────────────
 USERS_DB_PATH=$HOME/.jarvis/users.db  # optional — SQLite DB path (created by setup.sh)
-SEED_TONY_USER=tony-stark             # optional — seeded Tony user username (default: tony-stark)
-SEED_TONY_PASSWORD=tony-stark         # optional — seeded Tony user password (default: tony-stark)
-SEED_ADMIN_USER=rob-krimper           # optional — seeded admin username (default: rob-krimper)
-SEED_ADMIN_PASSWORD=rob-krimper       # optional — seeded admin password (default: rob-krimper)
+SEED_TONY_USER=tony-stark             # optional — seeded Tony admin username (default: tony-stark)
+SEED_TONY_PASSWORD=tony-stark         # optional — seeded Tony admin password (default: tony-stark)
 
 # ── Task store ─────────────────────────────────────────────────────────────────
 TASKS_DB_PATH=$HOME/.jarvis/tasks.db  # optional — SQLite DB path (created by setup.sh)
