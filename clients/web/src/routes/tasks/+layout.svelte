@@ -6,6 +6,7 @@
 	const tabs = [
 		{ path: '/tasks/backlog', label: 'BACKLOG' },
 		{ path: '/tasks/board',   label: 'BOARD'   },
+		{ path: '/tasks/scrum',   label: 'SCRUM'   },
 	];
 </script>
 

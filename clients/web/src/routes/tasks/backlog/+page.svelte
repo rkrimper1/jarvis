@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { tasks, users, type Task, type Sprint, type User, type TaskPriority, type TaskType, type TaskStatus } from '$lib/api/client';
-	import { userId, canManageSprints } from '$lib/stores/auth';
+	import { tasks, users, type Task, type Sprint, type User, type TaskPriority, type TaskType } from '$lib/api/client';
+	import { userId } from '$lib/stores/auth';
 
 	let backlog = $state<Task[]>([]);
 	let allTasks = $state<Task[]>([]);
@@ -8,21 +8,9 @@
 	let userList = $state<User[]>([]);
 	let loading = $state(true);
 	let error = $state('');
-	let rightTab = $state<'sprints' | 'stories' | 'epics'>('sprints');
-
-	const ACTIVE_STATUSES: TaskStatus[] = [
-		'TASK_STATUS_UNASSIGNED', 'TASK_STATUS_ASSIGNED', 'TASK_STATUS_IN_PROGRESS',
-		'TASK_STATUS_TESTING', 'TASK_STATUS_REVIEW'
-	];
 
 	const filteredBacklog = $derived(
 		backlog.filter(t => t.taskType !== 'TASK_TYPE_EPIC' && t.taskType !== 'TASK_TYPE_STORY')
-	);
-	const stories = $derived(
-		allTasks.filter(t => t.taskType === 'TASK_TYPE_STORY' && ACTIVE_STATUSES.includes(t.status))
-	);
-	const epics = $derived(
-		allTasks.filter(t => t.taskType === 'TASK_TYPE_EPIC' && ACTIVE_STATUSES.includes(t.status))
 	);
 
 	// Create task form
@@ -53,18 +41,6 @@
 	let editTaskError = $state('');
 	let savingTask = $state(false);
 
-	// Create/edit sprint form
-	let showSprintForm = $state(false);
-	let editingSprint = $state<Sprint | null>(null);
-	let sprintName = $state('');
-	let sprintGoal = $state('');
-	let sprintStartDate = $state('');
-	let sprintEndDate = $state('');
-	let sprintFormError = $state('');
-	let savingSprint = $state(false);
-
-	// Drag state
-	let draggingTaskId = $state('');
 
 	function userDisplayName(id: string): string {
 		const u = userList.find(u => u.id === id);
@@ -89,11 +65,6 @@
 			case 'TASK_PRIORITY_LOW':      return 'LOW';
 			default:                        return 'MED';
 		}
-	}
-
-	function sprintTaskCount(sprintId: string): number {
-		// We don't load sprint tasks on this page; show 0 as placeholder
-		return 0;
 	}
 
 	function displayId(id: number): string {
@@ -214,88 +185,6 @@
 		}
 	}
 
-	function openSprintCreate() {
-		editingSprint = null;
-		sprintName = ''; sprintGoal = ''; sprintStartDate = ''; sprintEndDate = '';
-		sprintFormError = '';
-		showSprintForm = true;
-	}
-
-	function openSprintEdit(sp: Sprint) {
-		editingSprint = sp;
-		sprintName = sp.name; sprintGoal = sp.goal;
-		sprintStartDate = sp.startDate; sprintEndDate = sp.endDate;
-		sprintFormError = '';
-		showSprintForm = true;
-	}
-
-	async function submitSprintForm() {
-		if (!sprintName.trim()) { sprintFormError = 'Name is required.'; return; }
-		sprintFormError = '';
-		savingSprint = true;
-		try {
-			if (editingSprint) {
-				await tasks.updateSprint(editingSprint.sprintId, {
-					name: sprintName.trim(), goal: sprintGoal.trim(),
-					startDate: sprintStartDate, endDate: sprintEndDate
-				});
-			} else {
-				await tasks.createSprint({
-					name: sprintName.trim(), goal: sprintGoal.trim(),
-					startDate: sprintStartDate, endDate: sprintEndDate
-				});
-			}
-			showSprintForm = false;
-			await load();
-		} catch (e) {
-			sprintFormError = e instanceof Error ? e.message : String(e);
-		} finally {
-			savingSprint = false;
-		}
-	}
-
-	async function deleteSprint(sp: Sprint) {
-		if (!confirm(`Delete sprint "${sp.name}"?`)) return;
-		try {
-			await tasks.deleteSprint(sp.sprintId);
-			await load();
-		} catch (e) {
-			error = e instanceof Error ? e.message : String(e);
-		}
-	}
-
-	async function closeSprint(sp: Sprint) {
-		if (!confirm(`Close sprint "${sp.name}"? This cannot be undone.`)) return;
-		try {
-			await tasks.closeSprint(sp.sprintId);
-			await load();
-		} catch (e) {
-			error = e instanceof Error ? e.message : String(e);
-		}
-	}
-
-	function onDragStart(e: DragEvent, taskId: string) {
-		draggingTaskId = taskId;
-		e.dataTransfer?.setData('taskId', taskId);
-	}
-
-	function onDragOver(e: DragEvent) {
-		e.preventDefault();
-	}
-
-	async function onDropSprint(e: DragEvent, sprintId: string) {
-		e.preventDefault();
-		const taskId = e.dataTransfer?.getData('taskId') || draggingTaskId;
-		if (!taskId) return;
-		try {
-			await tasks.assignToSprint(taskId, sprintId);
-			await load();
-		} catch (err) {
-			error = err instanceof Error ? err.message : String(err);
-		}
-		draggingTaskId = '';
-	}
-
 	load();
 </script>
 
@@ -317,9 +206,7 @@
 		<div class="error-banner">{error}</div>
 	{/if}
 
-	<div class="two-col">
-		<!-- Left: Backlog -->
-		<section class="backlog-col">
+	<section class="backlog-col">
 			<div class="section-header">
 				<h2 class="section-title font-hud">BACKLOG <span class="count">({filteredBacklog.length})</span></h2>
 				<button class="hud-btn small" onclick={() => showCreateTask = !showCreateTask}>
@@ -416,8 +303,6 @@
 					{#each filteredBacklog as task}
 						<div
 							class="task-card"
-							draggable="true"
-							ondragstart={(e) => onDragStart(e, task.taskId)}
 							role="listitem"
 						>
 							<div class="task-header">
@@ -442,175 +327,6 @@
 				</div>
 			{/if}
 		</section>
-
-		<!-- Right: Sprints / Stories / Epics -->
-		<section class="sprint-col">
-			<div class="section-header">
-				<div class="tab-bar">
-					<button class="tab-btn" class:tab-active={rightTab === 'sprints'} onclick={() => rightTab = 'sprints'}>SPRINTS</button>
-					<button class="tab-btn" class:tab-active={rightTab === 'stories'} onclick={() => rightTab = 'stories'}>STORIES <span class="tab-count">{stories.length}</span></button>
-					<button class="tab-btn" class:tab-active={rightTab === 'epics'} onclick={() => rightTab = 'epics'}>EPICS <span class="tab-count">{epics.length}</span></button>
-				</div>
-				{#if rightTab === 'sprints' && $canManageSprints}
-					<button class="hud-btn small" onclick={openSprintCreate}>+ NEW SPRINT</button>
-				{/if}
-			</div>
-
-			{#if rightTab === 'sprints'}
-				{#if showSprintForm}
-					<div class="create-form">
-						<div class="form-title font-hud">{editingSprint ? 'EDIT SPRINT' : 'NEW SPRINT'}</div>
-						<div class="field">
-							<label class="field-label" for="sp-name">NAME *</label>
-							<input id="sp-name" class="hud-input" bind:value={sprintName} placeholder="Sprint name..." />
-						</div>
-						<div class="field">
-							<label class="field-label" for="sp-goal">GOAL</label>
-							<input id="sp-goal" class="hud-input" bind:value={sprintGoal} placeholder="Sprint goal..." />
-						</div>
-						<div class="form-row">
-							<div class="field">
-								<label class="field-label" for="sp-start">START DATE</label>
-								<input id="sp-start" class="hud-input" type="date" bind:value={sprintStartDate} />
-							</div>
-							<div class="field">
-								<label class="field-label" for="sp-end">END DATE</label>
-								<input id="sp-end" class="hud-input" type="date" bind:value={sprintEndDate} />
-							</div>
-						</div>
-						{#if sprintFormError}
-							<div class="form-error">{sprintFormError}</div>
-						{/if}
-						<div class="form-row">
-							<button class="hud-btn full-width" onclick={() => showSprintForm = false}>CANCEL</button>
-							<button class="hud-btn primary full-width" onclick={submitSprintForm} disabled={savingSprint}>
-								{savingSprint ? 'SAVING...' : 'SAVE'}
-							</button>
-						</div>
-					</div>
-				{/if}
-
-				{#if !sprints.length && !loading}
-					<div class="empty-msg font-hud">NO SPRINTS</div>
-				{:else}
-					<div class="sprint-list">
-						{#each sprints as sp}
-							<div
-								class="sprint-card"
-								class:active={sp.status === 'SPRINT_STATUS_ACTIVE'}
-								class:closed={sp.status === 'SPRINT_STATUS_CLOSED'}
-								ondragover={onDragOver}
-								ondrop={(e) => onDropSprint(e, sp.sprintId)}
-								role="region"
-								aria-label="Sprint {sp.name}"
-							>
-								<div class="sprint-header">
-									<span class="sprint-name font-hud">{sp.name}</span>
-									<span class="sprint-status-badge" class:status-active={sp.status === 'SPRINT_STATUS_ACTIVE'} class:status-closed={sp.status === 'SPRINT_STATUS_CLOSED'}>
-										{sp.status === 'SPRINT_STATUS_ACTIVE' ? 'ACTIVE' : 'CLOSED'}
-									</span>
-								</div>
-								{#if sp.goal}
-									<div class="sprint-goal">{sp.goal}</div>
-								{/if}
-								<div class="sprint-dates">
-									{sp.startDate || '—'} → {sp.endDate || '—'}
-								</div>
-								{#if $canManageSprints && sp.status === 'SPRINT_STATUS_ACTIVE'}
-									<div class="sprint-actions">
-										<button class="act-btn" onclick={() => openSprintEdit(sp)}>EDIT</button>
-										<button class="act-btn danger" onclick={() => closeSprint(sp)}>CLOSE</button>
-										<button class="act-btn danger" onclick={() => deleteSprint(sp)}>DELETE</button>
-									</div>
-								{:else if $canManageSprints}
-									<div class="sprint-actions">
-										<button class="act-btn danger" onclick={() => deleteSprint(sp)}>DELETE</button>
-									</div>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
-
-			{:else if rightTab === 'stories'}
-				{#if !stories.length && !loading}
-					<div class="empty-msg font-hud">NO ACTIVE STORIES</div>
-				{:else}
-					<div class="task-list">
-						{#each stories as task}
-							<div class="task-card story-card" role="listitem">
-								<div class="task-header">
-									<span class="task-title">{#if task.displayId}<span class="task-id">{displayId(task.displayId)}:</span> {/if}{task.title}</span>
-									<div class="task-header-right">
-										<span class="priority-badge {priorityClass(task.priority)}">{priorityLabel(task.priority)}</span>
-										<button class="act-btn" onclick={() => openEditTask(task)}>EDIT</button>
-									</div>
-								</div>
-								<div class="task-meta">
-									<span class="meta-item">◉ {userDisplayName(task.assigneeId)}</span>
-									{#if task.storyPoints > 0}
-										<span class="meta-item pts">{task.storyPoints} pts</span>
-									{/if}
-									{#if task.sprintId}
-										<span class="meta-item sprint-ref">sprint assigned</span>
-									{:else}
-										<span class="meta-item">backlog</span>
-									{/if}
-									{#if task.dueDate}
-										<span class="meta-item due">due {task.dueDate}</span>
-									{/if}
-								</div>
-								{#if task.description}
-									<div class="task-desc">{task.description}</div>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
-
-			{:else if rightTab === 'epics'}
-				{#if !epics.length && !loading}
-					<div class="empty-msg font-hud">NO ACTIVE EPICS</div>
-				{:else}
-					<div class="task-list">
-						{#each epics as task}
-							<div class="task-card epic-card" role="listitem">
-								<div class="task-header">
-									<span class="task-title">{#if task.displayId}<span class="task-id">{displayId(task.displayId)}:</span> {/if}{task.title}</span>
-									<div class="task-header-right">
-										<span class="priority-badge {priorityClass(task.priority)}">{priorityLabel(task.priority)}</span>
-										<button class="act-btn" onclick={() => openEditTask(task)}>EDIT</button>
-									</div>
-								</div>
-								<div class="task-meta">
-									<span class="meta-item">◉ {userDisplayName(task.assigneeId)}</span>
-									{#if task.storyPoints > 0}
-										<span class="meta-item pts">{task.storyPoints} pts</span>
-									{/if}
-									{#if task.sprintId}
-										<span class="meta-item sprint-ref">sprint assigned</span>
-									{:else}
-										<span class="meta-item">backlog</span>
-									{/if}
-									{#if task.dueDate}
-										<span class="meta-item due">due {task.dueDate}</span>
-									{/if}
-								</div>
-								{#if task.description}
-									<div class="task-desc">{task.description}</div>
-								{/if}
-								{#if allTasks.filter(t => t.parentId === task.taskId).length > 0}
-									<div class="epic-children">
-										<span class="meta-item">{allTasks.filter(t => t.parentId === task.taskId).length} linked task(s)</span>
-									</div>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
-			{/if}
-		</section>
-	</div>
 </div>
 
 {#if editingTask}
@@ -709,21 +425,9 @@
 	.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
 	.error-banner { background: #1a0505; border: 1px solid #ef444466; color: #ef4444; padding: 10px 14px; font-size: 12px; margin-bottom: 20px; }
 
-	.two-col { display: grid; grid-template-columns: 1fr; gap: 24px; }
-	@media (min-width: 900px) {
-		.two-col { grid-template-columns: 3fr 2fr; align-items: start; }
-	}
-
 	.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--hud-dim); padding-bottom: 6px; gap: 8px; }
 	.section-title { font-size: 11px; letter-spacing: 0.2em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); margin: 0; }
 	.count { color: var(--hud-muted); }
-	.tab-bar { display: flex; gap: 0; }
-	.tab-btn { font-family: var(--font-hud, monospace); font-size: 10px; letter-spacing: 0.15em; padding: 4px 12px; border: 1px solid var(--hud-dim); border-right: none; background: transparent; color: var(--hud-muted); cursor: pointer; transition: all 0.15s; }
-	.tab-btn:last-child { border-right: 1px solid var(--hud-dim); }
-	.tab-btn:hover { color: var(--hud-cyan); border-color: #00d4ff44; }
-	.tab-btn.tab-active { color: var(--hud-cyan); border-color: var(--hud-cyan); background: #00d4ff0d; text-shadow: var(--glow-cyan); }
-	.tab-count { font-size: 9px; color: var(--hud-muted); margin-left: 4px; }
-	.tab-btn.tab-active .tab-count { color: var(--hud-cyan); }
 	.hud-btn.small { font-size: 9px; padding: 4px 10px; }
 	.hud-btn.primary { color: var(--hud-cyan); border-color: var(--hud-cyan); }
 	.hud-btn.primary:hover { background: #00d4ff18; }
@@ -743,12 +447,10 @@
 		background: #0d1117;
 		border: 1px solid var(--hud-dim);
 		padding: 12px 14px;
-		cursor: grab;
 		clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
 		transition: border-color 0.15s;
 	}
 	.task-card:hover { border-color: var(--hud-cyan); }
-	.task-card:active { cursor: grabbing; }
 	.task-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 	.task-header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 	.task-id { color: var(--hud-cyan); opacity: 0.7; font-size: 9px; letter-spacing: 0.05em; }
@@ -768,34 +470,7 @@
 	.meta-item { font-size: 10px; color: var(--hud-muted); font-family: var(--font-hud, monospace); }
 	.pts { color: #a78bfa; }
 	.due { color: #f59e0b; }
-	.sprint-ref { color: #22c55e; }
-	.story-card { border-color: #34d39933; }
-	.story-card:hover { border-color: #34d399; }
-	.epic-card { border-color: #a78bfa33; }
-	.epic-card:hover { border-color: #a78bfa; }
 	.task-desc { font-size: 10px; color: var(--hud-muted); margin-top: 6px; line-height: 1.4; white-space: pre-wrap; }
-	.epic-children { margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--hud-dim); }
-
-	/* Sprint list */
-	.sprint-list { display: flex; flex-direction: column; gap: 12px; }
-	.sprint-card {
-		background: #0d1117;
-		border: 1px solid var(--hud-dim);
-		padding: 14px;
-		transition: border-color 0.15s, background 0.15s;
-		clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-	}
-	.sprint-card.active { border-color: #00d4ff44; }
-	.sprint-card:hover { border-color: var(--hud-cyan); background: #0d1117cc; }
-	.sprint-card.closed { opacity: 0.6; }
-	.sprint-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px; }
-	.sprint-name { font-size: 12px; color: var(--hud-text); flex: 1; }
-	.sprint-status-badge { font-size: 9px; font-family: var(--font-hud, monospace); letter-spacing: 0.1em; padding: 2px 6px; border: 1px solid; flex-shrink: 0; }
-	.status-active { color: #22c55e; border-color: #22c55e44; }
-	.status-closed { color: #6b7280; border-color: #37415166; }
-	.sprint-goal { font-size: 11px; color: var(--hud-muted); margin-bottom: 6px; }
-	.sprint-dates { font-size: 10px; color: var(--hud-muted); font-family: var(--font-hud, monospace); margin-bottom: 8px; }
-	.sprint-actions { display: flex; gap: 6px; }
 	.act-btn { font-family: var(--font-hud, monospace); font-size: 9px; letter-spacing: 0.1em; padding: 3px 8px; border: 1px solid var(--hud-dim); background: transparent; color: var(--hud-muted); cursor: pointer; transition: all 0.15s; }
 	.act-btn:hover { border-color: var(--hud-cyan); color: var(--hud-cyan); }
 	.act-btn.danger:hover { border-color: #ef444466; color: #ef4444; }

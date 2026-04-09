@@ -1,8 +1,10 @@
 // Typed REST client for all 9 JARVIS services via grpc-gateway (:8080)
 
 let _token: string | null = null;
+let _onUnauthorized: (() => void) | null = null;
 
 export function setToken(t: string | null) { _token = t; }
+export function onUnauthorized(fn: () => void) { _onUnauthorized = fn; }
 
 function reqId() {
 	return `web-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -17,6 +19,11 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
 		headers,
 		body: body ? JSON.stringify(body) : undefined
 	});
+
+	if (res.status === 401) {
+		_onUnauthorized?.();
+		throw new Error('Session expired. Please log in again.');
+	}
 
 	if (!res.ok) {
 		const err = await res.json().catch(() => ({ message: res.statusText }));

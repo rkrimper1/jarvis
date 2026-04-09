@@ -3,12 +3,13 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { auth, isAuthenticated, subjectId, isAdmin } from '$lib/stores/auth';
-	import { setToken } from '$lib/api/client';
+	import { setToken, onUnauthorized } from '$lib/api/client';
 
 	let { children } = $props();
 	let hydrated = $state(false);
 
 	auth.subscribe(($auth) => setToken($auth.token));
+	onUnauthorized(() => { auth.logout(); goto('/login'); });
 
 	const navItems = [
 		{ path: '/',              label: 'System',   icon: '◈' },
