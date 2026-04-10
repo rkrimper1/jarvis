@@ -11,7 +11,10 @@ secrets/
 *.env.local
 credentials/
 alexa-cookies.json
+alexa-tokens.json
+.alexa-cookie.json
 *.pem
 *.key
 *.p12
 *.pfx
+.vscode/

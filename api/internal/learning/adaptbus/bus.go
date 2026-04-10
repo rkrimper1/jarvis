@@ -21,6 +21,8 @@ type Bus struct {
 	bufferSize  int
 	counter     atomic.Int64
 	log         *slog.Logger
+	stopOnce    sync.Once
+	done        chan struct{}
 }
 
 // New creates a Bus and starts the background adaptation simulator.
@@ -29,9 +31,15 @@ func New(bufferSize int, simulationInterval time.Duration, log *slog.Logger) *Bu
 		subscribers: make(map[string]chan *learningv1.AdaptationEvent),
 		bufferSize:  bufferSize,
 		log:         log,
+		done:        make(chan struct{}),
 	}
 	go b.simulate(simulationInterval)
 	return b
+}
+
+// Stop shuts down the background simulator goroutine. Safe to call multiple times.
+func (b *Bus) Stop() {
+	b.stopOnce.Do(func() { close(b.done) })
 }
 
 // Subscribe returns a channel of events and an unsubscribe function.
@@ -43,7 +51,12 @@ func (b *Bus) Subscribe(id string) (<-chan *learningv1.AdaptationEvent, func()) 
 
 	return ch, func() {
 		b.mu.Lock()
-		delete(b.subscribers, id)
+		// Only remove the map entry if it still points to our channel.
+		// A caller may have re-subscribed with the same ID, in which case we
+		// must not evict the newer subscriber.
+		if b.subscribers[id] == ch {
+			delete(b.subscribers, id)
+		}
 		close(ch)
 		b.mu.Unlock()
 	}
@@ -93,9 +106,14 @@ func (b *Bus) simulate(interval time.Duration) {
 	}
 
 	i := 0
-	for range ticker.C {
-		s := scenarios[i%len(scenarios)]
-		b.Publish(b.newEvent(s.domain, s.description, s.delta))
-		i++
+	for {
+		select {
+		case <-b.done:
+			return
+		case <-ticker.C:
+			s := scenarios[i%len(scenarios)]
+			b.Publish(b.newEvent(s.domain, s.description, s.delta))
+			i++
+		}
 	}
 }
