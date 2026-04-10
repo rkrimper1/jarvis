@@ -46,6 +46,22 @@ else
   success "unzip already installed"
 fi
 
+if ! command -v git >/dev/null 2>&1; then
+  info "Installing git..."
+  sudo apt-get install -y git 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "git installed"
+else
+  success "git already installed"
+fi
+
+if ! command -v make >/dev/null 2>&1; then
+  info "Installing make..."
+  sudo apt-get install -y make 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "make installed"
+else
+  success "make already installed"
+fi
+
 # ── 0a. Go ────────────────────────────────────────────────────────────
 if command -v go >/dev/null 2>&1; then
   success "Go already installed: $(go version | awk '{print $3}')"
