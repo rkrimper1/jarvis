@@ -395,7 +395,7 @@ if command -v code >/dev/null 2>&1; then
   info "Installing VS Code extensions..."
   install_ext "golang.go"
   install_ext "svelte.svelte-vscode"
-  install_ext "zxh404.vscode-proto3"
+  install_ext "drblury.protobuf-vsc"
   install_ext "esbenp.prettier-vscode"
   install_ext "ms-vscode.remote-explorer"
   success "VS Code extensions installed"
