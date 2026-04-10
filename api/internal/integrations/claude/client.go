@@ -18,10 +18,12 @@ type Client struct {
 	maxTokens int64
 }
 
-// New creates a Client using the provided API key.
-func New(apiKey, model string, maxTokens int) *Client {
+// New creates a Client using the provided API key. Additional SDK options
+// (e.g. option.WithBaseURL for testing) may be passed as variadic arguments.
+func New(apiKey, model string, maxTokens int, opts ...option.RequestOption) *Client {
+	allOpts := append([]option.RequestOption{option.WithAPIKey(apiKey)}, opts...)
 	return &Client{
-		inner:     anthropic.NewClient(option.WithAPIKey(apiKey)),
+		inner:     anthropic.NewClient(allOpts...),
 		model:     anthropic.Model(model),
 		maxTokens: int64(maxTokens),
 	}

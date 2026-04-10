@@ -20,7 +20,9 @@ func newTestBus(t *testing.T) *adaptbus.Bus {
 	t.Helper()
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 	// Use a 24-hour simulation interval so the simulator never fires in tests.
-	return adaptbus.New(8, 24*time.Hour, logger)
+	b := adaptbus.New(8, 24*time.Hour, logger)
+	t.Cleanup(b.Stop)
+	return b
 }
 
 func newTestEvent(domain learningv1.ModelDomain, desc string, delta float32) *learningv1.AdaptationEvent {
@@ -138,6 +140,7 @@ func TestPublish_SlowSubscriber_DropsEventDoesNotBlock(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 	// Buffer size of 1 so it fills up quickly.
 	b := adaptbus.New(1, 24*time.Hour, logger)
+	t.Cleanup(b.Stop)
 	ch, unsub := b.Subscribe("slow-sub")
 	defer unsub()
 
@@ -187,10 +190,9 @@ func TestSubscribe_SameID_OverwritesPrevious(t *testing.T) {
 	_, unsub1 := b.Subscribe("dup-id")
 	ch2, unsub2 := b.Subscribe("dup-id")
 	defer unsub2()
-
-	// unsub1 should not panic even though "dup-id" was overwritten.
-	// (The old channel is orphaned — callers must manage this.)
-	_ = unsub1
+	// unsub1 closes the old channel without evicting ch2 from the map, because
+	// Subscribe guards the delete with a channel-identity check.
+	defer unsub1()
 
 	// Publishing should reach ch2.
 	ev := newTestEvent(learningv1.ModelDomain_MODEL_DOMAIN_NLP, "dup test", 0.01)
@@ -237,13 +239,14 @@ func TestSubscribeUnsubscribe_ConcurrentSafe(t *testing.T) {
 	b := newTestBus(t)
 	var wg sync.WaitGroup
 	for i := 0; i < 20; i++ {
-		wg.Add(1)
+		wg.Add(2)
 		go func(n int) {
 			defer wg.Done()
 			id := "goroutine-sub-" + string(rune('a'+n%26))
 			ch, unsub := b.Subscribe(id)
 			// Immediately publish one event from another goroutine.
 			go func() {
+				defer wg.Done()
 				b.Publish(newTestEvent(learningv1.ModelDomain_MODEL_DOMAIN_NLP, "race", 0.001))
 			}()
 			// Drain briefly.

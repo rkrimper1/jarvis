@@ -83,7 +83,8 @@ func (t *Tracker) Get(domain learningv1.ModelDomain, from, to time.Time) *Snapsh
 			"recall degradation detected — review training data distribution")
 	}
 
-	return s
+	snap := *s
+	return &snap
 }
 
 func (t *Tracker) seed() {

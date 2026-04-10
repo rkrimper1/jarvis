@@ -1,8 +1,12 @@
 package claude_test
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/rkrimper1/jarvis/api/internal/integrations/claude"
 )
 
@@ -88,24 +92,23 @@ func TestTurn_EmptyContent(t *testing.T) {
 // ── Complete – cancelled context returns error immediately ────────────────────
 
 func TestComplete_CancelledContext_ReturnsError(t *testing.T) {
-	// Use an already-cancelled context so the SDK fails immediately without
-	// making a real network request.
-	// Note: The Anthropic client may return a context error or an auth error
-	// depending on whether it validates the API key first.  In either case, an
-	// error must be returned (not a nil error).
-	//
-	// We use a very short timeout so we don't hang during tests.
-	// If the SDK does make a real network call, it will fail due to the fake key.
+	// Point the client at a local server that blocks until the request context
+	// is done — no real network traffic, no API key required.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-r.Context().Done()
+	}))
+	defer srv.Close()
 
-	// We cannot easily inject a mock transport into the Anthropic SDK, so we
-	// exercise only the error path by using a pre-cancelled context.
-	// We limit exposure by using a small maxTokens.
-	c := claude.New("sk-ant-test-fake-key", "claude-3-5-sonnet-20241022", 1)
+	c := claude.New("sk-ant-test-fake-key", "claude-3-5-sonnet-20241022", 1,
+		option.WithBaseURL(srv.URL))
 
-	// We do NOT call Complete in this package test because it would make a real
-	// outbound HTTPS connection which is forbidden by the test rules.
-	// Instead, we confirm that the client was built and is usable.
-	_ = c
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // pre-cancel so Complete returns immediately
+
+	_, err := c.Complete(ctx, "system", nil, "hello")
+	if err == nil {
+		t.Fatal("expected error from Complete with cancelled context, got nil")
+	}
 }
 
 // ── Complete – nil/empty history ─────────────────────────────────────────────

@@ -78,6 +78,9 @@ func TestGenerate_FinancialReport_SummaryContainsRevenue(t *testing.T) {
 	if !strings.Contains(r.Summary, "financial") {
 		t.Errorf("FINANCIAL summary missing 'financial': %q", r.Summary)
 	}
+	if !strings.Contains(r.Summary, "Revenue") {
+		t.Errorf("FINANCIAL summary missing 'Revenue': %q", r.Summary)
+	}
 	// Period should appear in summary.
 	if !strings.Contains(r.Summary, "2025-01-01") {
 		t.Errorf("FINANCIAL summary missing period start: %q", r.Summary)
@@ -88,6 +91,9 @@ func TestGenerate_OperationsReport_SummaryContainsUptime(t *testing.T) {
 	r := reports.Generate("OPERATIONS", time.Now().Add(-48*time.Hour), time.Now(), nil)
 	if !strings.Contains(r.Summary, "Operations") {
 		t.Errorf("OPERATIONS summary missing 'Operations': %q", r.Summary)
+	}
+	if !strings.Contains(r.Summary, "uptime") {
+		t.Errorf("OPERATIONS summary missing 'uptime': %q", r.Summary)
 	}
 }
 
