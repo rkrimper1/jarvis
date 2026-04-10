@@ -78,6 +78,10 @@ else
     echo 'export PATH="/usr/local/go/bin:$PATH"' >> "$HOME/.bashrc"
   fi
   export PATH="/usr/local/go/bin:$PATH"
+  if ! grep -q 'GOROOT' "$HOME/.bashrc"; then
+    echo 'export GOROOT="/usr/local/go"' >> "$HOME/.bashrc"
+  fi
+  export GOROOT="/usr/local/go"
   success "Go installed: $(go version | awk '{print $3}')"
 fi
 
