@@ -91,18 +91,18 @@ services:
       - PPROF_DIR=${PPROF_DIR:-/tmp/profiles}
       - PPROF_INTERVAL=${PPROF_INTERVAL:-5m}
 
-      # ── User store ────────────────────────────────────────────────
-      - USERS_DB_PATH=${USERS_DB_PATH:-}
+      # ── Shared SQLite database ────────────────────────────────────
+      # All stores (users, tasks, analytics, audit, knowledge) share one file.
+      # Leave empty to disable SQLite persistence (uses in-memory fallbacks).
+      - JARVIS_DB_PATH=${JARVIS_DB_PATH:-/home/vagrant/.jarvis/jarvis.db}
 
-      # ── Task store ────────────────────────────────────────────────
-      - TASKS_DB_PATH=${TASKS_DB_PATH:-}
+      # ── User store ────────────────────────────────────────────────
       - SEED_TONY_USER=${SEED_TONY_USER:-tony-stark}
       - SEED_TONY_PASSWORD=${SEED_TONY_PASSWORD:-tony-stark}
       - SEED_ADMIN_USER=${SEED_ADMIN_USER:-rob-krimper}
       - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD:-rob-krimper}
 
       # ── Knowledge base (Learning service) ────────────────────────
-      - KNOWLEDGE_DB_PATH=${KNOWLEDGE_DB_PATH:-}
       - KNOWLEDGE_STALE_DAYS=${KNOWLEDGE_STALE_DAYS:-30}
       - KNOWLEDGE_WEB_SEARCH_MAX_USES=${KNOWLEDGE_WEB_SEARCH_MAX_USES:-10}
 
@@ -117,7 +117,6 @@ services:
       - FACE_OUTPUT_OPACITY=${FACE_OUTPUT_OPACITY:-0}
       - FACE_OUTPUT_FONT_SIZE=${FACE_OUTPUT_FONT_SIZE:-0}
       - FACE_MAX_IMAGE_BYTES=${FACE_MAX_IMAGE_BYTES:-0}
-      - SECURITY_ANALYTICS_DB_PATH=${SECURITY_ANALYTICS_DB_PATH:-/home/vagrant/.jarvis/analytics.db}
 
       # ── Alexa smart home ──────────────────────────────────────────
       - ALEXA_COOKIES_PATH=${ALEXA_COOKIES_PATH:-}
