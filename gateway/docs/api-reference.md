@@ -605,7 +605,7 @@ grpcurl -plaintext -d '{
 
 ## User Service
 
-Users are stored in a SQLite DB (`USERS_DB_PATH`). Passwords are bcrypt-hashed. Two users are seeded on first start: `tony-stark` (ROLE_VIEWER) and `rob-krimper` (ROLE_ADMIN). The role is encoded in the JWT `granted_scopes` on every `Authenticate` call.
+Users are stored in the shared `jarvis.db` SQLite database (`JARVIS_DB_PATH`). Passwords are bcrypt-hashed. Two users are seeded on first start: `tony-stark` (ROLE_VIEWER) and `rob-krimper` (ROLE_ADMIN). The role is encoded in the JWT `granted_scopes` on every `Authenticate` call.
 
 ### Get Current User
 ```bash
@@ -978,8 +978,8 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  Redis (dialogue history + sessions)      │
                   │                                           │
                   │  /tmp/profiles ──────────────────────┐   │
-                  │  ~/.jarvis (knowledge + users +    ───┤   │
-                  │            analytics DBs, faces/)      │   │
+                  │  ~/.jarvis/jarvis.db (unified DB)  ───┤   │
+                  │  ~/.jarvis/faces/ (annotated imgs) ───┤   │
                   │  ~/credentials/jarvis/ (cookies)  ────┤   │
                   └──────────────┬───────────────────────┼───┘
                                  │                        │ volume mounts
@@ -988,11 +988,10 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  Anthropic API (Claude)      │   │  ./profiles/          │
                   │  · NLP dialogue              │   │  *.prof  *.gif        │
                   │  · knowledge search          │   │  ~/.jarvis/           │
-                  │  · face sentiment analysis   │   │  knowledge.db         │
-                  │  Alexa GraphQL API           │   │  users.db             │
-                  │  · smart home device control │   │  analytics.db         │
-                  │  SMTP → iCal email invites   │   │  faces/ (annotated)   │
-                  └──────────────────────────────┘   │  ~/credentials/jarvis/│
-                                                      │  alexa-cookies.json   │
+                  │  · face sentiment analysis   │   │  jarvis.db            │
+                  │  Alexa GraphQL API           │   │  faces/ (annotated)   │
+                  │  · smart home device control │   │                       │
+                  │  SMTP → iCal email invites   │   │  ~/credentials/jarvis/│
+                  └──────────────────────────────┘   │  alexa-cookies.json   │
                                                       └───────────────────────┘
 ```
