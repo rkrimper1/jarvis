@@ -8,8 +8,6 @@ import (
 	"log/slog"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -64,11 +62,9 @@ type Store struct {
 	log *slog.Logger
 }
 
-func New(dbPath string, log *slog.Logger) (*Store, error) {
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("task store: open db: %w", err)
-	}
+// New applies the schema and best-effort migrations to the shared db.
+// The caller owns db and is responsible for closing it.
+func New(db *sql.DB, log *slog.Logger) (*Store, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("task store: apply schema: %w", err)
 	}
@@ -84,7 +80,8 @@ func New(dbPath string, log *slog.Logger) (*Store, error) {
 	return &Store{db: db, log: log}, nil
 }
 
-func (s *Store) Close() error { return s.db.Close() }
+// Close is a no-op: the caller owns the shared *sql.DB and is responsible for closing it.
+func (s *Store) Close() error { return nil }
 
 // ── Tasks ─────────────────────────────────────────────────────────────────────
 

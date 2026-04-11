@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"os"
 	"testing"
@@ -25,18 +26,16 @@ const testSecret = "test-task-secret"
 
 func newTestServer(t *testing.T) *server.TaskServer {
 	t.Helper()
-	f, err := os.CreateTemp("", "tasks-server-test-*.db")
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatalf("create temp db: %v", err)
+		t.Fatalf("sql.Open: %v", err)
 	}
-	f.Close()
-	t.Cleanup(func() { os.Remove(f.Name()) })
+	t.Cleanup(func() { db.Close() })
 
-	s, err := store.New(f.Name(), slog.New(slog.NewTextHandler(os.Stderr, nil)))
+	s, err := store.New(db, slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	if err != nil {
 		t.Fatalf("store.New: %v", err)
 	}
-	t.Cleanup(func() { s.Close() })
 	return server.New(s, testSecret, slog.New(slog.NewTextHandler(os.Stderr, nil)))
 }
 

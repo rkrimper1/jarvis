@@ -2,10 +2,12 @@ package server_test
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"os"
 	"testing"
 
+	_ "modernc.org/sqlite"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -17,19 +19,17 @@ import (
 // newTestServer returns a UserServer backed by a fresh in-memory SQLite store.
 func newTestServer(t *testing.T) *userserver.UserServer {
 	t.Helper()
-	f, err := os.CreateTemp("", "users-srv-test-*.db")
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatalf("create temp db: %v", err)
+		t.Fatalf("sql.Open: %v", err)
 	}
-	f.Close()
-	t.Cleanup(func() { os.Remove(f.Name()) })
+	t.Cleanup(func() { db.Close() })
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	s, err := store.New(f.Name(), log)
+	s, err := store.New(db, log)
 	if err != nil {
 		t.Fatalf("store.New: %v", err)
 	}
-	t.Cleanup(func() { s.Close() })
 	return userserver.New(s, log)
 }
 

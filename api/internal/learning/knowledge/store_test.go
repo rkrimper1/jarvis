@@ -2,7 +2,7 @@ package knowledge_test
 
 import (
 	"context"
-	"os"
+	"database/sql"
 	"strings"
 	"testing"
 
@@ -14,18 +14,16 @@ import (
 
 func newTestStore(t *testing.T) *knowledge.Store {
 	t.Helper()
-	f, err := os.CreateTemp("", "knowledge-test-*.db")
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatalf("create temp db: %v", err)
+		t.Fatalf("sql.Open: %v", err)
 	}
-	f.Close()
-	t.Cleanup(func() { os.Remove(f.Name()) })
+	t.Cleanup(func() { db.Close() })
 
-	s, err := knowledge.New(f.Name(), 30, "", "claude-sonnet-4-6")
+	s, err := knowledge.New(db, 30, "", "claude-sonnet-4-6")
 	if err != nil {
 		t.Fatalf("knowledge.New: %v", err)
 	}
-	t.Cleanup(func() { s.Close() })
 	return s
 }
 
@@ -260,18 +258,16 @@ func TestSearchWithClaude_NoAPIKey_ReturnsError(t *testing.T) {
 
 func TestSearch_StaleFilter_ZeroDays_ReturnsAll(t *testing.T) {
 	// A store with 0 stale days treats everything as stale — verify graceful empty result
-	f, err := os.CreateTemp("", "knowledge-stale-*.db")
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatalf("temp db: %v", err)
+		t.Fatalf("sql.Open: %v", err)
 	}
-	f.Close()
-	t.Cleanup(func() { os.Remove(f.Name()) })
+	t.Cleanup(func() { db.Close() })
 
-	s, err := knowledge.New(f.Name(), 0, "", "")
+	s, err := knowledge.New(db, 0, "", "")
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	t.Cleanup(func() { s.Close() })
 
 	ctx := context.Background()
 	s.Save(ctx, "arc reactor", "Fusion power.", "manual", 1.0, "")

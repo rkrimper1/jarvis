@@ -15,6 +15,10 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
 
+	"database/sql"
+
+	_ "modernc.org/sqlite"
+
 	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
@@ -63,16 +67,34 @@ func main() {
 	}
 	hp.Start(rootCtx)
 
+	// ── Shared SQLite database ────────────────────────────────────────
+	// All stores (users, tasks, analytics, audit, knowledge) share one file.
+	// WAL mode and foreign keys are enabled once here.
+	jarvisDBPath := envString("JARVIS_DB_PATH", "")
+	var sharedDB *sql.DB
+	if jarvisDBPath != "" {
+		var err error
+		sharedDB, err = sql.Open("sqlite", jarvisDBPath)
+		if err != nil {
+			log.Error("jarvis db: open failed", slog.String("path", jarvisDBPath), slog.Any("err", err))
+			os.Exit(1)
+		}
+		if _, err = sharedDB.Exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON`); err != nil {
+			log.Error("jarvis db: pragma failed", slog.Any("err", err))
+			os.Exit(1)
+		}
+		log.Info("jarvis db: opened", slog.String("path", jarvisDBPath))
+		defer sharedDB.Close()
+	}
+
 	learningCfg := learningserver.Config{
-		KnowledgeDBPath:    envString("KNOWLEDGE_DB_PATH", ""),
+		KnowledgeDB:        sharedDB,
 		KnowledgeStaleDays: envInt("KNOWLEDGE_STALE_DAYS", 30),
 		WebSearchMaxUses:   envInt("KNOWLEDGE_WEB_SEARCH_MAX_USES", 10),
 		AnthropicAPIKey:    envString("ANTHROPIC_API_KEY", ""),
 		ClaudeModel:        envString("CLAUDE_MODEL", "claude-sonnet-4-6"),
 	}
 
-	usersDBPath  := envString("USERS_DB_PATH", "")
-	tasksDBPath  := envString("TASKS_DB_PATH", "")
 	tokenSecret  := envString("TOKEN_SECRET", "stark-industries-dev-secret-change-in-prod")
 
 	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
@@ -84,15 +106,13 @@ func main() {
 	faceOpacity        := envFloat64("FACE_OUTPUT_OPACITY", 0)
 	faceFontSize       := envFloat64("FACE_OUTPUT_FONT_SIZE", 0)
 	faceMaxImageBytes  := envInt("FACE_MAX_IMAGE_BYTES", 0) // 0 → server default (5 MiB)
-	analyticsDBPath    := envString("SECURITY_ANALYTICS_DB_PATH", "")
 
 	// Create the HTTP mux first so newServer can register /alexa/* handlers on it.
 	httpMux := http.NewServeMux()
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, usersDBPath, securityserver.FaceConfig{
-		CascadePath:     faceCascadePath,
-		OutputDir:       faceOutputDir,
-		AnalyticsDBPath: analyticsDBPath,
+	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, sharedDB, securityserver.FaceConfig{
+		CascadePath: faceCascadePath,
+		OutputDir:   faceOutputDir,
 		DetectParams: faceanalysis.DetectParams{
 			MinSize:          faceMinSize,
 			QualityThreshold: faceQuality,
@@ -104,7 +124,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	}, alexaClient, alexaDebug, alexaCookies, httpMux, tasksDBPath, tokenSecret)
+	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)

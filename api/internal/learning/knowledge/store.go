@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
-
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"go.opencensus.io/trace"
@@ -66,20 +64,17 @@ type Store struct {
 	model     string
 }
 
-// New opens (or creates) the SQLite database at dbPath and applies the schema.
-func New(dbPath string, staleDays int, apiKey, model string) (*Store, error) {
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("knowledge: open db: %w", err)
-	}
+// New applies the knowledge schema to the shared db.
+// The caller owns db and is responsible for closing it.
+func New(db *sql.DB, staleDays int, apiKey, model string) (*Store, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("knowledge: apply schema: %w", err)
 	}
 	return &Store{db: db, staleDays: staleDays, apiKey: apiKey, model: model}, nil
 }
 
-// Close releases the database connection.
-func (s *Store) Close() error { return s.db.Close() }
+// Close is a no-op: the caller owns the shared *sql.DB and is responsible for closing it.
+func (s *Store) Close() error { return nil }
 
 // Search looks up fresh knowledge entries matching query.
 // Returns (results, found) where found is false when the DB has no fresh match.

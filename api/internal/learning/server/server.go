@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -23,7 +24,7 @@ import (
 
 // Config holds optional knowledge-store settings injected from env vars.
 type Config struct {
-	KnowledgeDBPath    string
+	KnowledgeDB        *sql.DB // shared jarvis.db connection; nil disables the knowledge store
 	KnowledgeStaleDays int
 	WebSearchMaxUses   int
 	AnthropicAPIKey    string
@@ -53,8 +54,8 @@ func New(log *slog.Logger, cfg Config) *LearningServer {
 		webSearchMax: cfg.WebSearchMaxUses,
 		log:          log,
 	}
-	if cfg.KnowledgeDBPath != "" {
-		ks, err := knowledge.New(cfg.KnowledgeDBPath, cfg.KnowledgeStaleDays, cfg.AnthropicAPIKey, cfg.ClaudeModel)
+	if cfg.KnowledgeDB != nil {
+		ks, err := knowledge.New(cfg.KnowledgeDB, cfg.KnowledgeStaleDays, cfg.AnthropicAPIKey, cfg.ClaudeModel)
 		if err != nil {
 			log.Error("learning: knowledge store init failed", slog.Any("err", err))
 		} else {

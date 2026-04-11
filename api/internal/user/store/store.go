@@ -9,8 +9,6 @@ import (
 	"os"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -40,13 +38,9 @@ type Store struct {
 	log *slog.Logger
 }
 
-// New opens (or creates) the SQLite database at dbPath, applies the schema,
-// and seeds initial users if the table is empty.
-func New(dbPath string, log *slog.Logger) (*Store, error) {
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("user store: open db: %w", err)
-	}
+// New applies the schema to the shared db and seeds initial users if the
+// table is empty. The caller owns db and is responsible for closing it.
+func New(db *sql.DB, log *slog.Logger) (*Store, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("user store: apply schema: %w", err)
 	}
@@ -62,8 +56,8 @@ func New(dbPath string, log *slog.Logger) (*Store, error) {
 	return s, nil
 }
 
-// Close releases the database connection.
-func (s *Store) Close() error { return s.db.Close() }
+// Close is a no-op: the caller owns the shared *sql.DB and is responsible for closing it.
+func (s *Store) Close() error { return nil }
 
 // ── seed ─────────────────────────────────────────────────────────────────────
 
