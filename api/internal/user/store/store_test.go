@@ -2,9 +2,12 @@ package store_test
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"os"
 	"testing"
+
+	_ "modernc.org/sqlite"
 
 	"github.com/rkrimper1/jarvis/api/internal/user/store"
 	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
@@ -12,18 +15,16 @@ import (
 
 func newTestStore(t *testing.T) *store.Store {
 	t.Helper()
-	f, err := os.CreateTemp("", "users-test-*.db")
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatalf("create temp db: %v", err)
+		t.Fatalf("sql.Open: %v", err)
 	}
-	f.Close()
-	t.Cleanup(func() { os.Remove(f.Name()) })
+	t.Cleanup(func() { db.Close() })
 
-	s, err := store.New(f.Name(), slog.New(slog.NewTextHandler(os.Stderr, nil)))
+	s, err := store.New(db, slog.New(slog.NewTextHandler(os.Stderr, nil)))
 	if err != nil {
 		t.Fatalf("store.New: %v", err)
 	}
-	t.Cleanup(func() { s.Close() })
 	return s
 }
 

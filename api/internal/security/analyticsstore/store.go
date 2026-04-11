@@ -11,8 +11,6 @@ import (
 	"math"
 	"strings"
 	"time"
-
-	_ "modernc.org/sqlite"
 )
 
 // Status band thresholds (0–100 score scale).
@@ -57,26 +55,15 @@ type Store struct {
 	log *slog.Logger
 }
 
-// New opens (or creates) the SQLite database at dbPath and applies the schema.
-func New(dbPath string, log *slog.Logger) (*Store, error) {
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("analyticsstore: open db: %w", err)
-	}
-	// WAL mode allows concurrent reads alongside a single writer, preventing
-	// lock contention when gRPC handlers for threat, faces, and audit queries
-	// run concurrently against the same *sql.DB.
-	if _, err := db.Exec(`PRAGMA journal_mode=WAL`); err != nil {
-		return nil, fmt.Errorf("analyticsstore: enable WAL: %w", err)
-	}
+// New applies the analytics schema to the shared db.
+// WAL mode must be enabled by the caller before passing db in.
+// The caller owns db and is responsible for closing it.
+func New(db *sql.DB, log *slog.Logger) (*Store, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("analyticsstore: apply schema: %w", err)
 	}
 	return &Store{db: db, log: log}, nil
 }
-
-// DB returns the underlying *sql.DB so other stores can share the connection.
-func (s *Store) DB() *sql.DB { return s.db }
 
 // ThreatEvent holds the metadata captured when AssessThreat completes.
 type ThreatEvent struct {

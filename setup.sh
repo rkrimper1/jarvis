@@ -245,114 +245,26 @@ PROPS
   success "Android Gradle wrapper installed"
 fi
 
-# ── 6. JARVIS knowledge database ─────────────────────────────────────
+# ── 6. Unified JARVIS database (jarvis.db) ───────────────────────────
 JARVIS_DIR="$HOME/.jarvis"
-KNOWLEDGE_DB="${KNOWLEDGE_DB_PATH:-$JARVIS_DIR/knowledge.db}"
+JARVIS_DB="${JARVIS_DB_PATH:-$JARVIS_DIR/jarvis.db}"
 mkdir -p "$JARVIS_DIR"
 
-if [ -f "$KNOWLEDGE_DB" ]; then
-  success "Knowledge DB already exists at $KNOWLEDGE_DB"
+if [ -f "$JARVIS_DB" ]; then
+  success "Jarvis DB already exists at $JARVIS_DB"
 else
-  info "Creating knowledge DB at $KNOWLEDGE_DB..."
-  sqlite3 "$KNOWLEDGE_DB" <<'SQL'
-CREATE TABLE IF NOT EXISTS knowledge (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    query        TEXT NOT NULL,
-    summary      TEXT NOT NULL,
-    source       TEXT NOT NULL CHECK(source IN ('web_search','claude_api','manual')),
-    confidence   REAL DEFAULT 1.0,
-    tags         TEXT DEFAULT '',
-    created_at   DATETIME DEFAULT (datetime('now')),
-    updated_at   DATETIME DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_knowledge_query ON knowledge(query);
-
-CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts
-    USING fts5(query, summary, tags, content=knowledge, content_rowid=id);
-
-CREATE TRIGGER IF NOT EXISTS knowledge_ai AFTER INSERT ON knowledge BEGIN
-    INSERT INTO knowledge_fts(rowid, query, summary, tags)
-    VALUES (new.id, new.query, new.summary, new.tags);
-END;
-
-CREATE TRIGGER IF NOT EXISTS knowledge_au AFTER UPDATE ON knowledge BEGIN
-    INSERT INTO knowledge_fts(knowledge_fts, rowid, query, summary, tags)
-    VALUES ('delete', old.id, old.query, old.summary, old.tags);
-    INSERT INTO knowledge_fts(rowid, query, summary, tags)
-    VALUES (new.id, new.query, new.summary, new.tags);
-END;
-
-CREATE TRIGGER IF NOT EXISTS knowledge_ad AFTER DELETE ON knowledge BEGIN
-    INSERT INTO knowledge_fts(knowledge_fts, rowid, query, summary, tags)
-    VALUES ('delete', old.id, old.query, old.summary, old.tags);
-END;
-SQL
-  success "Knowledge DB created at $KNOWLEDGE_DB"
+  info "Creating unified jarvis.db at $JARVIS_DB..."
+  # Only enable WAL here. The Go server applies the full schema on startup
+  # via CREATE TABLE IF NOT EXISTS — including FTS5 tables that require
+  # the modernc.org/sqlite driver (the system sqlite3 CLI may lack FTS5).
+  sqlite3 "$JARVIS_DB" "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;"
+  success "Jarvis DB created at $JARVIS_DB (schema applied by server on first start)"
 fi
 
-# ── 7. JARVIS users database ─────────────────────────────────────────
-USERS_DB="${USERS_DB_PATH:-$JARVIS_DIR/users.db}"
-
-if [ -f "$USERS_DB" ]; then
-  success "Users DB already exists at $USERS_DB"
-else
-  info "Creating users DB schema at $USERS_DB (seed users added on first server start)..."
-  sqlite3 "$USERS_DB" <<'SQL'
-CREATE TABLE IF NOT EXISTS users (
-    id           TEXT PRIMARY KEY,
-    username     TEXT NOT NULL UNIQUE,
-    email        TEXT NOT NULL DEFAULT '',
-    display_name TEXT NOT NULL DEFAULT '',
-    role         TEXT NOT NULL DEFAULT 'ROLE_VIEWER'
-                 CHECK(role IN ('ROLE_ADMIN','ROLE_EDITOR','ROLE_VIEWER')),
-    password_hash TEXT NOT NULL,
-    is_active    INTEGER NOT NULL DEFAULT 1,
-    created_at   DATETIME DEFAULT (datetime('now')),
-    updated_at   DATETIME DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-SQL
-  success "Users DB created at $USERS_DB"
-fi
-
-# ── 8. Security analytics database ──────────────────────────────────
-ANALYTICS_DB="${SECURITY_ANALYTICS_DB_PATH:-$JARVIS_DIR/analytics.db}"
-
-if [ -f "$ANALYTICS_DB" ]; then
-  success "Analytics DB already exists at $ANALYTICS_DB"
-else
-  info "Creating analytics DB schema at $ANALYTICS_DB..."
-  sqlite3 "$ANALYTICS_DB" <<'SQL'
-CREATE TABLE IF NOT EXISTS analytics_events (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_type   TEXT    NOT NULL,
-    created_at   DATETIME DEFAULT (datetime('now')),
-    subject_id   TEXT,
-    object_type  TEXT,
-    location     TEXT,
-    signals      TEXT,
-    threat_level TEXT,
-    filename     TEXT,
-    face_count   INTEGER,
-    sentiments   TEXT,
-    image_path   TEXT,
-    score        REAL NOT NULL DEFAULT 0
-);
-CREATE INDEX IF NOT EXISTS idx_analytics_created ON analytics_events(created_at);
-CREATE TABLE IF NOT EXISTS audits (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    subject_id TEXT    NOT NULL DEFAULT '',
-    action     TEXT    NOT NULL,
-    resource   TEXT    NOT NULL DEFAULT '',
-    success    INTEGER NOT NULL DEFAULT 1,
-    created_at DATETIME DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_audits_created ON audits(created_at);
-CREATE INDEX IF NOT EXISTS idx_audits_subject ON audits(subject_id);
-SQL
-  success "Analytics DB created at $ANALYTICS_DB"
-fi
+# ── 7. (Renumbered) ──────────────────────────────────────────────────
+# Sections 7-8 were the old per-service databases (users.db, tasks.db, analytics.db).
+# They are superseded by the unified jarvis.db above.
+# Run scripts/migrate-to-jarvis-db.sh if you have existing data to migrate.
 
 # ── 9. Face analysis — cascade file + output dir ─────────────────────
 FACE_CASCADE="${FACE_CASCADE_PATH:-$JARVIS_DIR/facefinder}"

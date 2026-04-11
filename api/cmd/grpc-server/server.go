@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -64,7 +65,8 @@ var serviceNames = []string{
 
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, usersDBPath string, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tasksDBPath string, tokenSecret string) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+// db is the shared jarvis.db connection (nil disables all SQLite stores).
+func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, db *sql.DB, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tokenSecret string) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 	ctx := context.Background()
 
 	// ── gRPC server ───────────────────────────────────────────────────
@@ -85,9 +87,9 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 
 	// ── User store (shared by user service + security auth) ───────────
 	var uStore *userstore.Store
-	if usersDBPath != "" {
+	if db != nil {
 		var err error
-		uStore, err = userstore.New(usersDBPath, log)
+		uStore, err = userstore.New(db, log)
 		if err != nil {
 			log.Error("user store init failed", slog.Any("err", err))
 			// non-fatal — fall back to hardcoded auth engine
@@ -132,13 +134,13 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 	}
 	faceCfg.AnthropicKey = learningCfg.AnthropicAPIKey
 	faceCfg.ClaudeModel = learningCfg.ClaudeModel
-	secSrv := securityserver.NewWithUserStoreFace(secCfg, log, uStore, faceCfg)
+	secSrv := securityserver.NewWithUserStoreFace(secCfg, log, uStore, db, faceCfg)
 	securityv1.RegisterSecurityServiceServer(grpcSrv, secSrv)
 
 	// ── Service: task ─────────────────────────────────────────────────
 	var taskSrv *taskserver.TaskServer
-	if tasksDBPath != "" {
-		tStore, err := taskstore.New(tasksDBPath, log)
+	if db != nil {
+		tStore, err := taskstore.New(db, log)
 		if err != nil {
 			log.Error("task store init failed", slog.Any("err", err))
 		} else {

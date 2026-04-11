@@ -4,6 +4,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"image"
 	_ "image/jpeg"
@@ -60,14 +61,13 @@ type SecurityServer struct {
 
 // FaceConfig holds optional face-analysis configuration.
 type FaceConfig struct {
-	CascadePath      string
-	OutputDir        string
-	AnthropicKey     string
-	ClaudeModel      string
-	DetectParams     faceanalysis.DetectParams
-	AnnotateParams   faceanalysis.AnnotateParams
-	AnalyticsDBPath  string // path to analytics SQLite DB; leave empty to disable
-	MaxImageBytes    int    // max accepted image_data size; 0 → default 5 MiB
+	CascadePath    string
+	OutputDir      string
+	AnthropicKey   string
+	ClaudeModel    string
+	DetectParams   faceanalysis.DetectParams
+	AnnotateParams faceanalysis.AnnotateParams
+	MaxImageBytes  int // max accepted image_data size; 0 → default 5 MiB
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -77,11 +77,12 @@ func New(cfg *config.Config, log *slog.Logger) *SecurityServer {
 
 // NewWithUserStore wires all dependencies including the optional user store.
 func NewWithUserStore(cfg *config.Config, log *slog.Logger, users UserStore) *SecurityServer {
-	return NewWithUserStoreFace(cfg, log, users, FaceConfig{})
+	return NewWithUserStoreFace(cfg, log, users, nil, FaceConfig{})
 }
 
-// NewWithUserStoreFace wires all dependencies including user store and face analysis config.
-func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore, face FaceConfig) *SecurityServer {
+// NewWithUserStoreFace wires all dependencies including user store, shared DB, and face analysis config.
+// db is the shared jarvis.db connection; pass nil to disable SQLite analytics/audit (uses in-memory).
+func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore, db *sql.DB, face FaceConfig) *SecurityServer {
 	assessor := threat.New()
 	broadcaster := threat.NewBroadcaster()
 
@@ -91,13 +92,13 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 
 	var aStore *analyticsstore.Store
 	auditStore := audit.New() // default: in-memory
-	if face.AnalyticsDBPath != "" {
+	if db != nil {
 		var err error
-		aStore, err = analyticsstore.New(face.AnalyticsDBPath, log)
+		aStore, err = analyticsstore.New(db, log)
 		if err != nil {
-			log.Error("analyticsstore: failed to open DB — analytics disabled", slog.Any("err", err))
+			log.Error("analyticsstore: failed to init — analytics disabled", slog.Any("err", err))
 		} else {
-			sqliteAudit, err := audit.NewSQLite(aStore.DB(), log)
+			sqliteAudit, err := audit.NewSQLite(db, log)
 			if err != nil {
 				log.Error("audit: failed to init SQLite store — falling back to in-memory", slog.Any("err", err))
 			} else {

@@ -33,7 +33,8 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │   Redis (session state)   SMTP (invites)                    │
   │   pigo (face detection)   ~/.jarvis/faces/ (annotated imgs) │
   │   /tmp/profiles          → ./profiles/    (heap profiles)   │
-  │   ~/.jarvis/             → host ~/.jarvis/ (DBs + faces)    │
+  │   ~/.jarvis/jarvis.db    → host ~/.jarvis/jarvis.db (all DBs) │
+  │   ~/.jarvis/faces/       → host ~/.jarvis/faces/ (annotated) │
   │   ~/credentials/jarvis/  → host ~/credentials/jarvis/      │
   └─────────────────────────────────────────────────────────────┘
 ```
@@ -46,10 +47,9 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - `AnalyzeFaces` detects faces with the pigo cascade detector, annotates them with a HUD overlay, and uses the Claude API to generate per-face sentiment commentary
 - Annotated face images are written to `~/.jarvis/faces/` (host-mounted) and served at `/faces/<filename>` via the HTTP server
-- THREAT and FACES analytics events are stored in `~/.jarvis/analytics.db` (SQLite), including pre-computed scores and the audit log — data persists across container restarts
+- All SQLite data (users, tasks, analytics, audit, knowledge) is stored in a single unified `~/.jarvis/jarvis.db` — host-mounted so data persists across container restarts
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
-- The SQLite knowledge DB at `~/.jarvis/knowledge.db` and users DB at `~/.jarvis/users.db` are mounted read/write so the container persists data to the host
 - OpenCensus distributed tracing exports to Stackdriver when `TRACING_ENABLED=true`; every gRPC span carries `original_request_id`, `x_request_id`, `request_id`, and `user_id` attributes
 
 ## Services
@@ -111,16 +111,16 @@ When `SMTP_*` env vars are configured, `ScheduleEvent` automatically emails an i
 
 ### Task — Sprint Management
 
-`TaskService` provides a full Scrum-style task tracker backed by a SQLite database (`TASKS_DB_PATH`). Tasks carry type (`TASK`, `EPIC`, `STORY`, `BUG`, `SUBTASK`), priority, story points, due date, assignee, and optional `parent_id` for epic/story hierarchies. Sequential `display_id` values (e.g. `JARVIS-0001`) are auto-assigned.
+`TaskService` provides a full Scrum-style task tracker backed by the shared `jarvis.db` SQLite database. Tasks carry type (`TASK`, `EPIC`, `STORY`, `BUG`, `SUBTASK`), priority, story points, due date, assignee, and optional `parent_id` for epic/story hierarchies. Sequential `display_id` values (e.g. `JARVIS-0001`) are auto-assigned.
 
 Sprints have a name, goal, and date range. `CloseSprint` marks the sprint closed and rolls any incomplete tasks back to the backlog. `GetSprintVelocity` returns per-user story-point totals for a completed sprint. `MoveTaskStatus` advances a task through `UNASSIGNED → ASSIGNED → IN_PROGRESS → TESTING → REVIEW → COMPLETED`.
 
-The service starts with a no-op in-memory stub when `TASKS_DB_PATH` is unset; all other services are unaffected.
+The service starts with a no-op in-memory stub when `JARVIS_DB_PATH` is unset; all other services are unaffected.
 
 Required env vars (optional — service degrades gracefully without them):
 ```
-TASKS_DB_PATH=$HOME/.jarvis/tasks.db   # optional — SQLite DB path (created by setup.sh)
-TOKEN_SECRET=<random-string>           # optional — JWT signing secret (default: stark-industries-dev-secret-change-in-prod — change in production)
+JARVIS_DB_PATH=$HOME/.jarvis/jarvis.db  # optional — shared SQLite DB path (created by setup.sh)
+TOKEN_SECRET=<random-string>            # optional — JWT signing secret (default: stark-industries-dev-secret-change-in-prod — change in production)
 ```
 
 ### Security — Face Analysis
@@ -176,18 +176,18 @@ TRACING_ENABLED=false                 # optional — set true to enable OpenCens
 PPROF_DIR=/tmp/profiles               # optional — output dir (default: /tmp/profiles)
 PPROF_INTERVAL=5m                     # optional — background capture interval (default: 5m)
 
+# ── Shared SQLite database (all stores: users, tasks, analytics, audit, knowledge) ───
+JARVIS_DB_PATH=$HOME/.jarvis/jarvis.db  # optional — created by setup.sh (schema applied by server on first start)
+
 # ── Knowledge base (Learning service) ─────────────────────────────
-KNOWLEDGE_DB_PATH=$HOME/.jarvis/knowledge.db  # optional — SQLite DB path (created by setup.sh)
 KNOWLEDGE_STALE_DAYS=30               # optional — exclude entries older than N days (default: 30)
 KNOWLEDGE_WEB_SEARCH_MAX_USES=10      # optional — max external searches per session (default: 10)
 
 # ── User store ────────────────────────────────────────────────────
-USERS_DB_PATH=$HOME/.jarvis/users.db  # optional — SQLite DB path (created by setup.sh)
 SEED_TONY_USER=tony-stark             # optional — seeded Tony admin username (default: tony-stark)
 SEED_TONY_PASSWORD=tony-stark         # optional — seeded Tony admin password (default: tony-stark)
 
 # ── Task store ─────────────────────────────────────────────────────────────────
-TASKS_DB_PATH=$HOME/.jarvis/tasks.db  # optional — SQLite DB path (created by setup.sh)
 TOKEN_SECRET=stark-industries-dev-secret-change-in-prod  # optional — JWT signing secret (change in production)
 
 # ── Face analysis (Security service) ──────────────────────────────
@@ -200,7 +200,6 @@ FACE_OUTPUT_TRIANGLE_SIZE=0.22             # optional — triangle padding multi
 FACE_OUTPUT_OPACITY=1.0                    # optional — HUD overlay opacity 0.0–1.0 (default: 1.0, 0 = use default)
 FACE_OUTPUT_FONT_SIZE=0                    # optional — annotation font size in points (default: 0 = auto from image width)
 FACE_MAX_IMAGE_BYTES=5242880               # optional — max uploaded image size in bytes (default: 5 MiB)
-SECURITY_ANALYTICS_DB_PATH=$HOME/.jarvis/analytics.db  # analytics event store (THREAT + FACES metadata)
 
 # ── Alexa smart home (Facility service) ───────────────────────
 ALEXA_COOKIES_PATH=/path/to/alexa-cookies.json  # optional — Cookie-Editor JSON export from alexa.amazon.com
@@ -361,7 +360,7 @@ jarvis/
 ├── profiles/                     # Heap profile output — .prof + .gif (volume-mounted from Docker)
 ├── docker/
 │   ├── jarvis/Dockerfile         # Multi-stage build: builder (Go/Alpine) → runtime (debian:slim + graphviz)
-│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles, ~/.jarvis → /home/vagrant/.jarvis (knowledge + users DBs)
+│   └── docker-compose.yml        # jarvis + redis; mounts ./profiles → /tmp/profiles, ~/.jarvis/jarvis.db (unified DB), ~/.jarvis/faces/
 ├── gateway/
 │   └── docs/api-reference.md     # REST + gRPC API reference
 ├── docs/openapi/                 # Generated OpenAPI spec — gitignored

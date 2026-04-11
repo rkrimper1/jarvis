@@ -2,8 +2,11 @@ package analyticsstore_test
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"testing"
+
+	_ "modernc.org/sqlite"
 
 	"github.com/rkrimper1/jarvis/api/internal/security/analyticsstore"
 )
@@ -11,7 +14,13 @@ import (
 // newTestStore opens an in-memory SQLite-backed Store for each test.
 func newTestStore(t *testing.T) *analyticsstore.Store {
 	t.Helper()
-	s, err := analyticsstore.New(":memory:", slog.Default())
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+
+	s, err := analyticsstore.New(db, slog.Default())
 	if err != nil {
 		t.Fatalf("analyticsstore.New: %v", err)
 	}
