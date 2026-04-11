@@ -65,9 +65,6 @@ func New(db *sql.DB, log *slog.Logger) (*Store, error) {
 	return &Store{db: db, log: log}, nil
 }
 
-// DB returns the underlying *sql.DB so other stores can share the connection.
-func (s *Store) DB() *sql.DB { return s.db }
-
 // ThreatEvent holds the metadata captured when AssessThreat completes.
 type ThreatEvent struct {
 	SubjectID   string

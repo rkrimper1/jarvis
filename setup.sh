@@ -262,7 +262,7 @@ else
 fi
 
 # ── 7. (Renumbered) ──────────────────────────────────────────────────
-# Sections 7-8 were the old per-service databases (users.db, analytics.db).
+# Sections 7-8 were the old per-service databases (users.db, tasks.db, analytics.db).
 # They are superseded by the unified jarvis.db above.
 # Run scripts/migrate-to-jarvis-db.sh if you have existing data to migrate.
 

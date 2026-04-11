@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net"
@@ -14,9 +15,6 @@ import (
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
-
-	"database/sql"
-
 	_ "modernc.org/sqlite"
 
 	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
