@@ -30,6 +30,85 @@ else
   success "graphviz already installed"
 fi
 
+if ! command -v sqlite3 >/dev/null 2>&1; then
+  info "Installing sqlite3..."
+  sudo apt-get install -y sqlite3 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "sqlite3 installed"
+else
+  success "sqlite3 already installed"
+fi
+
+if ! command -v unzip >/dev/null 2>&1; then
+  info "Installing unzip..."
+  sudo apt-get install -y unzip 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "unzip installed"
+else
+  success "unzip already installed"
+fi
+
+if ! command -v git >/dev/null 2>&1; then
+  info "Installing git..."
+  sudo apt-get install -y git 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "git installed"
+else
+  success "git already installed"
+fi
+
+if ! command -v make >/dev/null 2>&1; then
+  info "Installing make..."
+  sudo apt-get install -y make 2>&1 | grep -E "^(Setting up|E:)" || true
+  success "make installed"
+else
+  success "make already installed"
+fi
+
+# ── 0a. Go ────────────────────────────────────────────────────────────
+if command -v go >/dev/null 2>&1; then
+  success "Go already installed: $(go version | awk '{print $3}')"
+else
+  info "Installing Go 1.26..."
+  GO_VERSION="1.26.0"
+  GO_ARCH="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+  GO_TAR="go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
+  curl -fsSL "https://go.dev/dl/${GO_TAR}" -o "/tmp/${GO_TAR}"
+  sudo rm -rf /usr/local/go
+  sudo tar -C /usr/local -xzf "/tmp/${GO_TAR}"
+  rm "/tmp/${GO_TAR}"
+  if ! grep -q '/usr/local/go/bin' "$HOME/.bashrc"; then
+    echo 'export PATH="/usr/local/go/bin:$PATH"' >> "$HOME/.bashrc"
+  fi
+  export PATH="/usr/local/go/bin:$PATH"
+  if ! grep -q 'GOROOT' "$HOME/.bashrc"; then
+    echo 'export GOROOT="/usr/local/go"' >> "$HOME/.bashrc"
+  fi
+  export GOROOT="/usr/local/go"
+  success "Go installed: $(go version | awk '{print $3}')"
+fi
+
+# ── 0b. Docker + Docker Compose ───────────────────────────────────────
+if command -v docker >/dev/null 2>&1; then
+  success "Docker already installed: $(docker --version | awk '{print $3}' | tr -d ',')"
+else
+  info "Installing Docker..."
+  curl -fsSL https://get.docker.com | sudo sh
+  sudo usermod -aG docker "$USER"
+  success "Docker installed — re-login or run 'newgrp docker' to use without sudo"
+fi
+
+if docker compose version >/dev/null 2>&1; then
+  success "Docker Compose already installed: $(docker compose version --short)"
+else
+  info "Installing Docker Compose plugin..."
+  DOCKER_CONFIG="${DOCKER_CONFIG:-$HOME/.docker}"
+  mkdir -p "$DOCKER_CONFIG/cli-plugins"
+  COMPOSE_VERSION="v2.36.0"
+  COMPOSE_ARCH="$(uname -m | sed 's/x86_64/x86_64/;s/aarch64/aarch64/')"
+  curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" \
+    -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
+  chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
+  success "Docker Compose installed"
+fi
+
 if command -v android-studio >/dev/null 2>&1 || command -v studio >/dev/null 2>&1; then
   success "Android Studio already installed"
 elif command -v snap >/dev/null 2>&1; then
@@ -74,11 +153,13 @@ BASHRC
   success "Android SDK installed at $ANDROID_HOME"
 fi
 
-command -v go >/dev/null 2>&1 || die "Go is not installed. Install from https://go.dev/dl/"
 info "Go version: $(go version | awk '{print $3}' | sed 's/go//')"
 
 export PATH="$(go env GOPATH)/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+if ! grep -q 'GOTOOLCHAIN' "$HOME/.bashrc"; then
+  echo 'export GOTOOLCHAIN=local' >> "$HOME/.bashrc"
+fi
 export GOTOOLCHAIN=local
 
 # ── 1. buf ────────────────────────────────────────────────────────────
@@ -309,7 +390,23 @@ if [ -f "$WEB_DIR/package.json" ]; then
   success "Web client dependencies installed"
 fi
 
-# ── 10. Done ──────────────────────────────────────────────────────────
+# ── 11. VS Code extensions ───────────────────────────────────────────
+if command -v code >/dev/null 2>&1; then
+  install_ext() {
+    code --install-extension "$1" --force 2>&1 | grep -E "(installed|already installed|error)" || true
+  }
+  info "Installing VS Code extensions..."
+  install_ext "golang.go"
+  install_ext "svelte.svelte-vscode"
+  install_ext "drblury.protobuf-vsc"
+  install_ext "esbenp.prettier-vscode"
+  install_ext "ms-vscode.remote-explorer"
+  success "VS Code extensions installed"
+else
+  warn "VS Code CLI (code) not on PATH — skipping extension install"
+fi
+
+# ── 12. Done ──────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  JARVIS project setup complete!                ${NC}"
