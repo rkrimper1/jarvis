@@ -157,6 +157,9 @@ info "Go version: $(go version | awk '{print $3}' | sed 's/go//')"
 
 export PATH="$(go env GOPATH)/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+if ! grep -q 'GOTOOLCHAIN' "$HOME/.bashrc"; then
+  echo 'export GOTOOLCHAIN=local' >> "$HOME/.bashrc"
+fi
 export GOTOOLCHAIN=local
 
 # ── 1. buf ────────────────────────────────────────────────────────────
