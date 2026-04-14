@@ -85,6 +85,19 @@ func (s *Store) SaveSignal(ctx context.Context, sourceType intelligv1.SourceType
 	return s.GetSignal(ctx, id)
 }
 
+// SignalExistsBySourceURI reports whether a signal with the given source URI
+// has already been ingested. Used by the RSS poller for deduplication.
+func (s *Store) SignalExistsBySourceURI(ctx context.Context, uri string) (bool, error) {
+	if uri == "" {
+		return false, nil
+	}
+	var n int
+	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM raw_signals WHERE source_uri=?`, uri).Scan(&n); err != nil {
+		return false, fmt.Errorf("intel store: check source uri: %w", err)
+	}
+	return n > 0, nil
+}
+
 // GetSignal fetches a single RawSignal by id.
 func (s *Store) GetSignal(ctx context.Context, id string) (*intelligv1.RawSignal, error) {
 	row := s.db.QueryRowContext(ctx,

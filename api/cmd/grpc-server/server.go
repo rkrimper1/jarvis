@@ -34,6 +34,8 @@ import (
 	intelligserver "github.com/rkrimper1/jarvis/api/internal/intelligence/server"
 	intelstore     "github.com/rkrimper1/jarvis/api/internal/intelligence/store"
 	"github.com/rkrimper1/jarvis/api/internal/intelligence/fusion"
+	"github.com/rkrimper1/jarvis/api/internal/intelligence/fileingest"
+	rsspoller      "github.com/rkrimper1/jarvis/api/internal/intelligence/rss"
 	learningserver "github.com/rkrimper1/jarvis/api/internal/learning/server"
 	nlpserver      "github.com/rkrimper1/jarvis/api/internal/nlp/server"
 	securityserver "github.com/rkrimper1/jarvis/api/internal/security/server"
@@ -68,8 +70,7 @@ var serviceNames = []string{
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
 // db is the shared jarvis.db connection (nil disables all SQLite stores).
-func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, db *sql.DB, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tokenSecret string, fusionCfg fusion.Config) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
-	ctx := context.Background()
+func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, db *sql.DB, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tokenSecret string, fusionCfg fusion.Config, rssCfg rsspoller.Config) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 
 	// ── gRPC server ───────────────────────────────────────────────────
 	grpcSrv := grpc.NewServer(
@@ -116,16 +117,19 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 
 	// ── Service: intelligence ─────────────────────────────────────────
 	var intelligSrv *intelligserver.IntelligenceServer
+	var iStore *intelstore.Store
+	var intelEng fusion.Engine
 	if db != nil && fusionCfg.APIKey != "" {
-		iStore, err := intelstore.New(db, log)
+		var err error
+		iStore, err = intelstore.New(db, log)
 		if err != nil {
 			log.Error("intel store init failed", slog.Any("err", err))
 		} else {
-			eng, err := fusion.New(fusionCfg)
+			intelEng, err = fusion.New(fusionCfg)
 			if err != nil {
 				log.Error("fusion engine init failed", slog.Any("err", err))
 			} else {
-				intelligSrv = intelligserver.NewWithIntelHunt(log, iStore, eng)
+				intelligSrv = intelligserver.NewWithIntelHunt(log, iStore, intelEng)
 				log.Info("intel hunt enabled")
 			}
 		}
@@ -134,6 +138,19 @@ func newServer(log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler
 		intelligSrv = intelligserver.New(log)
 	}
 	intelligv1.RegisterIntelligenceServiceServer(grpcSrv, intelligSrv)
+
+	// ── RSS poller ────────────────────────────────────────────────────
+	if iStore != nil && intelEng != nil {
+		if p := rsspoller.New(rssCfg, iStore, intelEng, log); p != nil {
+			p.Start(ctx)
+		}
+	}
+
+	// ── File ingest handler ───────────────────────────────────────────
+	// Registered only when Intel Hunt is active (store + engine present).
+	if intelligSrv != nil && iStore != nil {
+		httpMux.Handle("/v1/intel/ingest/file", fileingest.New(intelligSrv, 0, log))
+	}
 
 	// ── Service: learning ─────────────────────────────────────────────
 	learnSrv := learningserver.New(log, learningCfg)

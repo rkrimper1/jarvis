@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 
 	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
 	"github.com/rkrimper1/jarvis/api/internal/intelligence/fusion"
+	rsspoller      "github.com/rkrimper1/jarvis/api/internal/intelligence/rss"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
@@ -105,6 +107,11 @@ func main() {
 		ConfReview:    envFloat32("FUSION_CONF_REVIEW", 0),
 	}
 
+	rssCfg := rsspoller.Config{
+		FeedURLs: envStringSlice("RSS_FEED_URLS"),
+		Interval: envDuration("RSS_POLL_INTERVAL", 15*time.Minute),
+	}
+
 	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
 	faceCascadePath    := envString("FACE_CASCADE_PATH", "")
 	faceMinSize        := envInt("FACE_MIN_SIZE", 65)
@@ -118,7 +125,7 @@ func main() {
 	// Create the HTTP mux first so newServer can register /alexa/* handlers on it.
 	httpMux := http.NewServeMux()
 
-	grpcSrv, healthSrv, gwMux, err := newServer(log, maxRecv, maxSend, hp, learningCfg, sharedDB, securityserver.FaceConfig{
+	grpcSrv, healthSrv, gwMux, err := newServer(rootCtx, log, maxRecv, maxSend, hp, learningCfg, sharedDB, securityserver.FaceConfig{
 		CascadePath: faceCascadePath,
 		OutputDir:   faceOutputDir,
 		DetectParams: faceanalysis.DetectParams{
@@ -132,7 +139,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret, fusionCfg)
+	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret, fusionCfg, rssCfg)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
@@ -264,6 +271,22 @@ func envFloat64(key string, def float64) float64 {
 		}
 	}
 	return def
+}
+
+// envStringSlice reads a comma-separated env var and returns the non-empty parts.
+// Returns nil if the variable is unset or empty.
+func envStringSlice(key string) []string {
+	v := os.Getenv(key)
+	if v == "" {
+		return nil
+	}
+	var out []string
+	for _, part := range strings.Split(v, ",") {
+		if s := strings.TrimSpace(part); s != "" {
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 func envDuration(key string, def time.Duration) time.Duration {

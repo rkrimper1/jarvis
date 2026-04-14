@@ -59,7 +59,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `command` | On-demand diagnostics — `RequestMemoryProfile` captures a heap profile and renders a GIF |
 | `business-ops` | Scheduling, tasks, messaging, reports. `ScheduleEvent` emails iCalendar invites via SMTP. |
 | `facility` | Building systems, environment monitoring, Alexa smart home device listing and control (`ListAlexaDevices`, `SendAlexaCommand`) |
-| `intelligence` | Research, artifact analysis, cross-referencing |
+| `intelligence` | Research, artifact analysis, cross-referencing. **Intel Hunt**: ingest signals (manual, RSS, file), AI-powered fusion via Claude, review queue with confirm/dismiss workflow. |
 | `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
 | `security` | Auth, threat assessment, emergency protocols, face detection + sentiment analysis, audit log, surroundings analytics |
@@ -108,6 +108,28 @@ When `SMTP_*` env vars are configured, `ScheduleEvent` automatically emails an i
 ### Command — Heap Profiler
 
 `RequestMemoryProfile` triggers an immediate heap snapshot. The `.prof` file and rendered `.gif` call-graph are written to `PPROF_DIR` and automatically appear in `./profiles/` on the host via the Docker volume mount.
+
+### Intelligence — Intel Hunt
+
+Intel Hunt is a competitive intelligence pipeline built into the `intelligence` service. Raw signals (manual text, RSS/Atom feeds, uploaded files) are fused by Claude into structured **IntelCards** with a title, summary, opportunity type, confidence score, and suggested action. Cards sit in a review queue (`PENDING_REVIEW`) until an operator confirms or dismisses them.
+
+**Signal ingestion paths:**
+
+| Path | How |
+|---|---|
+| Manual | `POST /v1/intel/signals` gRPC/REST |
+| RSS / Atom | Background poller — runs at `RSS_POLL_INTERVAL`, deduplicates by GUID/link |
+| File upload | `POST /v1/intel/ingest/file` multipart — `.txt`, `.csv`, `.tsv`, `.pdf` (Apache pdfcpu) |
+
+**Opportunity types:** `TACTICAL` (24 h action) · `STRATEGIC` · `RESOURCE` · `THREAT_MITIGATION`
+
+**Confidence bands** (thresholds configurable via env vars):
+- `≥ FUSION_CONF_IMMEDIATE` — multiple corroborating sources; action recommended immediately
+- `≥ FUSION_CONF_VERIFY` — single credible source; verify before acting
+- `≥ FUSION_CONF_REVIEW` — fragmentary signal; flag for human review
+- `< FUSION_CONF_REVIEW` — noise; log but deprioritise
+
+Requires `JARVIS_DB_PATH` (store) and `ANTHROPIC_API_KEY` (fusion). The service starts and all other Intelligence RPCs remain available when either is absent; only Intel Hunt RPCs return `FailedPrecondition`.
 
 ### Task — Sprint Management
 
@@ -205,6 +227,21 @@ FACE_MAX_IMAGE_BYTES=5242880               # optional — max uploaded image siz
 ALEXA_COOKIES_PATH=/path/to/alexa-cookies.json  # optional — Cookie-Editor JSON export from alexa.amazon.com
 ALEXA_DEBUG=false                                # optional — log Alexa HTTP requests/responses (default: false)
 ALEXA_KEEPALIVE_INTERVAL=12h                    # optional — session keep-alive ping interval (default: 12h)
+
+# ── Intel Hunt (Intelligence service) ─────────────────────────
+# Requires ANTHROPIC_API_KEY (above) and JARVIS_DB_PATH (above).
+# All vars are optional — defaults shown. Intel Hunt is disabled when
+# ANTHROPIC_API_KEY or JARVIS_DB_PATH are unset.
+FUSION_MODEL=claude-haiku-4-5-20251001  # optional — model for signal fusion (default: claude-haiku-4-5-20251001)
+FUSION_MAX_TOKENS=512                   # optional — max response tokens (default: 512)
+FUSION_CONF_IMMEDIATE=0.90              # optional — confidence threshold for immediate action (default: 0.90)
+FUSION_CONF_VERIFY=0.70                 # optional — threshold for verify-before-acting (default: 0.70)
+FUSION_CONF_REVIEW=0.50                 # optional — threshold for human review (default: 0.50)
+
+# ── RSS poller (Intel Hunt) ────────────────────────────────────
+# Comma-separated feed URLs. Leave empty to disable the poller.
+RSS_FEED_URLS=                          # optional — e.g. https://feeds.reuters.com/reuters/businessNews
+RSS_POLL_INTERVAL=15m                   # optional — polling cadence (default: 15m)
 ```
 
 > STT and TTS default to `stub` — mock responses, no cloud API required.
