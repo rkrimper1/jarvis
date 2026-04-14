@@ -18,6 +18,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
+	"github.com/rkrimper1/jarvis/api/internal/intelligence/fusion"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
@@ -95,6 +96,15 @@ func main() {
 
 	tokenSecret  := envString("TOKEN_SECRET", "stark-industries-dev-secret-change-in-prod")
 
+	fusionCfg := fusion.Config{
+		APIKey:        envString("ANTHROPIC_API_KEY", ""),
+		Model:         envString("FUSION_MODEL", ""),
+		MaxTokens:     envInt("FUSION_MAX_TOKENS", 0),
+		ConfImmediate: envFloat32("FUSION_CONF_IMMEDIATE", 0),
+		ConfVerify:    envFloat32("FUSION_CONF_VERIFY", 0),
+		ConfReview:    envFloat32("FUSION_CONF_REVIEW", 0),
+	}
+
 	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
 	faceCascadePath    := envString("FACE_CASCADE_PATH", "")
 	faceMinSize        := envInt("FACE_MIN_SIZE", 65)
@@ -122,7 +132,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret)
+	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret, fusionCfg)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)

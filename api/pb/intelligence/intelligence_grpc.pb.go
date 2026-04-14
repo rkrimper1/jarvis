@@ -23,6 +23,9 @@ const (
 	IntelligenceService_AnalyzeArtifact_FullMethodName    = "/jarvis.intelligence.IntelligenceService/AnalyzeArtifact"
 	IntelligenceService_CrossReference_FullMethodName     = "/jarvis.intelligence.IntelligenceService/CrossReference"
 	IntelligenceService_StreamIntelUpdates_FullMethodName = "/jarvis.intelligence.IntelligenceService/StreamIntelUpdates"
+	IntelligenceService_IngestSignal_FullMethodName       = "/jarvis.intelligence.IntelligenceService/IngestSignal"
+	IntelligenceService_ListIntelCards_FullMethodName     = "/jarvis.intelligence.IntelligenceService/ListIntelCards"
+	IntelligenceService_ConfirmAction_FullMethodName      = "/jarvis.intelligence.IntelligenceService/ConfirmAction"
 )
 
 // IntelligenceServiceClient is the client API for IntelligenceService service.
@@ -33,6 +36,10 @@ type IntelligenceServiceClient interface {
 	AnalyzeArtifact(ctx context.Context, in *AnalyzeArtifactRequest, opts ...grpc.CallOption) (*AnalyzeArtifactResponse, error)
 	CrossReference(ctx context.Context, in *CrossReferenceRequest, opts ...grpc.CallOption) (*CrossReferenceResponse, error)
 	StreamIntelUpdates(ctx context.Context, in *StreamIntelUpdatesRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamIntelUpdatesResponse], error)
+	// ── Intel Hunt RPCs ──────────────────────────────────────────────
+	IngestSignal(ctx context.Context, in *IngestSignalRequest, opts ...grpc.CallOption) (*IngestSignalResponse, error)
+	ListIntelCards(ctx context.Context, in *ListIntelCardsRequest, opts ...grpc.CallOption) (*ListIntelCardsResponse, error)
+	ConfirmAction(ctx context.Context, in *ConfirmActionRequest, opts ...grpc.CallOption) (*ConfirmActionResponse, error)
 }
 
 type intelligenceServiceClient struct {
@@ -92,6 +99,36 @@ func (c *intelligenceServiceClient) StreamIntelUpdates(ctx context.Context, in *
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type IntelligenceService_StreamIntelUpdatesClient = grpc.ServerStreamingClient[StreamIntelUpdatesResponse]
 
+func (c *intelligenceServiceClient) IngestSignal(ctx context.Context, in *IngestSignalRequest, opts ...grpc.CallOption) (*IngestSignalResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IngestSignalResponse)
+	err := c.cc.Invoke(ctx, IntelligenceService_IngestSignal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *intelligenceServiceClient) ListIntelCards(ctx context.Context, in *ListIntelCardsRequest, opts ...grpc.CallOption) (*ListIntelCardsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListIntelCardsResponse)
+	err := c.cc.Invoke(ctx, IntelligenceService_ListIntelCards_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *intelligenceServiceClient) ConfirmAction(ctx context.Context, in *ConfirmActionRequest, opts ...grpc.CallOption) (*ConfirmActionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmActionResponse)
+	err := c.cc.Invoke(ctx, IntelligenceService_ConfirmAction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IntelligenceServiceServer is the server API for IntelligenceService service.
 // All implementations must embed UnimplementedIntelligenceServiceServer
 // for forward compatibility.
@@ -100,6 +137,10 @@ type IntelligenceServiceServer interface {
 	AnalyzeArtifact(context.Context, *AnalyzeArtifactRequest) (*AnalyzeArtifactResponse, error)
 	CrossReference(context.Context, *CrossReferenceRequest) (*CrossReferenceResponse, error)
 	StreamIntelUpdates(*StreamIntelUpdatesRequest, grpc.ServerStreamingServer[StreamIntelUpdatesResponse]) error
+	// ── Intel Hunt RPCs ──────────────────────────────────────────────
+	IngestSignal(context.Context, *IngestSignalRequest) (*IngestSignalResponse, error)
+	ListIntelCards(context.Context, *ListIntelCardsRequest) (*ListIntelCardsResponse, error)
+	ConfirmAction(context.Context, *ConfirmActionRequest) (*ConfirmActionResponse, error)
 	mustEmbedUnimplementedIntelligenceServiceServer()
 }
 
@@ -121,6 +162,15 @@ func (UnimplementedIntelligenceServiceServer) CrossReference(context.Context, *C
 }
 func (UnimplementedIntelligenceServiceServer) StreamIntelUpdates(*StreamIntelUpdatesRequest, grpc.ServerStreamingServer[StreamIntelUpdatesResponse]) error {
 	return status.Error(codes.Unimplemented, "method StreamIntelUpdates not implemented")
+}
+func (UnimplementedIntelligenceServiceServer) IngestSignal(context.Context, *IngestSignalRequest) (*IngestSignalResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IngestSignal not implemented")
+}
+func (UnimplementedIntelligenceServiceServer) ListIntelCards(context.Context, *ListIntelCardsRequest) (*ListIntelCardsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListIntelCards not implemented")
+}
+func (UnimplementedIntelligenceServiceServer) ConfirmAction(context.Context, *ConfirmActionRequest) (*ConfirmActionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmAction not implemented")
 }
 func (UnimplementedIntelligenceServiceServer) mustEmbedUnimplementedIntelligenceServiceServer() {}
 func (UnimplementedIntelligenceServiceServer) testEmbeddedByValue()                             {}
@@ -208,6 +258,60 @@ func _IntelligenceService_StreamIntelUpdates_Handler(srv interface{}, stream grp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type IntelligenceService_StreamIntelUpdatesServer = grpc.ServerStreamingServer[StreamIntelUpdatesResponse]
 
+func _IntelligenceService_IngestSignal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IngestSignalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IntelligenceServiceServer).IngestSignal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IntelligenceService_IngestSignal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IntelligenceServiceServer).IngestSignal(ctx, req.(*IngestSignalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IntelligenceService_ListIntelCards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIntelCardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IntelligenceServiceServer).ListIntelCards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IntelligenceService_ListIntelCards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IntelligenceServiceServer).ListIntelCards(ctx, req.(*ListIntelCardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IntelligenceService_ConfirmAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IntelligenceServiceServer).ConfirmAction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IntelligenceService_ConfirmAction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IntelligenceServiceServer).ConfirmAction(ctx, req.(*ConfirmActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IntelligenceService_ServiceDesc is the grpc.ServiceDesc for IntelligenceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -226,6 +330,18 @@ var IntelligenceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CrossReference",
 			Handler:    _IntelligenceService_CrossReference_Handler,
+		},
+		{
+			MethodName: "IngestSignal",
+			Handler:    _IntelligenceService_IngestSignal_Handler,
+		},
+		{
+			MethodName: "ListIntelCards",
+			Handler:    _IntelligenceService_ListIntelCards_Handler,
+		},
+		{
+			MethodName: "ConfirmAction",
+			Handler:    _IntelligenceService_ConfirmAction_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
