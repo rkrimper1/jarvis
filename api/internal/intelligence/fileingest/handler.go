@@ -120,7 +120,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(resp)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		h.log.ErrorContext(r.Context(), "fileingest: encode response failed", slog.Any("err", err))
+	}
 }
 
 // extractContent dispatches to the correct extractor based on file extension.

@@ -209,13 +209,13 @@ func decodePDFString(s string) string {
 
 // decodeHexString decodes a PDF hex string <4865 6c6c 6f> into plain text.
 // Non-printable bytes are silently dropped.
-func decodeHexString(hex2 string) string {
+func decodeHexString(hexStr string) string {
 	// Remove spaces
-	hex2 = strings.ReplaceAll(hex2, " ", "")
-	if len(hex2)%2 != 0 {
-		hex2 += "0"
+	hexStr = strings.ReplaceAll(hexStr, " ", "")
+	if len(hexStr)%2 != 0 {
+		hexStr += "0"
 	}
-	b, err := hex.DecodeString(hex2)
+	b, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return ""
 	}

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -302,20 +303,17 @@ func (s *IntelligenceServer) SearchHandler() http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
+		if err := json.NewEncoder(w).Encode(map[string]any{
 			"cards": cards,
 			"total": len(cards),
-		})
+		}); err != nil {
+			s.log.ErrorContext(r.Context(), "intel: search encode failed", slog.Any("err", err))
+		}
 	})
 }
 
 func isNotFound(err error) bool {
-	return err != nil && (err == intelstore.ErrNotFound ||
-		len(err.Error()) > 0 && containsNotFound(err.Error()))
-}
-
-func containsNotFound(s string) bool {
-	return len(s) >= 9 && s[len(s)-9:] == "not found"
+	return errors.Is(err, intelstore.ErrNotFound)
 }
 
 func validateMeta(meta *commonv1.RequestMeta) error {
