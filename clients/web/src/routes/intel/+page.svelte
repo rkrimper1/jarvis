@@ -70,14 +70,22 @@
 
 	// ── Hunt — card queue ─────────────────────────────────────────────
 	type StatusTab = 'all' | 'pending' | 'confirmed' | 'dismissed';
-	let statusTab   = $state<StatusTab>('pending');
-	let cards       = $state<IntelCard[]>([]);
-	let totalCards  = $state(0);
-	let pageToken   = $state('');
-	let prevTokens  = $state<string[]>([]);
-	let cardsError  = $state('');
+	type OppFilter = 'all' | 'OPPORTUNITY_TYPE_TACTICAL' | 'OPPORTUNITY_TYPE_STRATEGIC' | 'OPPORTUNITY_TYPE_RESOURCE' | 'OPPORTUNITY_TYPE_THREAT_MITIGATION';
+	let statusTab    = $state<StatusTab>('pending');
+	let oppTypeFilter = $state<OppFilter>('all');
+	let cards        = $state<IntelCard[]>([]);
+	let totalCards   = $state(0);
+	let pageToken    = $state('');
+	let prevTokens   = $state<string[]>([]);
+	let cardsError   = $state('');
 	let cardsLoading = $state(false);
 	let confirmingId = $state('');
+
+	const visibleCards = $derived(
+		oppTypeFilter === 'all'
+			? cards
+			: cards.filter(c => c.opportunityType === oppTypeFilter)
+	);
 
 	const STATUS_MAP: Record<StatusTab, string> = {
 		all:       'INTEL_CARD_STATUS_UNSPECIFIED',
@@ -361,6 +369,23 @@
 				<button class="hud-btn refresh-btn" onclick={() => loadCards()} disabled={cardsLoading}>↺</button>
 			</div>
 
+			<!-- Opportunity type filter -->
+			<div class="opp-filter-row">
+				{#each ([
+					['all',                                  'ALL'],
+					['OPPORTUNITY_TYPE_TACTICAL',            'TACTICAL'],
+					['OPPORTUNITY_TYPE_STRATEGIC',           'STRATEGIC'],
+					['OPPORTUNITY_TYPE_RESOURCE',            'RESOURCE'],
+					['OPPORTUNITY_TYPE_THREAT_MITIGATION',  'THREAT'],
+				] as [OppFilter, string][]) as [val, label]}
+					<button
+						class="hud-btn opp-filter-btn opp-{val}"
+						class:active={oppTypeFilter === val}
+						onclick={() => { oppTypeFilter = val; }}
+					>{label}</button>
+				{/each}
+			</div>
+
 			<div class="status-tabs">
 				{#each (['pending', 'all', 'confirmed', 'dismissed'] as StatusTab[]) as t}
 					<button
@@ -379,13 +404,16 @@
 				<div class="loading-row">
 					<span class="text-muted">SCANNING...</span>
 				</div>
-			{:else if cards.length === 0}
+			{:else if visibleCards.length === 0}
 				<div class="empty-state">
-					<span class="text-muted">No {statusTab === 'all' ? '' : statusTab + ' '}cards found</span>
+					<span class="text-muted">
+						{#if oppTypeFilter !== 'all'}No {OPP_LABELS[oppTypeFilter]} cards{statusTab !== 'all' ? ' with status ' + statusTab : ''}
+						{:else}No {statusTab === 'all' ? '' : statusTab + ' '}cards found{/if}
+					</span>
 				</div>
 			{:else}
 				<div class="card-list">
-					{#each cards as card (card.id)}
+					{#each visibleCards as card (card.id)}
 					<div class="intel-card" class:card-confirmed={card.status === 'INTEL_CARD_STATUS_CONFIRMED'} class:card-dismissed={card.status === 'INTEL_CARD_STATUS_DISMISSED'}>
 						<div class="card-header">
 							<span class="card-title">{card.title}</span>
@@ -662,6 +690,16 @@
 	.cards-header  { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 	.total-count   { font-size: 10px; margin-left: 4px; }
 	.refresh-btn   { padding: 3px 8px; font-size: 12px; margin-left: auto; }
+
+	/* Opportunity type filter */
+	.opp-filter-row { display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap; }
+	.opp-filter-btn { font-size: 9px; padding: 3px 9px; color: var(--hud-muted, #666); border-color: #333; }
+
+	.opp-filter-btn.opp-all.active                                   { color: var(--hud-text);  border-color: var(--hud-text); background: rgba(255,255,255,0.07); }
+	.opp-filter-btn.opp-OPPORTUNITY_TYPE_TACTICAL.active             { color: var(--hud-cyan);  border-color: var(--hud-cyan);  background: rgba(0,212,255,0.12); }
+	.opp-filter-btn.opp-OPPORTUNITY_TYPE_STRATEGIC.active            { color: #a78bfa;           border-color: #a78bfa;          background: rgba(167,139,250,0.12); }
+	.opp-filter-btn.opp-OPPORTUNITY_TYPE_RESOURCE.active             { color: var(--hud-amber, #ff8c00); border-color: var(--hud-amber, #ff8c00); background: rgba(255,140,0,0.12); }
+	.opp-filter-btn.opp-OPPORTUNITY_TYPE_THREAT_MITIGATION.active    { color: var(--hud-red);    border-color: var(--hud-red);   background: rgba(255,45,85,0.12); }
 
 	.status-tabs   { display: flex; gap: 4px; margin-bottom: 12px; flex-shrink: 0; }
 	.status-tab    { font-size: 10px; padding: 3px 9px; }
