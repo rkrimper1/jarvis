@@ -146,10 +146,11 @@ func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *
 		}
 	}
 
-	// ── File ingest handler ───────────────────────────────────────────
-	// Registered only when Intel Hunt is active (store + engine present).
-	if intelligSrv != nil && iStore != nil {
+	// ── File ingest + card search handlers ───────────────────────────
+	// Registered only when Intel Hunt is active (store present).
+	if iStore != nil {
 		httpMux.Handle("/v1/intel/ingest/file", fileingest.New(intelligSrv, 0, log))
+		httpMux.Handle("/v1/intel/cards/search", intelligSrv.SearchHandler())
 	}
 
 	// ── Service: learning ─────────────────────────────────────────────

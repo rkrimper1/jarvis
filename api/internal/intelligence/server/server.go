@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
+	"net/http"
+	"strconv"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -256,6 +259,54 @@ func (s *IntelligenceServer) ConfirmAction(ctx context.Context, req *intelligv1.
 		Meta: metaOK(req.Meta.RequestId),
 		Card: card,
 	}, nil
+}
+
+// SearchHandler returns an HTTP handler for GET /v1/intel/cards/search.
+//
+//	Query params:
+//	  q         — search term (matched against title, summary, suggested_action)
+//	  page_size — max results to return (default 20)
+//
+// Returns JSON: {"cards": [...], "total": N}
+func (s *IntelligenceServer) SearchHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+		if s.store == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			json.NewEncoder(w).Encode(map[string]string{"error": "intel hunt unavailable"})
+			return
+		}
+
+		q := r.URL.Query().Get("q")
+		pageSize := int32(20)
+		if ps := r.URL.Query().Get("page_size"); ps != "" {
+			if v, err := strconv.Atoi(ps); err == nil && v > 0 {
+				pageSize = int32(v)
+			}
+		}
+
+		cards, err := s.store.SearchCards(r.Context(), q, pageSize)
+		if err != nil {
+			s.log.ErrorContext(r.Context(), "intel: search cards failed", slog.Any("err", err))
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		if cards == nil {
+			cards = []*intelligv1.IntelCard{}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"cards": cards,
+			"total": len(cards),
+		})
+	})
 }
 
 func isNotFound(err error) bool {

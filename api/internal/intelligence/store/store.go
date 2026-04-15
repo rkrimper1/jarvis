@@ -134,6 +134,39 @@ func (s *Store) GetCard(ctx context.Context, id string) (*intelligv1.IntelCard, 
 	return s.scanCard(row)
 }
 
+// SearchCards returns up to pageSize IntelCards whose title, summary, or
+// suggested_action contain query (case-insensitive LIKE match), ordered by
+// confidence score descending then newest first.
+func (s *Store) SearchCards(ctx context.Context, query string, pageSize int32) ([]*intelligv1.IntelCard, error) {
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	like := "%" + query + "%"
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, title, summary, opportunity_type, confidence_score, suggested_action,
+		        status, raw_signal_ids, created_at, updated_at
+		 FROM intel_cards
+		 WHERE title LIKE ? OR summary LIKE ? OR suggested_action LIKE ?
+		 ORDER BY confidence_score DESC, created_at DESC
+		 LIMIT ?`,
+		like, like, like, pageSize,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("intel store: search cards: %w", err)
+	}
+	defer rows.Close()
+
+	var cards []*intelligv1.IntelCard
+	for rows.Next() {
+		card, err := s.scanCardRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		cards = append(cards, card)
+	}
+	return cards, rows.Err()
+}
+
 // UpdateCardStatus flips a card to CONFIRMED or DISMISSED.
 func (s *Store) UpdateCardStatus(ctx context.Context, id string, newStatus intelligv1.IntelCardStatus) (*intelligv1.IntelCard, error) {
 	statusStr := cardStatusToString(newStatus)
