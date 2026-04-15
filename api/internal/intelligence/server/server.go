@@ -12,6 +12,7 @@ import (
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
@@ -302,9 +303,25 @@ func (s *IntelligenceServer) SearchHandler() http.Handler {
 			cards = []*intelligv1.IntelCard{}
 		}
 
+		// Marshal each card with protojson so field names are camelCase,
+		// matching grpc-gateway and the TypeScript IntelCard interface.
+		marshaler := protojson.MarshalOptions{EmitUnpopulated: false}
+		rawCards := make([]json.RawMessage, len(cards))
+		for i, c := range cards {
+			b, err := marshaler.Marshal(c)
+			if err != nil {
+				s.log.ErrorContext(r.Context(), "intel: marshal card failed", slog.Any("err", err))
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{"error": "marshal failed"})
+				return
+			}
+			rawCards[i] = json.RawMessage(b)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(map[string]any{
-			"cards": cards,
+			"cards": rawCards,
 			"total": len(cards),
 		}); err != nil {
 			s.log.ErrorContext(r.Context(), "intel: search encode failed", slog.Any("err", err))

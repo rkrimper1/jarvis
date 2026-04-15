@@ -75,8 +75,9 @@
 	let oppTypeFilter = $state<OppFilter>('all');
 	let cards        = $state<IntelCard[]>([]);
 	let totalCards   = $state(0);
-	let pageToken    = $state('');
-	let prevTokens   = $state<string[]>([]);
+	let pageToken       = $state('');
+	let currentToken    = $state(''); // token used to load the currently visible page
+	let prevTokens      = $state<string[]>([]);
 	let cardsError   = $state('');
 	let cardsLoading = $state(false);
 	let confirmingId = $state('');
@@ -96,6 +97,7 @@
 
 	async function loadCards(token = '') {
 		cardsError = ''; cardsLoading = true;
+		currentToken = token;
 		try {
 			const resp = await intel.listCards(STATUS_MAP[statusTab], 10, token);
 			cards      = resp.cards ?? [];
@@ -121,7 +123,7 @@
 	}
 
 	function nextPage() {
-		prevTokens = [...prevTokens, pageToken === '' ? '' : (prevTokens[prevTokens.length - 1] ?? '')];
+		prevTokens = [...prevTokens, currentToken];
 		loadCards(pageToken);
 	}
 
@@ -134,7 +136,7 @@
 
 	function switchStatusTab(t: StatusTab) {
 		statusTab = t;
-		cards = []; pageToken = ''; prevTokens = [];
+		cards = []; pageToken = ''; currentToken = ''; prevTokens = [];
 		loadCards();
 	}
 
