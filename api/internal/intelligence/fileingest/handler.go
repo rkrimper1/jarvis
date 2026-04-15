@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"path/filepath"
@@ -71,8 +72,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := make([]byte, header.Size)
-	if _, err := f.Read(data); err != nil {
+	data, err := io.ReadAll(f)
+	if err != nil {
 		jsonError(w, http.StatusInternalServerError, "read file")
 		return
 	}
