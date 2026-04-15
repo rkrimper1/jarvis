@@ -491,38 +491,58 @@ curl -X POST http://localhost:8080/v1/intel/ingest/file \
 Returns the same `{signal, card}` JSON as the gRPC `IngestSignal` response.
 
 #### List Intel Cards
+`ListIntelCards` uses a `GET` binding — all fields are passed as query parameters.
+
 ```bash
 # All cards (paginated, newest first)
-curl "http://localhost:8080/v1/intel/cards?page_size=20" \
-  -H "Content-Type: application/json" \
-  -d '{"meta": {"request_id": "list-001"}}'
+curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-001&page_size=20"
 
-# Filter by status: PENDING_REVIEW | CONFIRMED | DISMISSED
-curl "http://localhost:8080/v1/intel/cards" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meta": {"request_id": "list-002"},
-    "status_filter": "INTEL_CARD_STATUS_PENDING_REVIEW",
-    "page_size": 10
-  }'
+# Filter by status: INTEL_CARD_STATUS_PENDING_REVIEW | INTEL_CARD_STATUS_CONFIRMED | INTEL_CARD_STATUS_DISMISSED
+curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-002&status_filter=INTEL_CARD_STATUS_PENDING_REVIEW&page_size=10"
 
-# Next page — pass next_page_token from prior response
-curl "http://localhost:8080/v1/intel/cards" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meta": {"request_id": "list-003"},
-    "page_size": 10,
-    "page_token": "10"
-  }'
+# Next page — pass next_page_token value from prior response as page_token
+curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-003&page_size=10&page_token=10"
 ```
 
 **Response**
 ```json
 {
-  "meta": {"request_id": "list-001", "success": true},
+  "meta": {"requestId": "list-001", "success": true},
   "cards": [ /* array of IntelCard */ ],
-  "total_count": 42,
-  "next_page_token": "20"
+  "totalCount": 42,
+  "nextPageToken": "20"
+}
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "list-001"}, "page_size": 20}' \
+  localhost:50051 jarvis.intelligence.IntelligenceService/ListIntelCards
+```
+
+#### Search Intel Cards
+Full-text keyword search across `title`, `summary`, and `suggested_action` of all stored Intel Cards. Results are ordered by `confidence_score DESC`, then newest first. This is a direct HTTP handler — not a grpc-gateway route.
+
+```bash
+# Search for cards mentioning "pricing"
+curl "http://localhost:8080/v1/intel/cards/search?q=pricing&page_size=20"
+
+# Return up to 50 results for a broader query
+curl "http://localhost:8080/v1/intel/cards/search?q=supply+chain&page_size=50"
+```
+
+**Query parameters:**
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | `""` | Search term (case-insensitive LIKE match) |
+| `page_size` | int | `20` | Maximum results to return (max 100) |
+
+**Response**
+```json
+{
+  "cards": [ /* array of IntelCard, ordered by confidence desc */ ],
+  "total": 7
 }
 ```
 

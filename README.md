@@ -349,7 +349,13 @@ jarvis/
 │   │   │   ├── environment/
 │   │   │   ├── server/           # FacilityService gRPC implementation + Alexa REST handlers
 │   │   │   └── zone/
-│   │   ├── intelligence/server/
+│   │   ├── intelligence/
+│   │   │   ├── fileingest/       # Multipart file upload handler (.txt/.csv/.tsv/.pdf text extraction)
+│   │   │   ├── fusion/           # FusionEngine — Claude-powered signal → IntelCard pipeline
+│   │   │   ├── knowledge/        # Hardcoded in-memory subject graph (QueryIntel, CrossReference)
+│   │   │   ├── rss/              # Background RSS/Atom poller with GUID-based deduplication
+│   │   │   ├── server/           # IntelligenceService gRPC + SearchCards HTTP handler
+│   │   │   └── store/            # SQLite store for raw_signals and intel_cards (FTS search, pagination)
 │   │   ├── integrations/
 │   │   │   ├── claude/           # Anthropic Claude API client (NLP dialogue)
 │   │   │   └── email/            # SMTP + iCalendar invite sender
@@ -390,7 +396,7 @@ jarvis/
 │   └── web/                      # SvelteKit HUD web client
 │       ├── src/
 │       │   ├── lib/
-│       │   │   ├── api/          # Typed fetch wrappers for all 9 REST services
+│       │   │   ├── api/          # Typed fetch wrappers for all 10 REST services
 │       │   │   └── stores/       # Auth store (localStorage + derived state, role, isAdmin)
 │       │   └── routes/           # Pages: login, dashboard, dialogue, schedule, tasks (backlog/board/scrum), intel, security, profile, admin/users
 │       └── static/               # Static assets (hud-bg.png, etc.)
