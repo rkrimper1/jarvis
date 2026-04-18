@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -26,7 +27,7 @@ func newTestServer(t *testing.T) *userserver.UserServer {
 	t.Cleanup(func() { db.Close() })
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	s, err := store.New(db, log)
+	s, err := store.NewWithCost(db, log, bcrypt.MinCost)
 	if err != nil {
 		t.Fatalf("store.New: %v", err)
 	}
