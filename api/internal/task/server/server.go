@@ -290,14 +290,26 @@ func (s *TaskServer) AssignTaskToSprint(ctx context.Context, req *taskv1.AssignT
 		return nil, err
 	}
 
-	if req.TaskId == "" || req.SprintId == "" {
-		return nil, status.Error(codes.InvalidArgument, "task_id and sprint_id are required")
+	if req.TaskId == "" {
+		return nil, status.Error(codes.InvalidArgument, "task_id is required")
 	}
-	t, err := s.store.AssignToSprint(ctx, req.TaskId, req.SprintId)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "assign to sprint: %v", err)
+	var (
+		t   *taskv1.Task
+		err error
+	)
+	if req.SprintId == "" {
+		t, err = s.store.RemoveFromSprint(ctx, req.TaskId)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "remove from sprint: %v", err)
+		}
+		s.log.InfoContext(ctx, "RemoveFromSprint", slog.String("task_id", req.TaskId))
+	} else {
+		t, err = s.store.AssignToSprint(ctx, req.TaskId, req.SprintId)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "assign to sprint: %v", err)
+		}
+		s.log.InfoContext(ctx, "AssignTaskToSprint", slog.String("task_id", req.TaskId), slog.String("sprint_id", req.SprintId))
 	}
-	s.log.InfoContext(ctx, "AssignTaskToSprint", slog.String("task_id", req.TaskId), slog.String("sprint_id", req.SprintId))
 	return &taskv1.AssignTaskToSprintResponse{Meta: metaOK(req.Meta.RequestId), Task: t}, nil
 }
 
