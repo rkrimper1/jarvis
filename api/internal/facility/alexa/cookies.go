@@ -22,8 +22,11 @@ type cookieEntry struct {
 	Secure         bool    `json:"secure"`
 }
 
-// CookiesExpiry returns the earliest expiration time across all cookies in the
-// Cookie-Editor export at path. Returns zero time if none have an expiration.
+// CookiesExpiry returns the latest expiration time across all cookies in the
+// Cookie-Editor export at path. Using the latest (rather than earliest) means
+// a fully-expired session is correctly reported: when every cookie has expired
+// the returned time is in the past and callers can detect expired = t < now.
+// Returns zero time if no cookies carry an expiration date (session cookies only).
 func CookiesExpiry(path string) (time.Time, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -33,21 +36,17 @@ func CookiesExpiry(path string) (time.Time, error) {
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return time.Time{}, fmt.Errorf("parse cookie file: %w", err)
 	}
-	now := time.Now()
-	var earliest time.Time
+	var latest time.Time
 	for _, e := range entries {
 		if e.ExpirationDate == 0 {
 			continue // session cookie — no fixed expiry
 		}
 		t := time.Unix(int64(e.ExpirationDate), 0)
-		if t.Before(now) {
-			continue // already-expired short-lived cookie (tracking etc.) — ignore
-		}
-		if earliest.IsZero() || t.Before(earliest) {
-			earliest = t
+		if latest.IsZero() || t.After(latest) {
+			latest = t
 		}
 	}
-	return earliest, nil
+	return latest, nil
 }
 
 // loadCookies reads a Cookie-Editor JSON export file and returns net/http cookies.

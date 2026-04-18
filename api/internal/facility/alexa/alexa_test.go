@@ -153,22 +153,33 @@ func TestCookiesExpiry_AllSessionCookies(t *testing.T) {
 }
 
 func TestCookiesExpiry_AllExpired(t *testing.T) {
-	// All cookies are already expired — should return zero (none in the future).
+	// All cookies are already expired — should return the latest (most recent) expiry
+	// so callers can detect expired = returned time is in the past.
+	past1 := time.Now().Add(-1 * time.Hour).Unix() // expired 1h ago
+	past2 := time.Now().Add(-2 * time.Hour).Unix() // expired 2h ago
 	path := writeCookieFile(t, []map[string]any{
-		minimalCookieEntry("old", "x", pastUnix(3600)),
-		minimalCookieEntry("older", "y", pastUnix(7200)),
+		minimalCookieEntry("old", "x", float64(past1)),
+		minimalCookieEntry("older", "y", float64(past2)),
 	})
 	exp, err := alexa.CookiesExpiry(path)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !exp.IsZero() {
-		t.Errorf("expected zero time when all cookies expired, got %v", exp)
+	if exp.IsZero() {
+		t.Fatal("expected non-zero time when cookies have expiry dates (even if past)")
+	}
+	if !exp.Before(time.Now()) {
+		t.Errorf("expected returned time to be in the past (session expired), got %v", exp)
+	}
+	// Should be the LATEST (least old) — past1, not past2.
+	diff := exp.Unix() - past1
+	if diff < -2 || diff > 2 {
+		t.Errorf("expected latest expired=%d, got %v (diff=%d)", past1, exp.Unix(), diff)
 	}
 }
 
 func TestCookiesExpiry_MixExpiredAndFuture(t *testing.T) {
-	// future1 expires sooner than future2 — earliest should be future1.
+	// future2 expires later than future1 — latest should be future2.
 	future1 := time.Now().Add(1 * time.Hour)
 	future2 := time.Now().Add(2 * time.Hour)
 
@@ -186,9 +197,9 @@ func TestCookiesExpiry_MixExpiredAndFuture(t *testing.T) {
 		t.Fatal("expected non-zero expiry")
 	}
 	// Allow ±2 seconds tolerance for test execution time.
-	diff := exp.Unix() - future1.Unix()
+	diff := exp.Unix() - future2.Unix()
 	if diff < -2 || diff > 2 {
-		t.Errorf("expected earliest=%v, got %v (diff=%d)", future1.Unix(), exp.Unix(), diff)
+		t.Errorf("expected latest=%v, got %v (diff=%d)", future2.Unix(), exp.Unix(), diff)
 	}
 }
 

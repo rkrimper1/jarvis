@@ -130,9 +130,12 @@
 			<h1 class="page-title font-hud">FACILITY · ALEXA</h1>
 			<p class="page-sub">Smart home device control via Amazon Alexa</p>
 		</div>
+		<div class="header-actions">
+		<button class="hud-btn" onclick={() => showRefreshModal = true}>REFRESH COOKIES</button>
 		<button class="hud-btn" onclick={loadDevices} disabled={loading}>
 			{loading ? 'SCANNING...' : 'REFRESH'}
 		</button>
+	</div>
 	</div>
 
 	<div class="cmd-bar" class:focused={cmdFocused} class:sending={cmdStatus === 'sending'} class:ok={cmdStatus === 'ok'} class:err={cmdStatus === 'err'}>
@@ -299,6 +302,7 @@
 <style>
 	.facility-page { width: 100%; }
 	.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
+	.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
 	.page-title { font-size: 20px; font-weight: 900; letter-spacing: 0.25em; color: var(--hud-cyan); text-shadow: var(--glow-cyan); margin: 0 0 4px; }
 	.page-sub { font-size: 11px; color: var(--hud-muted); margin: 0; }
 	.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--hud-dim); padding-bottom: 6px; }
