@@ -121,6 +121,16 @@ services:
       # ── Alexa smart home ──────────────────────────────────────────
       - ALEXA_COOKIES_PATH=${ALEXA_COOKIES_PATH:-}
       - ALEXA_DEBUG=${ALEXA_DEBUG:-false}
+
+      # ── Intel Hunt (fusion engine + RSS poller) ───────────────────
+      # Requires ANTHROPIC_API_KEY and JARVIS_DB_PATH to activate.
+      - FUSION_MODEL=${FUSION_MODEL:-claude-haiku-4-5-20251001}
+      - FUSION_MAX_TOKENS=${FUSION_MAX_TOKENS:-512}
+      - FUSION_CONF_IMMEDIATE=${FUSION_CONF_IMMEDIATE:-0.90}
+      - FUSION_CONF_VERIFY=${FUSION_CONF_VERIFY:-0.70}
+      - FUSION_CONF_REVIEW=${FUSION_CONF_REVIEW:-0.50}
+      - RSS_FEED_URLS=${RSS_FEED_URLS:-}
+      - RSS_POLL_INTERVAL=${RSS_POLL_INTERVAL:-15m}
     volumes:
       - ../profiles:/tmp/profiles
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis

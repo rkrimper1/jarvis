@@ -131,6 +131,165 @@ func (AnalysisDepth) EnumDescriptor() ([]byte, []int) {
 	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{1}
 }
 
+type SourceType int32
+
+const (
+	SourceType_SOURCE_TYPE_UNSPECIFIED SourceType = 0
+	SourceType_SOURCE_TYPE_MANUAL      SourceType = 1
+	SourceType_SOURCE_TYPE_RSS         SourceType = 2
+	SourceType_SOURCE_TYPE_FILE_UPLOAD SourceType = 3
+)
+
+// Enum value maps for SourceType.
+var (
+	SourceType_name = map[int32]string{
+		0: "SOURCE_TYPE_UNSPECIFIED",
+		1: "SOURCE_TYPE_MANUAL",
+		2: "SOURCE_TYPE_RSS",
+		3: "SOURCE_TYPE_FILE_UPLOAD",
+	}
+	SourceType_value = map[string]int32{
+		"SOURCE_TYPE_UNSPECIFIED": 0,
+		"SOURCE_TYPE_MANUAL":      1,
+		"SOURCE_TYPE_RSS":         2,
+		"SOURCE_TYPE_FILE_UPLOAD": 3,
+	}
+)
+
+func (x SourceType) Enum() *SourceType {
+	p := new(SourceType)
+	*p = x
+	return p
+}
+
+func (x SourceType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SourceType) Descriptor() protoreflect.EnumDescriptor {
+	return file_pb_intelligence_intelligence_proto_enumTypes[2].Descriptor()
+}
+
+func (SourceType) Type() protoreflect.EnumType {
+	return &file_pb_intelligence_intelligence_proto_enumTypes[2]
+}
+
+func (x SourceType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SourceType.Descriptor instead.
+func (SourceType) EnumDescriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{2}
+}
+
+type OpportunityType int32
+
+const (
+	OpportunityType_OPPORTUNITY_TYPE_UNSPECIFIED       OpportunityType = 0
+	OpportunityType_OPPORTUNITY_TYPE_TACTICAL          OpportunityType = 1
+	OpportunityType_OPPORTUNITY_TYPE_STRATEGIC         OpportunityType = 2
+	OpportunityType_OPPORTUNITY_TYPE_RESOURCE          OpportunityType = 3
+	OpportunityType_OPPORTUNITY_TYPE_THREAT_MITIGATION OpportunityType = 4
+)
+
+// Enum value maps for OpportunityType.
+var (
+	OpportunityType_name = map[int32]string{
+		0: "OPPORTUNITY_TYPE_UNSPECIFIED",
+		1: "OPPORTUNITY_TYPE_TACTICAL",
+		2: "OPPORTUNITY_TYPE_STRATEGIC",
+		3: "OPPORTUNITY_TYPE_RESOURCE",
+		4: "OPPORTUNITY_TYPE_THREAT_MITIGATION",
+	}
+	OpportunityType_value = map[string]int32{
+		"OPPORTUNITY_TYPE_UNSPECIFIED":       0,
+		"OPPORTUNITY_TYPE_TACTICAL":          1,
+		"OPPORTUNITY_TYPE_STRATEGIC":         2,
+		"OPPORTUNITY_TYPE_RESOURCE":          3,
+		"OPPORTUNITY_TYPE_THREAT_MITIGATION": 4,
+	}
+)
+
+func (x OpportunityType) Enum() *OpportunityType {
+	p := new(OpportunityType)
+	*p = x
+	return p
+}
+
+func (x OpportunityType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OpportunityType) Descriptor() protoreflect.EnumDescriptor {
+	return file_pb_intelligence_intelligence_proto_enumTypes[3].Descriptor()
+}
+
+func (OpportunityType) Type() protoreflect.EnumType {
+	return &file_pb_intelligence_intelligence_proto_enumTypes[3]
+}
+
+func (x OpportunityType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OpportunityType.Descriptor instead.
+func (OpportunityType) EnumDescriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{3}
+}
+
+type IntelCardStatus int32
+
+const (
+	IntelCardStatus_INTEL_CARD_STATUS_UNSPECIFIED    IntelCardStatus = 0
+	IntelCardStatus_INTEL_CARD_STATUS_PENDING_REVIEW IntelCardStatus = 1
+	IntelCardStatus_INTEL_CARD_STATUS_CONFIRMED      IntelCardStatus = 2
+	IntelCardStatus_INTEL_CARD_STATUS_DISMISSED      IntelCardStatus = 3
+)
+
+// Enum value maps for IntelCardStatus.
+var (
+	IntelCardStatus_name = map[int32]string{
+		0: "INTEL_CARD_STATUS_UNSPECIFIED",
+		1: "INTEL_CARD_STATUS_PENDING_REVIEW",
+		2: "INTEL_CARD_STATUS_CONFIRMED",
+		3: "INTEL_CARD_STATUS_DISMISSED",
+	}
+	IntelCardStatus_value = map[string]int32{
+		"INTEL_CARD_STATUS_UNSPECIFIED":    0,
+		"INTEL_CARD_STATUS_PENDING_REVIEW": 1,
+		"INTEL_CARD_STATUS_CONFIRMED":      2,
+		"INTEL_CARD_STATUS_DISMISSED":      3,
+	}
+)
+
+func (x IntelCardStatus) Enum() *IntelCardStatus {
+	p := new(IntelCardStatus)
+	*p = x
+	return p
+}
+
+func (x IntelCardStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (IntelCardStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_pb_intelligence_intelligence_proto_enumTypes[4].Descriptor()
+}
+
+func (IntelCardStatus) Type() protoreflect.EnumType {
+	return &file_pb_intelligence_intelligence_proto_enumTypes[4]
+}
+
+func (x IntelCardStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use IntelCardStatus.Descriptor instead.
+func (IntelCardStatus) EnumDescriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{4}
+}
+
 type QueryIntelRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
@@ -803,6 +962,576 @@ func (x *StreamIntelUpdatesResponse) GetUpdate() *QueryIntelResponse {
 	return nil
 }
 
+// RawSignal is an unprocessed piece of intelligence from any source.
+type RawSignal struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SourceType    SourceType             `protobuf:"varint,2,opt,name=source_type,json=sourceType,proto3,enum=jarvis.intelligence.SourceType" json:"source_type,omitempty"`
+	RawContent    string                 `protobuf:"bytes,3,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"`
+	SourceUri     string                 `protobuf:"bytes,4,opt,name=source_uri,json=sourceUri,proto3" json:"source_uri,omitempty"` // feed URL, filename, or empty for manual
+	IngestedAt    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=ingested_at,json=ingestedAt,proto3" json:"ingested_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RawSignal) Reset() {
+	*x = RawSignal{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RawSignal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RawSignal) ProtoMessage() {}
+
+func (x *RawSignal) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RawSignal.ProtoReflect.Descriptor instead.
+func (*RawSignal) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RawSignal) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RawSignal) GetSourceType() SourceType {
+	if x != nil {
+		return x.SourceType
+	}
+	return SourceType_SOURCE_TYPE_UNSPECIFIED
+}
+
+func (x *RawSignal) GetRawContent() string {
+	if x != nil {
+		return x.RawContent
+	}
+	return ""
+}
+
+func (x *RawSignal) GetSourceUri() string {
+	if x != nil {
+		return x.SourceUri
+	}
+	return ""
+}
+
+func (x *RawSignal) GetIngestedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.IngestedAt
+	}
+	return nil
+}
+
+// IntelCard is a structured intelligence opportunity produced by the FusionEngine.
+type IntelCard struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title           string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Summary         string                 `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	OpportunityType OpportunityType        `protobuf:"varint,4,opt,name=opportunity_type,json=opportunityType,proto3,enum=jarvis.intelligence.OpportunityType" json:"opportunity_type,omitempty"`
+	ConfidenceScore float32                `protobuf:"fixed32,5,opt,name=confidence_score,json=confidenceScore,proto3" json:"confidence_score,omitempty"`
+	SuggestedAction string                 `protobuf:"bytes,6,opt,name=suggested_action,json=suggestedAction,proto3" json:"suggested_action,omitempty"`
+	Status          IntelCardStatus        `protobuf:"varint,7,opt,name=status,proto3,enum=jarvis.intelligence.IntelCardStatus" json:"status,omitempty"`
+	RawSignalIds    []string               `protobuf:"bytes,8,rep,name=raw_signal_ids,json=rawSignalIds,proto3" json:"raw_signal_ids,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *IntelCard) Reset() {
+	*x = IntelCard{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IntelCard) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IntelCard) ProtoMessage() {}
+
+func (x *IntelCard) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IntelCard.ProtoReflect.Descriptor instead.
+func (*IntelCard) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *IntelCard) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *IntelCard) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *IntelCard) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *IntelCard) GetOpportunityType() OpportunityType {
+	if x != nil {
+		return x.OpportunityType
+	}
+	return OpportunityType_OPPORTUNITY_TYPE_UNSPECIFIED
+}
+
+func (x *IntelCard) GetConfidenceScore() float32 {
+	if x != nil {
+		return x.ConfidenceScore
+	}
+	return 0
+}
+
+func (x *IntelCard) GetSuggestedAction() string {
+	if x != nil {
+		return x.SuggestedAction
+	}
+	return ""
+}
+
+func (x *IntelCard) GetStatus() IntelCardStatus {
+	if x != nil {
+		return x.Status
+	}
+	return IntelCardStatus_INTEL_CARD_STATUS_UNSPECIFIED
+}
+
+func (x *IntelCard) GetRawSignalIds() []string {
+	if x != nil {
+		return x.RawSignalIds
+	}
+	return nil
+}
+
+func (x *IntelCard) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *IntelCard) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type IngestSignalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	SourceType    SourceType             `protobuf:"varint,2,opt,name=source_type,json=sourceType,proto3,enum=jarvis.intelligence.SourceType" json:"source_type,omitempty"`
+	RawContent    string                 `protobuf:"bytes,3,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"`
+	SourceUri     string                 `protobuf:"bytes,4,opt,name=source_uri,json=sourceUri,proto3" json:"source_uri,omitempty"` // optional — feed URL or filename
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IngestSignalRequest) Reset() {
+	*x = IngestSignalRequest{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IngestSignalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IngestSignalRequest) ProtoMessage() {}
+
+func (x *IngestSignalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IngestSignalRequest.ProtoReflect.Descriptor instead.
+func (*IngestSignalRequest) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *IngestSignalRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *IngestSignalRequest) GetSourceType() SourceType {
+	if x != nil {
+		return x.SourceType
+	}
+	return SourceType_SOURCE_TYPE_UNSPECIFIED
+}
+
+func (x *IngestSignalRequest) GetRawContent() string {
+	if x != nil {
+		return x.RawContent
+	}
+	return ""
+}
+
+func (x *IngestSignalRequest) GetSourceUri() string {
+	if x != nil {
+		return x.SourceUri
+	}
+	return ""
+}
+
+type IngestSignalResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Signal        *RawSignal             `protobuf:"bytes,2,opt,name=signal,proto3" json:"signal,omitempty"`
+	Card          *IntelCard             `protobuf:"bytes,3,opt,name=card,proto3" json:"card,omitempty"` // generated card; status PENDING_REVIEW
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IngestSignalResponse) Reset() {
+	*x = IngestSignalResponse{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IngestSignalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IngestSignalResponse) ProtoMessage() {}
+
+func (x *IngestSignalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IngestSignalResponse.ProtoReflect.Descriptor instead.
+func (*IngestSignalResponse) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *IngestSignalResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *IngestSignalResponse) GetSignal() *RawSignal {
+	if x != nil {
+		return x.Signal
+	}
+	return nil
+}
+
+func (x *IngestSignalResponse) GetCard() *IntelCard {
+	if x != nil {
+		return x.Card
+	}
+	return nil
+}
+
+type ListIntelCardsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	StatusFilter  IntelCardStatus        `protobuf:"varint,2,opt,name=status_filter,json=statusFilter,proto3,enum=jarvis.intelligence.IntelCardStatus" json:"status_filter,omitempty"` // UNSPECIFIED = return all statuses
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListIntelCardsRequest) Reset() {
+	*x = ListIntelCardsRequest{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListIntelCardsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListIntelCardsRequest) ProtoMessage() {}
+
+func (x *ListIntelCardsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListIntelCardsRequest.ProtoReflect.Descriptor instead.
+func (*ListIntelCardsRequest) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListIntelCardsRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ListIntelCardsRequest) GetStatusFilter() IntelCardStatus {
+	if x != nil {
+		return x.StatusFilter
+	}
+	return IntelCardStatus_INTEL_CARD_STATUS_UNSPECIFIED
+}
+
+func (x *ListIntelCardsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListIntelCardsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListIntelCardsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Cards         []*IntelCard           `protobuf:"bytes,2,rep,name=cards,proto3" json:"cards,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,3,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,4,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListIntelCardsResponse) Reset() {
+	*x = ListIntelCardsResponse{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListIntelCardsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListIntelCardsResponse) ProtoMessage() {}
+
+func (x *ListIntelCardsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListIntelCardsResponse.ProtoReflect.Descriptor instead.
+func (*ListIntelCardsResponse) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListIntelCardsResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ListIntelCardsResponse) GetCards() []*IntelCard {
+	if x != nil {
+		return x.Cards
+	}
+	return nil
+}
+
+func (x *ListIntelCardsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+func (x *ListIntelCardsResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type ConfirmActionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	CardId        string                 `protobuf:"bytes,2,opt,name=card_id,json=cardId,proto3" json:"card_id,omitempty"`
+	NewStatus     IntelCardStatus        `protobuf:"varint,3,opt,name=new_status,json=newStatus,proto3,enum=jarvis.intelligence.IntelCardStatus" json:"new_status,omitempty"` // CONFIRMED or DISMISSED
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmActionRequest) Reset() {
+	*x = ConfirmActionRequest{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmActionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmActionRequest) ProtoMessage() {}
+
+func (x *ConfirmActionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmActionRequest.ProtoReflect.Descriptor instead.
+func (*ConfirmActionRequest) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ConfirmActionRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ConfirmActionRequest) GetCardId() string {
+	if x != nil {
+		return x.CardId
+	}
+	return ""
+}
+
+func (x *ConfirmActionRequest) GetNewStatus() IntelCardStatus {
+	if x != nil {
+		return x.NewStatus
+	}
+	return IntelCardStatus_INTEL_CARD_STATUS_UNSPECIFIED
+}
+
+type ConfirmActionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Card          *IntelCard             `protobuf:"bytes,2,opt,name=card,proto3" json:"card,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmActionResponse) Reset() {
+	*x = ConfirmActionResponse{}
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmActionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmActionResponse) ProtoMessage() {}
+
+func (x *ConfirmActionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_intelligence_intelligence_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmActionResponse.ProtoReflect.Descriptor instead.
+func (*ConfirmActionResponse) Descriptor() ([]byte, []int) {
+	return file_pb_intelligence_intelligence_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ConfirmActionResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *ConfirmActionResponse) GetCard() *IntelCard {
+	if x != nil {
+		return x.Card
+	}
+	return nil
+}
+
 var File_pb_intelligence_intelligence_proto protoreflect.FileDescriptor
 
 const file_pb_intelligence_intelligence_proto_rawDesc = "" +
@@ -866,7 +1595,63 @@ const file_pb_intelligence_intelligence_proto_rawDesc = "" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x8e\x01\n" +
 	"\x1aStreamIntelUpdatesResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12?\n" +
-	"\x06update\x18\x02 \x01(\v2'.jarvis.intelligence.QueryIntelResponseR\x06update*\xb6\x01\n" +
+	"\x06update\x18\x02 \x01(\v2'.jarvis.intelligence.QueryIntelResponseR\x06update\"\xda\x01\n" +
+	"\tRawSignal\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12@\n" +
+	"\vsource_type\x18\x02 \x01(\x0e2\x1f.jarvis.intelligence.SourceTypeR\n" +
+	"sourceType\x12\x1f\n" +
+	"\vraw_content\x18\x03 \x01(\tR\n" +
+	"rawContent\x12\x1d\n" +
+	"\n" +
+	"source_uri\x18\x04 \x01(\tR\tsourceUri\x12;\n" +
+	"\vingested_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"ingestedAt\"\xcc\x03\n" +
+	"\tIntelCard\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x12O\n" +
+	"\x10opportunity_type\x18\x04 \x01(\x0e2$.jarvis.intelligence.OpportunityTypeR\x0fopportunityType\x12)\n" +
+	"\x10confidence_score\x18\x05 \x01(\x02R\x0fconfidenceScore\x12)\n" +
+	"\x10suggested_action\x18\x06 \x01(\tR\x0fsuggestedAction\x12<\n" +
+	"\x06status\x18\a \x01(\x0e2$.jarvis.intelligence.IntelCardStatusR\x06status\x12$\n" +
+	"\x0eraw_signal_ids\x18\b \x03(\tR\frawSignalIds\x129\n" +
+	"\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc7\x01\n" +
+	"\x13IngestSignalRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12@\n" +
+	"\vsource_type\x18\x02 \x01(\x0e2\x1f.jarvis.intelligence.SourceTypeR\n" +
+	"sourceType\x12\x1f\n" +
+	"\vraw_content\x18\x03 \x01(\tR\n" +
+	"rawContent\x12\x1d\n" +
+	"\n" +
+	"source_uri\x18\x04 \x01(\tR\tsourceUri\"\xb3\x01\n" +
+	"\x14IngestSignalResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x126\n" +
+	"\x06signal\x18\x02 \x01(\v2\x1e.jarvis.intelligence.RawSignalR\x06signal\x122\n" +
+	"\x04card\x18\x03 \x01(\v2\x1e.jarvis.intelligence.IntelCardR\x04card\"\xce\x01\n" +
+	"\x15ListIntelCardsRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12I\n" +
+	"\rstatus_filter\x18\x02 \x01(\x0e2$.jarvis.intelligence.IntelCardStatusR\fstatusFilter\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"\xc8\x01\n" +
+	"\x16ListIntelCardsResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x124\n" +
+	"\x05cards\x18\x02 \x03(\v2\x1e.jarvis.intelligence.IntelCardR\x05cards\x12&\n" +
+	"\x0fnext_page_token\x18\x03 \x01(\tR\rnextPageToken\x12\x1f\n" +
+	"\vtotal_count\x18\x04 \x01(\x05R\n" +
+	"totalCount\"\xa4\x01\n" +
+	"\x14ConfirmActionRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x17\n" +
+	"\acard_id\x18\x02 \x01(\tR\x06cardId\x12C\n" +
+	"\n" +
+	"new_status\x18\x03 \x01(\x0e2$.jarvis.intelligence.IntelCardStatusR\tnewStatus\"|\n" +
+	"\x15ConfirmActionResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x122\n" +
+	"\x04card\x18\x02 \x01(\v2\x1e.jarvis.intelligence.IntelCardR\x04card*\xb6\x01\n" +
 	"\vSubjectType\x12\x1c\n" +
 	"\x18SUBJECT_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13SUBJECT_TYPE_PERSON\x10\x01\x12\x1d\n" +
@@ -877,13 +1662,33 @@ const file_pb_intelligence_intelligence_proto_rawDesc = "" +
 	"\rAnalysisDepth\x12\x1e\n" +
 	"\x1aANALYSIS_DEPTH_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17ANALYSIS_DEPTH_STANDARD\x10\x01\x12\x17\n" +
-	"\x13ANALYSIS_DEPTH_DEEP\x10\x022\xa2\x04\n" +
+	"\x13ANALYSIS_DEPTH_DEEP\x10\x02*s\n" +
+	"\n" +
+	"SourceType\x12\x1b\n" +
+	"\x17SOURCE_TYPE_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12SOURCE_TYPE_MANUAL\x10\x01\x12\x13\n" +
+	"\x0fSOURCE_TYPE_RSS\x10\x02\x12\x1b\n" +
+	"\x17SOURCE_TYPE_FILE_UPLOAD\x10\x03*\xb9\x01\n" +
+	"\x0fOpportunityType\x12 \n" +
+	"\x1cOPPORTUNITY_TYPE_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19OPPORTUNITY_TYPE_TACTICAL\x10\x01\x12\x1e\n" +
+	"\x1aOPPORTUNITY_TYPE_STRATEGIC\x10\x02\x12\x1d\n" +
+	"\x19OPPORTUNITY_TYPE_RESOURCE\x10\x03\x12&\n" +
+	"\"OPPORTUNITY_TYPE_THREAT_MITIGATION\x10\x04*\x9c\x01\n" +
+	"\x0fIntelCardStatus\x12!\n" +
+	"\x1dINTEL_CARD_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
+	" INTEL_CARD_STATUS_PENDING_REVIEW\x10\x01\x12\x1f\n" +
+	"\x1bINTEL_CARD_STATUS_CONFIRMED\x10\x02\x12\x1f\n" +
+	"\x1bINTEL_CARD_STATUS_DISMISSED\x10\x032\xc2\a\n" +
 	"\x13IntelligenceService\x12y\n" +
 	"\n" +
 	"QueryIntel\x12&.jarvis.intelligence.QueryIntelRequest\x1a'.jarvis.intelligence.QueryIntelResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/intel/query\x12\x8b\x01\n" +
 	"\x0fAnalyzeArtifact\x12+.jarvis.intelligence.AnalyzeArtifactRequest\x1a,.jarvis.intelligence.AnalyzeArtifactResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/intel/artifact\x12\x88\x01\n" +
 	"\x0eCrossReference\x12*.jarvis.intelligence.CrossReferenceRequest\x1a+.jarvis.intelligence.CrossReferenceResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/intel/crossref\x12w\n" +
-	"\x12StreamIntelUpdates\x12..jarvis.intelligence.StreamIntelUpdatesRequest\x1a/.jarvis.intelligence.StreamIntelUpdatesResponse0\x01B\xca\x01\n" +
+	"\x12StreamIntelUpdates\x12..jarvis.intelligence.StreamIntelUpdatesRequest\x1a/.jarvis.intelligence.StreamIntelUpdatesResponse0\x01\x12\x81\x01\n" +
+	"\fIngestSignal\x12(.jarvis.intelligence.IngestSignalRequest\x1a).jarvis.intelligence.IngestSignalResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/intel/signals\x12\x82\x01\n" +
+	"\x0eListIntelCards\x12*.jarvis.intelligence.ListIntelCardsRequest\x1a+.jarvis.intelligence.ListIntelCardsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/intel/cards\x12\x94\x01\n" +
+	"\rConfirmAction\x12).jarvis.intelligence.ConfirmActionRequest\x1a*.jarvis.intelligence.ConfirmActionResponse\",\x82\xd3\xe4\x93\x02&:\x01*\"!/v1/intel/cards/{card_id}/confirmB\xca\x01\n" +
 	"\x17com.jarvis.intelligenceB\x11IntelligenceProtoP\x01Z/github.com/rkrimper1/jarvis/api/pb/intelligence\xa2\x02\x03JIX\xaa\x02\x13Jarvis.Intelligence\xca\x02\x13Jarvis\\Intelligence\xe2\x02\x1fJarvis\\Intelligence\\GPBMetadata\xea\x02\x14Jarvis::Intelligenceb\x06proto3"
 
 var (
@@ -898,55 +1703,91 @@ func file_pb_intelligence_intelligence_proto_rawDescGZIP() []byte {
 	return file_pb_intelligence_intelligence_proto_rawDescData
 }
 
-var file_pb_intelligence_intelligence_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_pb_intelligence_intelligence_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_pb_intelligence_intelligence_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_pb_intelligence_intelligence_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_pb_intelligence_intelligence_proto_goTypes = []any{
 	(SubjectType)(0),                   // 0: jarvis.intelligence.SubjectType
 	(AnalysisDepth)(0),                 // 1: jarvis.intelligence.AnalysisDepth
-	(*QueryIntelRequest)(nil),          // 2: jarvis.intelligence.QueryIntelRequest
-	(*IntelFact)(nil),                  // 3: jarvis.intelligence.IntelFact
-	(*QueryIntelResponse)(nil),         // 4: jarvis.intelligence.QueryIntelResponse
-	(*AnalyzeArtifactRequest)(nil),     // 5: jarvis.intelligence.AnalyzeArtifactRequest
-	(*AnalyzeArtifactResponse)(nil),    // 6: jarvis.intelligence.AnalyzeArtifactResponse
-	(*CrossReferenceRequest)(nil),      // 7: jarvis.intelligence.CrossReferenceRequest
-	(*Relationship)(nil),               // 8: jarvis.intelligence.Relationship
-	(*CrossReferenceResponse)(nil),     // 9: jarvis.intelligence.CrossReferenceResponse
-	(*StreamIntelUpdatesRequest)(nil),  // 10: jarvis.intelligence.StreamIntelUpdatesRequest
-	(*StreamIntelUpdatesResponse)(nil), // 11: jarvis.intelligence.StreamIntelUpdatesResponse
-	nil,                                // 12: jarvis.intelligence.AnalyzeArtifactResponse.ElementBreakdownEntry
-	(*common.RequestMeta)(nil),         // 13: jarvis.common.RequestMeta
-	(*timestamppb.Timestamp)(nil),      // 14: google.protobuf.Timestamp
-	(*common.ResponseMeta)(nil),        // 15: jarvis.common.ResponseMeta
+	(SourceType)(0),                    // 2: jarvis.intelligence.SourceType
+	(OpportunityType)(0),               // 3: jarvis.intelligence.OpportunityType
+	(IntelCardStatus)(0),               // 4: jarvis.intelligence.IntelCardStatus
+	(*QueryIntelRequest)(nil),          // 5: jarvis.intelligence.QueryIntelRequest
+	(*IntelFact)(nil),                  // 6: jarvis.intelligence.IntelFact
+	(*QueryIntelResponse)(nil),         // 7: jarvis.intelligence.QueryIntelResponse
+	(*AnalyzeArtifactRequest)(nil),     // 8: jarvis.intelligence.AnalyzeArtifactRequest
+	(*AnalyzeArtifactResponse)(nil),    // 9: jarvis.intelligence.AnalyzeArtifactResponse
+	(*CrossReferenceRequest)(nil),      // 10: jarvis.intelligence.CrossReferenceRequest
+	(*Relationship)(nil),               // 11: jarvis.intelligence.Relationship
+	(*CrossReferenceResponse)(nil),     // 12: jarvis.intelligence.CrossReferenceResponse
+	(*StreamIntelUpdatesRequest)(nil),  // 13: jarvis.intelligence.StreamIntelUpdatesRequest
+	(*StreamIntelUpdatesResponse)(nil), // 14: jarvis.intelligence.StreamIntelUpdatesResponse
+	(*RawSignal)(nil),                  // 15: jarvis.intelligence.RawSignal
+	(*IntelCard)(nil),                  // 16: jarvis.intelligence.IntelCard
+	(*IngestSignalRequest)(nil),        // 17: jarvis.intelligence.IngestSignalRequest
+	(*IngestSignalResponse)(nil),       // 18: jarvis.intelligence.IngestSignalResponse
+	(*ListIntelCardsRequest)(nil),      // 19: jarvis.intelligence.ListIntelCardsRequest
+	(*ListIntelCardsResponse)(nil),     // 20: jarvis.intelligence.ListIntelCardsResponse
+	(*ConfirmActionRequest)(nil),       // 21: jarvis.intelligence.ConfirmActionRequest
+	(*ConfirmActionResponse)(nil),      // 22: jarvis.intelligence.ConfirmActionResponse
+	nil,                                // 23: jarvis.intelligence.AnalyzeArtifactResponse.ElementBreakdownEntry
+	(*common.RequestMeta)(nil),         // 24: jarvis.common.RequestMeta
+	(*timestamppb.Timestamp)(nil),      // 25: google.protobuf.Timestamp
+	(*common.ResponseMeta)(nil),        // 26: jarvis.common.ResponseMeta
 }
 var file_pb_intelligence_intelligence_proto_depIdxs = []int32{
-	13, // 0: jarvis.intelligence.QueryIntelRequest.meta:type_name -> jarvis.common.RequestMeta
+	24, // 0: jarvis.intelligence.QueryIntelRequest.meta:type_name -> jarvis.common.RequestMeta
 	0,  // 1: jarvis.intelligence.QueryIntelRequest.subject_type:type_name -> jarvis.intelligence.SubjectType
 	1,  // 2: jarvis.intelligence.QueryIntelRequest.depth:type_name -> jarvis.intelligence.AnalysisDepth
-	14, // 3: jarvis.intelligence.IntelFact.recorded_at:type_name -> google.protobuf.Timestamp
-	15, // 4: jarvis.intelligence.QueryIntelResponse.meta:type_name -> jarvis.common.ResponseMeta
-	3,  // 5: jarvis.intelligence.QueryIntelResponse.facts:type_name -> jarvis.intelligence.IntelFact
-	13, // 6: jarvis.intelligence.AnalyzeArtifactRequest.meta:type_name -> jarvis.common.RequestMeta
-	15, // 7: jarvis.intelligence.AnalyzeArtifactResponse.meta:type_name -> jarvis.common.ResponseMeta
-	12, // 8: jarvis.intelligence.AnalyzeArtifactResponse.element_breakdown:type_name -> jarvis.intelligence.AnalyzeArtifactResponse.ElementBreakdownEntry
-	13, // 9: jarvis.intelligence.CrossReferenceRequest.meta:type_name -> jarvis.common.RequestMeta
-	15, // 10: jarvis.intelligence.CrossReferenceResponse.meta:type_name -> jarvis.common.ResponseMeta
-	8,  // 11: jarvis.intelligence.CrossReferenceResponse.relationships:type_name -> jarvis.intelligence.Relationship
-	13, // 12: jarvis.intelligence.StreamIntelUpdatesRequest.meta:type_name -> jarvis.common.RequestMeta
-	15, // 13: jarvis.intelligence.StreamIntelUpdatesResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 14: jarvis.intelligence.StreamIntelUpdatesResponse.update:type_name -> jarvis.intelligence.QueryIntelResponse
-	2,  // 15: jarvis.intelligence.IntelligenceService.QueryIntel:input_type -> jarvis.intelligence.QueryIntelRequest
-	5,  // 16: jarvis.intelligence.IntelligenceService.AnalyzeArtifact:input_type -> jarvis.intelligence.AnalyzeArtifactRequest
-	7,  // 17: jarvis.intelligence.IntelligenceService.CrossReference:input_type -> jarvis.intelligence.CrossReferenceRequest
-	10, // 18: jarvis.intelligence.IntelligenceService.StreamIntelUpdates:input_type -> jarvis.intelligence.StreamIntelUpdatesRequest
-	4,  // 19: jarvis.intelligence.IntelligenceService.QueryIntel:output_type -> jarvis.intelligence.QueryIntelResponse
-	6,  // 20: jarvis.intelligence.IntelligenceService.AnalyzeArtifact:output_type -> jarvis.intelligence.AnalyzeArtifactResponse
-	9,  // 21: jarvis.intelligence.IntelligenceService.CrossReference:output_type -> jarvis.intelligence.CrossReferenceResponse
-	11, // 22: jarvis.intelligence.IntelligenceService.StreamIntelUpdates:output_type -> jarvis.intelligence.StreamIntelUpdatesResponse
-	19, // [19:23] is the sub-list for method output_type
-	15, // [15:19] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	25, // 3: jarvis.intelligence.IntelFact.recorded_at:type_name -> google.protobuf.Timestamp
+	26, // 4: jarvis.intelligence.QueryIntelResponse.meta:type_name -> jarvis.common.ResponseMeta
+	6,  // 5: jarvis.intelligence.QueryIntelResponse.facts:type_name -> jarvis.intelligence.IntelFact
+	24, // 6: jarvis.intelligence.AnalyzeArtifactRequest.meta:type_name -> jarvis.common.RequestMeta
+	26, // 7: jarvis.intelligence.AnalyzeArtifactResponse.meta:type_name -> jarvis.common.ResponseMeta
+	23, // 8: jarvis.intelligence.AnalyzeArtifactResponse.element_breakdown:type_name -> jarvis.intelligence.AnalyzeArtifactResponse.ElementBreakdownEntry
+	24, // 9: jarvis.intelligence.CrossReferenceRequest.meta:type_name -> jarvis.common.RequestMeta
+	26, // 10: jarvis.intelligence.CrossReferenceResponse.meta:type_name -> jarvis.common.ResponseMeta
+	11, // 11: jarvis.intelligence.CrossReferenceResponse.relationships:type_name -> jarvis.intelligence.Relationship
+	24, // 12: jarvis.intelligence.StreamIntelUpdatesRequest.meta:type_name -> jarvis.common.RequestMeta
+	26, // 13: jarvis.intelligence.StreamIntelUpdatesResponse.meta:type_name -> jarvis.common.ResponseMeta
+	7,  // 14: jarvis.intelligence.StreamIntelUpdatesResponse.update:type_name -> jarvis.intelligence.QueryIntelResponse
+	2,  // 15: jarvis.intelligence.RawSignal.source_type:type_name -> jarvis.intelligence.SourceType
+	25, // 16: jarvis.intelligence.RawSignal.ingested_at:type_name -> google.protobuf.Timestamp
+	3,  // 17: jarvis.intelligence.IntelCard.opportunity_type:type_name -> jarvis.intelligence.OpportunityType
+	4,  // 18: jarvis.intelligence.IntelCard.status:type_name -> jarvis.intelligence.IntelCardStatus
+	25, // 19: jarvis.intelligence.IntelCard.created_at:type_name -> google.protobuf.Timestamp
+	25, // 20: jarvis.intelligence.IntelCard.updated_at:type_name -> google.protobuf.Timestamp
+	24, // 21: jarvis.intelligence.IngestSignalRequest.meta:type_name -> jarvis.common.RequestMeta
+	2,  // 22: jarvis.intelligence.IngestSignalRequest.source_type:type_name -> jarvis.intelligence.SourceType
+	26, // 23: jarvis.intelligence.IngestSignalResponse.meta:type_name -> jarvis.common.ResponseMeta
+	15, // 24: jarvis.intelligence.IngestSignalResponse.signal:type_name -> jarvis.intelligence.RawSignal
+	16, // 25: jarvis.intelligence.IngestSignalResponse.card:type_name -> jarvis.intelligence.IntelCard
+	24, // 26: jarvis.intelligence.ListIntelCardsRequest.meta:type_name -> jarvis.common.RequestMeta
+	4,  // 27: jarvis.intelligence.ListIntelCardsRequest.status_filter:type_name -> jarvis.intelligence.IntelCardStatus
+	26, // 28: jarvis.intelligence.ListIntelCardsResponse.meta:type_name -> jarvis.common.ResponseMeta
+	16, // 29: jarvis.intelligence.ListIntelCardsResponse.cards:type_name -> jarvis.intelligence.IntelCard
+	24, // 30: jarvis.intelligence.ConfirmActionRequest.meta:type_name -> jarvis.common.RequestMeta
+	4,  // 31: jarvis.intelligence.ConfirmActionRequest.new_status:type_name -> jarvis.intelligence.IntelCardStatus
+	26, // 32: jarvis.intelligence.ConfirmActionResponse.meta:type_name -> jarvis.common.ResponseMeta
+	16, // 33: jarvis.intelligence.ConfirmActionResponse.card:type_name -> jarvis.intelligence.IntelCard
+	5,  // 34: jarvis.intelligence.IntelligenceService.QueryIntel:input_type -> jarvis.intelligence.QueryIntelRequest
+	8,  // 35: jarvis.intelligence.IntelligenceService.AnalyzeArtifact:input_type -> jarvis.intelligence.AnalyzeArtifactRequest
+	10, // 36: jarvis.intelligence.IntelligenceService.CrossReference:input_type -> jarvis.intelligence.CrossReferenceRequest
+	13, // 37: jarvis.intelligence.IntelligenceService.StreamIntelUpdates:input_type -> jarvis.intelligence.StreamIntelUpdatesRequest
+	17, // 38: jarvis.intelligence.IntelligenceService.IngestSignal:input_type -> jarvis.intelligence.IngestSignalRequest
+	19, // 39: jarvis.intelligence.IntelligenceService.ListIntelCards:input_type -> jarvis.intelligence.ListIntelCardsRequest
+	21, // 40: jarvis.intelligence.IntelligenceService.ConfirmAction:input_type -> jarvis.intelligence.ConfirmActionRequest
+	7,  // 41: jarvis.intelligence.IntelligenceService.QueryIntel:output_type -> jarvis.intelligence.QueryIntelResponse
+	9,  // 42: jarvis.intelligence.IntelligenceService.AnalyzeArtifact:output_type -> jarvis.intelligence.AnalyzeArtifactResponse
+	12, // 43: jarvis.intelligence.IntelligenceService.CrossReference:output_type -> jarvis.intelligence.CrossReferenceResponse
+	14, // 44: jarvis.intelligence.IntelligenceService.StreamIntelUpdates:output_type -> jarvis.intelligence.StreamIntelUpdatesResponse
+	18, // 45: jarvis.intelligence.IntelligenceService.IngestSignal:output_type -> jarvis.intelligence.IngestSignalResponse
+	20, // 46: jarvis.intelligence.IntelligenceService.ListIntelCards:output_type -> jarvis.intelligence.ListIntelCardsResponse
+	22, // 47: jarvis.intelligence.IntelligenceService.ConfirmAction:output_type -> jarvis.intelligence.ConfirmActionResponse
+	41, // [41:48] is the sub-list for method output_type
+	34, // [34:41] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_pb_intelligence_intelligence_proto_init() }
@@ -959,8 +1800,8 @@ func file_pb_intelligence_intelligence_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_intelligence_intelligence_proto_rawDesc), len(file_pb_intelligence_intelligence_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   11,
+			NumEnums:      5,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

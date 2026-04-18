@@ -211,7 +211,58 @@ export const business = {
 
 // ── Intelligence ─────────────────────────────────────────────────────
 
+export interface RawSignal {
+	id: string;
+	rawContent: string;
+	sourceType: string;
+	sourceUri: string;
+	ingestedAt: string;
+}
+
+export type OpportunityType =
+	| 'OPPORTUNITY_TYPE_TACTICAL'
+	| 'OPPORTUNITY_TYPE_STRATEGIC'
+	| 'OPPORTUNITY_TYPE_RESOURCE'
+	| 'OPPORTUNITY_TYPE_THREAT_MITIGATION';
+
+export type IntelCardStatus =
+	| 'INTEL_CARD_STATUS_PENDING_REVIEW'
+	| 'INTEL_CARD_STATUS_CONFIRMED'
+	| 'INTEL_CARD_STATUS_DISMISSED';
+
+export interface IntelCard {
+	id: string;
+	title: string;
+	summary: string;
+	opportunityType: OpportunityType;
+	confidenceScore: number;
+	suggestedAction: string;
+	status: IntelCardStatus;
+	rawSignalIds: string[];
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface IngestSignalResponse {
+	meta: ResponseMeta;
+	signal: RawSignal;
+	card: IntelCard;
+}
+
+export interface ListIntelCardsResponse {
+	meta: ResponseMeta;
+	cards: IntelCard[];
+	totalCount: number;
+	nextPageToken: string;
+}
+
+export interface ConfirmActionResponse {
+	meta: ResponseMeta;
+	card: IntelCard;
+}
+
 export const intel = {
+	// ── Legacy RPCs ───────────────────────────────────────────────────
 	query(query: string, subjectType = 'SUBJECT_TYPE_UNKNOWN', depth = 'ANALYSIS_DEPTH_STANDARD') {
 		return call('POST', '/intel/query', {
 			meta: { request_id: reqId() },
@@ -234,6 +285,54 @@ export const intel = {
 			subject_ids: subjectIds,
 			relationship_hint: hint ?? ''
 		});
+	},
+
+	// ── Intel Hunt RPCs ───────────────────────────────────────────────
+	ingestSignal(rawContent: string, sourceType = 'SOURCE_TYPE_MANUAL', sourceUri = ''): Promise<IngestSignalResponse> {
+		return call('POST', '/intel/signals', {
+			meta: { request_id: reqId() },
+			source_type: sourceType,
+			raw_content: rawContent,
+			source_uri: sourceUri
+		});
+	},
+	listCards(statusFilter = '', pageSize = 20, pageToken = ''): Promise<ListIntelCardsResponse> {
+		const params = new URLSearchParams({
+			'meta.request_id': reqId(),
+			page_size: String(pageSize)
+		});
+		if (statusFilter && statusFilter !== 'INTEL_CARD_STATUS_UNSPECIFIED') {
+			params.set('status_filter', statusFilter);
+		}
+		if (pageToken) params.set('page_token', pageToken);
+		return call('GET', `/intel/cards?${params}`);
+	},
+	confirmAction(cardId: string, newStatus: IntelCardStatus): Promise<ConfirmActionResponse> {
+		return call('POST', `/intel/cards/${cardId}/confirm`, {
+			meta: { request_id: reqId() },
+			card_id: cardId,
+			new_status: newStatus
+		});
+	},
+	searchCards(query: string, pageSize = 20): Promise<{ cards: IntelCard[]; total: number }> {
+		const params = new URLSearchParams({ q: query, page_size: String(pageSize) });
+		return call('GET', `/intel/cards/search?${params}`);
+	},
+	async ingestFile(file: File, sourceUri = ''): Promise<IngestSignalResponse> {
+		const fd = new FormData();
+		fd.append('file', file);
+		if (sourceUri) fd.append('source_uri', sourceUri);
+
+		const headers: Record<string, string> = {};
+		if (_token) headers['Authorization'] = `Bearer ${_token}`;
+
+		const res = await fetch('/v1/intel/ingest/file', { method: 'POST', headers, body: fd });
+		if (res.status === 401) { _onUnauthorized?.(); throw new Error('Session expired. Please log in again.'); }
+		if (!res.ok) {
+			const err = await res.json().catch(() => ({ error: res.statusText }));
+			throw new Error(err.error || res.statusText);
+		}
+		return res.json();
 	}
 };
 

@@ -6,6 +6,8 @@ import "pb/common/common.proto";
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
+// ── Existing enums ────────────────────────────────────────────────────────────
+
 enum SubjectType {
   SUBJECT_TYPE_UNSPECIFIED  = 0;
   SUBJECT_TYPE_PERSON       = 1;
@@ -19,6 +21,30 @@ enum AnalysisDepth {
   ANALYSIS_DEPTH_UNSPECIFIED = 0;
   ANALYSIS_DEPTH_STANDARD    = 1;
   ANALYSIS_DEPTH_DEEP        = 2;
+}
+
+// ── Intel Hunt enums ──────────────────────────────────────────────────────────
+
+enum SourceType {
+  SOURCE_TYPE_UNSPECIFIED = 0;
+  SOURCE_TYPE_MANUAL      = 1;
+  SOURCE_TYPE_RSS         = 2;
+  SOURCE_TYPE_FILE_UPLOAD = 3;
+}
+
+enum OpportunityType {
+  OPPORTUNITY_TYPE_UNSPECIFIED     = 0;
+  OPPORTUNITY_TYPE_TACTICAL        = 1;
+  OPPORTUNITY_TYPE_STRATEGIC       = 2;
+  OPPORTUNITY_TYPE_RESOURCE        = 3;
+  OPPORTUNITY_TYPE_THREAT_MITIGATION = 4;
+}
+
+enum IntelCardStatus {
+  INTEL_CARD_STATUS_UNSPECIFIED  = 0;
+  INTEL_CARD_STATUS_PENDING_REVIEW = 1;
+  INTEL_CARD_STATUS_CONFIRMED    = 2;
+  INTEL_CARD_STATUS_DISMISSED    = 3;
 }
 
 message QueryIntelRequest {
@@ -90,6 +116,71 @@ message StreamIntelUpdatesResponse {
   QueryIntelResponse update       = 2;
 }
 
+// ── Intel Hunt messages ───────────────────────────────────────────────────────
+
+// RawSignal is an unprocessed piece of intelligence from any source.
+message RawSignal {
+  string     id          = 1;
+  SourceType source_type = 2;
+  string     raw_content = 3;
+  string     source_uri  = 4; // feed URL, filename, or empty for manual
+  google.protobuf.Timestamp ingested_at = 5;
+}
+
+// IntelCard is a structured intelligence opportunity produced by the FusionEngine.
+message IntelCard {
+  string          id               = 1;
+  string          title            = 2;
+  string          summary          = 3;
+  OpportunityType opportunity_type = 4;
+  float           confidence_score = 5;
+  string          suggested_action = 6;
+  IntelCardStatus status           = 7;
+  repeated string raw_signal_ids   = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message IngestSignalRequest {
+  jarvis.common.RequestMeta meta = 1;
+  SourceType source_type         = 2;
+  string     raw_content         = 3;
+  string     source_uri          = 4; // optional — feed URL or filename
+}
+
+message IngestSignalResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  RawSignal signal                = 2;
+  IntelCard card                  = 3; // generated card; status PENDING_REVIEW
+}
+
+message ListIntelCardsRequest {
+  jarvis.common.RequestMeta meta   = 1;
+  IntelCardStatus status_filter    = 2; // UNSPECIFIED = return all statuses
+  int32           page_size        = 3;
+  string          page_token       = 4;
+}
+
+message ListIntelCardsResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  repeated IntelCard cards        = 2;
+  string next_page_token          = 3;
+  int32  total_count              = 4;
+}
+
+message ConfirmActionRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string          card_id        = 2;
+  IntelCardStatus new_status     = 3; // CONFIRMED or DISMISSED
+}
+
+message ConfirmActionResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  IntelCard card                  = 2;
+}
+
+// ── Service ───────────────────────────────────────────────────────────────────
+
 service IntelligenceService {
   rpc QueryIntel(QueryIntelRequest) returns (QueryIntelResponse) {
     option (google.api.http) = { post: "/v1/intel/query" body: "*" };
@@ -101,4 +192,15 @@ service IntelligenceService {
     option (google.api.http) = { post: "/v1/intel/crossref" body: "*" };
   }
   rpc StreamIntelUpdates(StreamIntelUpdatesRequest) returns (stream StreamIntelUpdatesResponse);
+
+  // ── Intel Hunt RPCs ──────────────────────────────────────────────
+  rpc IngestSignal(IngestSignalRequest) returns (IngestSignalResponse) {
+    option (google.api.http) = { post: "/v1/intel/signals" body: "*" };
+  }
+  rpc ListIntelCards(ListIntelCardsRequest) returns (ListIntelCardsResponse) {
+    option (google.api.http) = { get: "/v1/intel/cards" };
+  }
+  rpc ConfirmAction(ConfirmActionRequest) returns (ConfirmActionResponse) {
+    option (google.api.http) = { post: "/v1/intel/cards/{card_id}/confirm" body: "*" };
+  }
 }

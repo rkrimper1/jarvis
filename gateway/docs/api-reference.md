@@ -430,6 +430,154 @@ curl -X POST http://localhost:8080/v1/intel/crossref \
 
 ---
 
+### Intel Hunt
+
+> Requires `ANTHROPIC_API_KEY` and `JARVIS_DB_PATH`. RPCs return `FailedPrecondition` when either is absent.
+
+#### Ingest Signal (manual)
+```bash
+curl -X POST http://localhost:8080/v1/intel/signals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "ingest-001"},
+    "source_type": "SOURCE_TYPE_MANUAL",
+    "raw_content": "Acme Corp cut enterprise SaaS pricing by 15%, effective immediately. Renewal pipeline at risk."
+  }'
+```
+
+**Response**
+```json
+{
+  "meta": {"request_id": "ingest-001", "success": true},
+  "signal": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "source_type": "SOURCE_TYPE_MANUAL",
+    "raw_content": "Acme Corp cut enterprise SaaS pricing...",
+    "ingested_at": "2026-04-14T10:00:00Z"
+  },
+  "card": {
+    "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "title": "Acme drops enterprise price",
+    "summary": "Acme Corp cut enterprise SaaS pricing by 15%. Directly undercuts Stark Industries mid-market positioning.",
+    "opportunity_type": "OPPORTUNITY_TYPE_TACTICAL",
+    "confidence_score": 0.88,
+    "suggested_action": "Brief the sales team on competitive pricing response before end of day.",
+    "status": "INTEL_CARD_STATUS_PENDING_REVIEW",
+    "raw_signal_ids": ["550e8400-e29b-41d4-a716-446655440000"],
+    "created_at": "2026-04-14T10:00:01Z",
+    "updated_at": "2026-04-14T10:00:01Z"
+  }
+}
+```
+
+#### Ingest Signal via File Upload
+Accepts `.txt`, `.csv`, `.tsv`, and `.pdf` (text extracted with Apache pdfcpu). The `source_uri` field is optional and stored for provenance.
+
+```bash
+# Plain text
+curl -X POST http://localhost:8080/v1/intel/ingest/file \
+  -F "file=@/path/to/competitive-brief.txt" \
+  -F "source_uri=https://example.com/brief.txt"
+
+# PDF
+curl -X POST http://localhost:8080/v1/intel/ingest/file \
+  -F "file=@/path/to/market-report.pdf"
+
+# CSV (first row treated as headers)
+curl -X POST http://localhost:8080/v1/intel/ingest/file \
+  -F "file=@/path/to/signals.csv"
+```
+
+Returns the same `{signal, card}` JSON as the gRPC `IngestSignal` response.
+
+#### List Intel Cards
+`ListIntelCards` uses a `GET` binding — all fields are passed as query parameters.
+
+```bash
+# All cards (paginated, newest first)
+curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-001&page_size=20"
+
+# Filter by status: INTEL_CARD_STATUS_PENDING_REVIEW | INTEL_CARD_STATUS_CONFIRMED | INTEL_CARD_STATUS_DISMISSED
+curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-002&status_filter=INTEL_CARD_STATUS_PENDING_REVIEW&page_size=10"
+
+# Next page — pass next_page_token value from prior response as page_token
+curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-003&page_size=10&page_token=10"
+```
+
+**Response**
+```json
+{
+  "meta": {"requestId": "list-001", "success": true},
+  "cards": [ /* array of IntelCard */ ],
+  "totalCount": 42,
+  "nextPageToken": "20"
+}
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "list-001"}, "page_size": 20}' \
+  localhost:50051 jarvis.intelligence.IntelligenceService/ListIntelCards
+```
+
+#### Search Intel Cards
+Full-text keyword search across `title`, `summary`, and `suggested_action` of all stored Intel Cards. Results are ordered by `confidence_score DESC`, then newest first. This is a direct HTTP handler — not a grpc-gateway route.
+
+```bash
+# Search for cards mentioning "pricing"
+curl "http://localhost:8080/v1/intel/cards/search?q=pricing&page_size=20"
+
+# Return up to 50 results for a broader query
+curl "http://localhost:8080/v1/intel/cards/search?q=supply+chain&page_size=50"
+```
+
+**Query parameters:**
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | `""` | Search term (case-insensitive LIKE match) |
+| `page_size` | int | `20` | Maximum results to return (max 100) |
+
+**Response**
+```json
+{
+  "cards": [ /* array of IntelCard, ordered by confidence desc */ ],
+  "total": 7
+}
+```
+
+#### Confirm or Dismiss a Card
+```bash
+# Confirm — operator will act on this signal
+curl -X POST http://localhost:8080/v1/intel/cards/6ba7b810-9dad-11d1-80b4-00c04fd430c8/confirm \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "confirm-001"},
+    "card_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "new_status": "INTEL_CARD_STATUS_CONFIRMED"
+  }'
+
+# Dismiss — low value / false positive
+curl -X POST http://localhost:8080/v1/intel/cards/6ba7b810-9dad-11d1-80b4-00c04fd430c8/confirm \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "confirm-002"},
+    "card_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "new_status": "INTEL_CARD_STATUS_DISMISSED"
+  }'
+```
+
+**Opportunity types**
+
+| Value | Meaning |
+|---|---|
+| `OPPORTUNITY_TYPE_TACTICAL` | Near-term action required within 24 h (price change, key hire, customer loss) |
+| `OPPORTUNITY_TYPE_STRATEGIC` | Long-term positioning signal (market shift, platform change, new entrant) |
+| `OPPORTUNITY_TYPE_RESOURCE` | Supply chain, funding, capacity, or talent availability |
+| `OPPORTUNITY_TYPE_THREAT_MITIGATION` | Regulatory, legal, reputational, or supply disruption risk |
+
+---
+
 ## Business Ops Service
 
 ### Schedule Event

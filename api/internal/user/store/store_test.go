@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/rkrimper1/jarvis/api/internal/user/store"
 	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
@@ -21,7 +22,7 @@ func newTestStore(t *testing.T) *store.Store {
 	}
 	t.Cleanup(func() { db.Close() })
 
-	s, err := store.New(db, slog.New(slog.NewTextHandler(os.Stderr, nil)))
+	s, err := store.NewWithCost(db, slog.New(slog.NewTextHandler(os.Stderr, nil)), bcrypt.MinCost)
 	if err != nil {
 		t.Fatalf("store.New: %v", err)
 	}

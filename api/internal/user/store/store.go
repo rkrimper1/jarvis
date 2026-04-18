@@ -34,17 +34,24 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
 // Store is the SQLite-backed user store.
 type Store struct {
-	db  *sql.DB
-	log *slog.Logger
+	db          *sql.DB
+	log         *slog.Logger
+	bcryptCost  int
 }
 
 // New applies the schema to the shared db and seeds initial users if the
 // table is empty. The caller owns db and is responsible for closing it.
 func New(db *sql.DB, log *slog.Logger) (*Store, error) {
+	return NewWithCost(db, log, bcrypt.DefaultCost)
+}
+
+// NewWithCost is like New but allows callers to override the bcrypt work
+// factor. Use bcrypt.MinCost in tests to avoid multi-second hashing.
+func NewWithCost(db *sql.DB, log *slog.Logger, cost int) (*Store, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("user store: apply schema: %w", err)
 	}
-	s := &Store{db: db, log: log}
+	s := &Store{db: db, log: log, bcryptCost: cost}
 
 	// Seed if empty
 	var count int
@@ -99,7 +106,7 @@ func (s *Store) Create(ctx context.Context, username, email, displayName, passwo
 }
 
 func (s *Store) createInternal(ctx context.Context, u seedUser) (*userv1.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), s.bcryptCost)
 	if err != nil {
 		return nil, fmt.Errorf("user store: hash password: %w", err)
 	}
@@ -213,7 +220,7 @@ func (s *Store) ChangePassword(ctx context.Context, id string, currentPassword, 
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), currentPassword); err != nil {
 		return fmt.Errorf("current password is incorrect")
 	}
-	newHash, err := bcrypt.GenerateFromPassword(newPassword, bcrypt.DefaultCost)
+	newHash, err := bcrypt.GenerateFromPassword(newPassword, s.bcryptCost)
 	if err != nil {
 		return fmt.Errorf("user store: hash new password: %w", err)
 	}
