@@ -206,9 +206,10 @@ func (s *Store) AssignToSprint(ctx context.Context, taskID, sprintID string) (*t
 	return s.GetTask(ctx, taskID)
 }
 
+// RemoveFromSprint clears the sprint assignment and resets the task status to unassigned.
 func (s *Store) RemoveFromSprint(ctx context.Context, taskID string) (*taskv1.Task, error) {
 	_, err := s.db.ExecContext(ctx,
-		`UPDATE tasks SET sprint_id=NULL,status='TASK_STATUS_UNASSIGNED',updated_at=datetime('now') WHERE id=?`,
+		`UPDATE tasks SET sprint_id=NULL,status='unassigned',updated_at=datetime('now') WHERE id=?`,
 		taskID,
 	)
 	if err != nil {

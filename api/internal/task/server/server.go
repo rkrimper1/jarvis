@@ -56,7 +56,7 @@ func NewWithNotify(s *store.Store, tokenSecret string, log *slog.Logger, n *noti
 // notifyAssignment looks up the assignee's email and fires a background notification.
 // It is a no-op when the notifier or user store is not configured.
 func (s *TaskServer) notifyAssignment(ctx context.Context, task *taskv1.Task, reporterID string) {
-	if s.notifier == nil || s.users == nil {
+	if s.notifier == nil || s.users == nil || task.AssigneeId == "" {
 		return
 	}
 	assignee, err := s.users.GetByID(ctx, task.AssigneeId)

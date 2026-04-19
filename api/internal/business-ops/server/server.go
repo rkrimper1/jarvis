@@ -65,6 +65,7 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 
 	// Send calendar invite via email (soft failure — never fails the RPC).
 	if s.smtp != nil {
+		detachedCtx := context.WithoutCancel(ctx)
 		go func() {
 			ics := email.BuildICS(email.Event{
 				Title:          req.Title,
@@ -76,7 +77,7 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 				OrganizerEmail: s.smtp.User,
 			})
 			subject := fmt.Sprintf("Invite: %s", req.Title)
-			if err := email.SendInvite(ctx, *s.smtp, subject, ics, req.Attendees); err != nil {
+			if err := email.SendInvite(detachedCtx, *s.smtp, subject, ics, req.Attendees); err != nil {
 				s.log.Warn("calendar invite not sent", slog.String("event_id", id), slog.Any("error", err))
 			} else {
 				s.log.Info("calendar invite sent", slog.String("event_id", id), slog.String("organizer", s.smtp.Organizer))
