@@ -15,23 +15,64 @@ import (
 
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	taskv1   "github.com/rkrimper1/jarvis/api/pb/task"
+	userv1   "github.com/rkrimper1/jarvis/api/pb/user"
 	"github.com/rkrimper1/jarvis/api/internal/security/token"
+	"github.com/rkrimper1/jarvis/api/internal/task/notify"
 	"github.com/rkrimper1/jarvis/api/internal/task/store"
 	"github.com/rkrimper1/jarvis/api/middleware"
 )
 
+// UserLookup retrieves a user record for assignment notification emails.
+// *userstore.Store satisfies this interface.
+type UserLookup interface {
+	GetByID(ctx context.Context, id string) (*userv1.User, error)
+}
+
 // TaskServer implements taskv1.TaskServiceServer.
 type TaskServer struct {
 	taskv1.UnimplementedTaskServiceServer
-	store *store.Store
-	mgr   *token.Manager
-	log   *slog.Logger
+	store    *store.Store
+	mgr      *token.Manager
+	log      *slog.Logger
+	notifier *notify.Notifier // nil → notifications disabled
+	users    UserLookup       // nil → email lookup unavailable
 }
 
 // New returns a TaskServer backed by the given store.
 func New(s *store.Store, tokenSecret string, log *slog.Logger) *TaskServer {
 	mgr := token.New(tokenSecret, time.Hour, "jarvis.security")
 	return &TaskServer{store: s, mgr: mgr, log: log}
+}
+
+// NewWithNotify is like New but wires in assignment email notifications.
+// Pass nil for notifier or users to disable notifications.
+func NewWithNotify(s *store.Store, tokenSecret string, log *slog.Logger, n *notify.Notifier, users UserLookup) *TaskServer {
+	srv := New(s, tokenSecret, log)
+	srv.notifier = n
+	srv.users = users
+	return srv
+}
+
+// notifyAssignment looks up the assignee's email and fires a background notification.
+// It is a no-op when the notifier or user store is not configured.
+func (s *TaskServer) notifyAssignment(ctx context.Context, task *taskv1.Task, reporterID string) {
+	if s.notifier == nil || s.users == nil {
+		return
+	}
+	assignee, err := s.users.GetByID(ctx, task.AssigneeId)
+	if err != nil {
+		s.log.WarnContext(ctx, "task notify: assignee lookup failed",
+			slog.String("task_id", task.TaskId),
+			slog.String("assignee_id", task.AssigneeId),
+			slog.Any("err", err),
+		)
+		return
+	}
+	var reporterEmail string
+	if reporter, err := s.users.GetByID(ctx, reporterID); err == nil {
+		reporterEmail = reporter.Email
+	}
+	s.notifier.SendAssignment(ctx, task, assignee.Email, reporterEmail)
 }
 
 func (s *TaskServer) storeRequired() error {
@@ -100,6 +141,7 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *taskv1.CreateTaskReque
 		return nil, status.Errorf(codes.Internal, "create task: %v", err)
 	}
 	s.log.InfoContext(ctx, "CreateTask", slog.String("task_id", t.TaskId))
+	s.notifyAssignment(ctx, t, req.ReporterId)
 	return &taskv1.CreateTaskResponse{Meta: metaOK(req.Meta.RequestId), Task: t}, nil
 }
 
@@ -164,6 +206,9 @@ func (s *TaskServer) UpdateTask(ctx context.Context, req *taskv1.UpdateTaskReque
 		return nil, status.Errorf(codes.Internal, "update task: %v", err)
 	}
 	s.log.InfoContext(ctx, "UpdateTask", slog.String("task_id", req.TaskId))
+	if req.AssigneeId != "" && req.AssigneeId != existing.AssigneeId {
+		s.notifyAssignment(ctx, t, existing.ReporterId)
+	}
 	return &taskv1.UpdateTaskResponse{Meta: metaOK(req.Meta.RequestId), Task: t}, nil
 }
 

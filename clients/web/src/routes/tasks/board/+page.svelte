@@ -92,7 +92,6 @@
 		}
 	}
 
-
 	async function loadSprintTasks() {
 		if (!selectedSprintId) { taskList = []; return; }
 		loading = true;
@@ -182,16 +181,18 @@
 				storyPoints: editStoryPoints,
 				dueDate: editDueDate
 			});
+			// Reflect updateTask result immediately so UI is consistent even if sprint change fails
+			selectedTask = res.task;
+			taskList = taskList.map(t => t.taskId === res.task.taskId ? res.task : t);
 			// Reassign sprint if it changed
 			if (editSprintId !== (selectedTask.sprintId ?? '')) {
 				res = await tasks.assignToSprint(selectedTask.taskId, editSprintId);
+				selectedTask = res.task;
+				taskList = taskList.map(t => t.taskId === res.task.taskId ? res.task : t);
 			}
-			// Update the task in place
-			selectedTask = res.task;
-			taskList = taskList.map(t => t.taskId === res.task.taskId ? res.task : t);
 			// If the task was moved to a different sprint, remove it from the current board view
 			if (editSprintId !== selectedSprintId) {
-				taskList = taskList.filter(t => t.taskId !== res.task.taskId);
+				taskList = taskList.filter(t => t.taskId !== selectedTask.taskId);
 			}
 			editMode = false;
 		} catch (e) {

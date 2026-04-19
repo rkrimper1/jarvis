@@ -30,22 +30,15 @@ type BusinessOpsServer struct {
 	log      *slog.Logger
 }
 
-// New wires all dependencies.
-// If SMTP env vars are present the server will send calendar invites on ScheduleEvent;
-// if they are missing it logs a warning and continues without email.
-func New(log *slog.Logger) *BusinessOpsServer {
-	srv := &BusinessOpsServer{
+// New wires all dependencies. smtp is optional — pass nil to disable calendar invite emails.
+func New(log *slog.Logger, smtp *email.Config) *BusinessOpsServer {
+	return &BusinessOpsServer{
 		cal:    calendar.New(),
 		tasks:  tasks.New(),
 		router: messaging.New(log),
+		smtp:   smtp,
 		log:    log,
 	}
-	if cfg, err := email.ConfigFromEnv(); err != nil {
-		log.Warn("email invites disabled", slog.String("reason", err.Error()))
-	} else {
-		srv.smtp = &cfg
-	}
-	return srv
 }
 
 func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.ScheduleEventRequest) (*businessv1.ScheduleEventResponse, error) {

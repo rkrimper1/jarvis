@@ -19,7 +19,7 @@ import (
 type Config struct {
 	Host      string // SMTP_HOST  e.g. smtp.gmail.com
 	Port      string // SMTP_PORT  e.g. 587
-	User      string // SMTP_USER  e.g. rkrimper@gmail.com
+	User      string // SMTP_USER  e.g. example@gmail.com
 	Pass      string // SMTP_PASS  Gmail App Password
 	Organizer string // SMTP_TO    organizer's address — always receives a copy
 }
@@ -69,6 +69,30 @@ func SendInvite(ctx context.Context, cfg Config, subject, icsPayload string, att
 	}
 
 	return smtp.SendMail(addr, auth, cfg.User, recipients, msg)
+}
+
+// SendPlain sends a plain-text email to a single recipient.
+// Used for transactional notifications (e.g. task assignment).
+func SendPlain(ctx context.Context, cfg Config, subject, body, to string) error {
+	_, span := trace.StartSpan(ctx, "jarvis/email.SendPlain")
+	defer span.End()
+
+	auth := smtp.PlainAuth("", cfg.User, cfg.Pass, cfg.Host)
+	addr := cfg.Host + ":" + cfg.Port
+
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "From: %s\r\n", cfg.User)
+	fmt.Fprintf(&buf, "To: %s\r\n", to)
+	fmt.Fprintf(&buf, "Subject: %s\r\n", subject)
+	fmt.Fprintf(&buf, "MIME-Version: 1.0\r\n")
+	fmt.Fprintf(&buf, "Content-Type: text/plain; charset=UTF-8\r\n")
+	fmt.Fprintf(&buf, "Content-Transfer-Encoding: quoted-printable\r\n")
+	buf.WriteString("\r\n")
+	qpw := quotedprintable.NewWriter(&buf)
+	_, _ = qpw.Write([]byte(body))
+	qpw.Close()
+
+	return smtp.SendMail(addr, auth, cfg.User, []string{to}, buf.Bytes())
 }
 
 // mergeRecipients returns a deduplicated list containing the organizer plus all attendees.

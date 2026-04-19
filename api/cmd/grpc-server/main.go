@@ -21,8 +21,10 @@ import (
 	alexaclient    "github.com/rkrimper1/jarvis/api/internal/facility/alexa"
 	"github.com/rkrimper1/jarvis/api/internal/intelligence/fusion"
 	rsspoller      "github.com/rkrimper1/jarvis/api/internal/intelligence/rss"
+	"github.com/rkrimper1/jarvis/api/internal/integrations/email"
 	"github.com/rkrimper1/jarvis/api/internal/profiler"
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
+	tasknotify     "github.com/rkrimper1/jarvis/api/internal/task/notify"
 	learningserver  "github.com/rkrimper1/jarvis/api/internal/learning/server"
 	securityserver  "github.com/rkrimper1/jarvis/api/internal/security/server"
 )
@@ -122,6 +124,21 @@ func main() {
 	faceFontSize       := envFloat64("FACE_OUTPUT_FONT_SIZE", 0)
 	faceMaxImageBytes  := envInt("FACE_MAX_IMAGE_BYTES", 0) // 0 → server default (5 MiB)
 
+	// ── SMTP (shared by task notifier + calendar invites) ────────────
+	var smtpCfg *email.Config
+	if cfg, err := email.ConfigFromEnv(); err == nil {
+		smtpCfg = &cfg
+	} else {
+		log.Warn("SMTP not configured — email features disabled", slog.String("reason", err.Error()))
+	}
+
+	var taskNotifier *tasknotify.Notifier
+	if smtpCfg != nil {
+		notifySelf := envString("TASK_NOTIFY_SELF_ASSIGN", "false") == "true"
+		taskNotifier = tasknotify.New(tasknotify.Config{SMTP: *smtpCfg, NotifySelf: notifySelf}, log)
+		log.Info("task assignment notifications enabled", slog.Bool("notify_self", notifySelf))
+	}
+
 	// Create the HTTP mux first so newServer can register /alexa/* handlers on it.
 	httpMux := http.NewServeMux()
 
@@ -139,7 +156,7 @@ func main() {
 			FontSize:     faceFontSize,
 		},
 		MaxImageBytes: faceMaxImageBytes,
-	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret, fusionCfg, rssCfg)
+	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret, fusionCfg, rssCfg, taskNotifier, smtpCfg)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
 		os.Exit(1)
