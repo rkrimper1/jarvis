@@ -19,7 +19,7 @@ func discardLogger() *slog.Logger {
 
 func newTestServer(t *testing.T) *server.BusinessOpsServer {
 	t.Helper()
-	return server.New(discardLogger())
+	return server.New(discardLogger(), nil)
 }
 
 func metaFor(id string) *commonv1.RequestMeta { return &commonv1.RequestMeta{RequestId: id} }
