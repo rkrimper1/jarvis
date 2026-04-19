@@ -86,6 +86,7 @@ services:
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
       - SMTP_TO=${SMTP_TO:-}
+      - TASK_NOTIFY_SELF_ASSIGN=${TASK_NOTIFY_SELF_ASSIGN:-false}
 
       # ── Heap profiler ─────────────────────────────────────────────
       - PPROF_DIR=${PPROF_DIR:-/tmp/profiles}

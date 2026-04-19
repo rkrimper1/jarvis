@@ -30,22 +30,15 @@ type BusinessOpsServer struct {
 	log      *slog.Logger
 }
 
-// New wires all dependencies.
-// If SMTP env vars are present the server will send calendar invites on ScheduleEvent;
-// if they are missing it logs a warning and continues without email.
-func New(log *slog.Logger) *BusinessOpsServer {
-	srv := &BusinessOpsServer{
+// New wires all dependencies. smtp is optional — pass nil to disable calendar invite emails.
+func New(log *slog.Logger, smtp *email.Config) *BusinessOpsServer {
+	return &BusinessOpsServer{
 		cal:    calendar.New(),
 		tasks:  tasks.New(),
 		router: messaging.New(log),
+		smtp:   smtp,
 		log:    log,
 	}
-	if cfg, err := email.ConfigFromEnv(); err != nil {
-		log.Warn("email invites disabled", slog.String("reason", err.Error()))
-	} else {
-		srv.smtp = &cfg
-	}
-	return srv
 }
 
 func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.ScheduleEventRequest) (*businessv1.ScheduleEventResponse, error) {
@@ -72,6 +65,7 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 
 	// Send calendar invite via email (soft failure — never fails the RPC).
 	if s.smtp != nil {
+		detachedCtx := context.WithoutCancel(ctx)
 		go func() {
 			ics := email.BuildICS(email.Event{
 				Title:          req.Title,
@@ -83,7 +77,7 @@ func (s *BusinessOpsServer) ScheduleEvent(ctx context.Context, req *businessv1.S
 				OrganizerEmail: s.smtp.User,
 			})
 			subject := fmt.Sprintf("Invite: %s", req.Title)
-			if err := email.SendInvite(ctx, *s.smtp, subject, ics, req.Attendees); err != nil {
+			if err := email.SendInvite(detachedCtx, *s.smtp, subject, ics, req.Attendees); err != nil {
 				s.log.Warn("calendar invite not sent", slog.String("event_id", id), slog.Any("error", err))
 			} else {
 				s.log.Info("calendar invite sent", slog.String("event_id", id), slog.String("organizer", s.smtp.Organizer))

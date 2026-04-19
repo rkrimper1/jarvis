@@ -15,6 +15,8 @@ import (
 
 	"github.com/rkrimper1/jarvis/api/middleware"
 	"github.com/rkrimper1/jarvis/api/rest"
+	"github.com/rkrimper1/jarvis/api/internal/integrations/email"
+	tasknotify "github.com/rkrimper1/jarvis/api/internal/task/notify"
 
 	commandv1  "github.com/rkrimper1/jarvis/api/pb/command"
 	businessv1 "github.com/rkrimper1/jarvis/api/pb/business"
@@ -70,7 +72,7 @@ var serviceNames = []string{
 // newServer creates the unified gRPC server and grpc-gateway HTTP mux,
 // instantiates all service implementations, and registers them on both.
 // db is the shared jarvis.db connection (nil disables all SQLite stores).
-func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, db *sql.DB, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tokenSecret string, fusionCfg fusion.Config, rssCfg rsspoller.Config) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
+func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *profiler.HeapProfiler, learningCfg learningserver.Config, db *sql.DB, faceCfg securityserver.FaceConfig, alexaClient *alexaclient.Client, alexaDebug bool, cookiesPath string, httpMux *http.ServeMux, tokenSecret string, fusionCfg fusion.Config, rssCfg rsspoller.Config, taskNotifier *tasknotify.Notifier, smtpCfg *email.Config) (*grpc.Server, *health.Server, *runtime.ServeMux, error) {
 
 	// ── gRPC server ───────────────────────────────────────────────────
 	grpcSrv := grpc.NewServer(
@@ -104,7 +106,8 @@ func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *
 	commandv1.RegisterCommandServiceServer(grpcSrv, cmdSrv)
 
 	// ── Service: business-ops ─────────────────────────────────────────
-	businessv1.RegisterBusinessOpsServiceServer(grpcSrv, businessserver.New(log))
+	businessSrv := businessserver.New(log, smtpCfg)
+	businessv1.RegisterBusinessOpsServiceServer(grpcSrv, businessSrv)
 
 	// ── Service: facility ─────────────────────────────────────────────
 	facilitySrv := facilityserver.NewWithAlexa(log, alexaClient, alexaDebug, cookiesPath)
@@ -182,7 +185,7 @@ func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *
 		if err != nil {
 			log.Error("task store init failed", slog.Any("err", err))
 		} else {
-			taskSrv = taskserver.New(tStore, tokenSecret, log)
+			taskSrv = taskserver.NewWithNotify(tStore, tokenSecret, log, taskNotifier, uStore)
 		}
 	}
 	if taskSrv == nil {
@@ -223,7 +226,7 @@ func newServer(ctx context.Context, log *slog.Logger, maxRecv, maxSend int, hp *
 	if err := commandv1.RegisterCommandServiceHandlerServer(ctx, gwMux, cmdSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway command: %w", err)
 	}
-	if err := businessv1.RegisterBusinessOpsServiceHandlerServer(ctx, gwMux, businessserver.New(log)); err != nil {
+	if err := businessv1.RegisterBusinessOpsServiceHandlerServer(ctx, gwMux, businessSrv); err != nil {
 		return nil, nil, nil, fmt.Errorf("gateway business-ops: %w", err)
 	}
 	if err := facilityv1.RegisterFacilityServiceHandlerServer(ctx, gwMux, facilitySrv); err != nil {

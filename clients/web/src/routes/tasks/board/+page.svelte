@@ -22,6 +22,14 @@
 	let error = $state('');
 	let draggingTaskId = $state('');
 
+	const sortedSprints = $derived(
+		[...sprints].sort((a, b) => {
+			if (!a.startDate) return 1;
+			if (!b.startDate) return -1;
+			return a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0;
+		})
+	);
+
 	// All tasks available as parent references (backlog + current sprint, deduped)
 	const parentOptions = $derived(
 		[...backlogTasks, ...taskList].filter(
@@ -42,6 +50,7 @@
 	let editParentId = $state('');
 	let editStoryPoints = $state(0);
 	let editDueDate = $state('');
+	let editSprintId = $state('');
 	let editError = $state('');
 	let saving = $state(false);
 
@@ -83,21 +92,6 @@
 		}
 	}
 
-	async function loadSprints() {
-		try {
-			const res = await sprints.length === 0 ? tasks.listSprints() : Promise.resolve({ sprints });
-			// always fresh
-			const sp = await tasks.listSprints();
-			sprints = sp.sprints ?? [];
-			const active = sprints.find(s => s.status === 'SPRINT_STATUS_ACTIVE');
-			if (active && !selectedSprintId) {
-				selectedSprintId = active.sprintId;
-			}
-		} catch (e) {
-			error = e instanceof Error ? e.message : String(e);
-		}
-	}
-
 	async function loadSprintTasks() {
 		if (!selectedSprintId) { taskList = []; return; }
 		loading = true;
@@ -120,7 +114,7 @@
 			sprints = sp.sprints ?? [];
 			userList = ul.users ?? [];
 			backlogTasks = bl.tasks ?? [];
-			const active = sprints.find(s => s.status === 'SPRINT_STATUS_ACTIVE');
+			const active = sortedSprints.find(s => s.status === 'SPRINT_STATUS_ACTIVE');
 			if (active && !selectedSprintId) {
 				selectedSprintId = active.sprintId;
 			}
@@ -161,6 +155,7 @@
 		editParentId = selectedTask.parentId ?? '';
 		editStoryPoints = selectedTask.storyPoints ?? 0;
 		editDueDate = selectedTask.dueDate ?? '';
+		editSprintId = selectedTask.sprintId ?? '';
 		editError = '';
 		editMode = true;
 	}
@@ -173,11 +168,10 @@
 	async function submitEdit() {
 		if (!selectedTask) return;
 		if (!editTitle.trim()) { editError = 'Title is required.'; return; }
-		if (!editAssigneeId) { editError = 'Assignee is required.'; return; }
 		editError = '';
 		saving = true;
 		try {
-			const res = await tasks.updateTask(selectedTask.taskId, {
+			let res = await tasks.updateTask(selectedTask.taskId, {
 				title: editTitle.trim(),
 				description: editDescription.trim(),
 				assigneeId: editAssigneeId,
@@ -187,9 +181,19 @@
 				storyPoints: editStoryPoints,
 				dueDate: editDueDate
 			});
-			// Update the task in place
+			// Reflect updateTask result immediately so UI is consistent even if sprint change fails
 			selectedTask = res.task;
 			taskList = taskList.map(t => t.taskId === res.task.taskId ? res.task : t);
+			// Reassign sprint if it changed
+			if (editSprintId !== (selectedTask.sprintId ?? '')) {
+				res = await tasks.assignToSprint(selectedTask.taskId, editSprintId);
+				selectedTask = res.task;
+				taskList = taskList.map(t => t.taskId === res.task.taskId ? res.task : t);
+			}
+			// If the task was moved to a different sprint, remove it from the current board view
+			if (editSprintId !== selectedSprintId) {
+				taskList = taskList.filter(t => t.taskId !== selectedTask.taskId);
+			}
 			editMode = false;
 		} catch (e) {
 			editError = e instanceof Error ? e.message : String(e);
@@ -278,7 +282,7 @@
 			<a href="/tasks/backlog" class="hud-btn">BACKLOG</a>
 			<select class="hud-input sprint-select" bind:value={selectedSprintId} onchange={onSprintChange}>
 				<option value="">— select sprint —</option>
-				{#each sprints as sp}
+				{#each sortedSprints as sp}
 					<option value={sp.sprintId}>{sp.name} ({sp.status === 'SPRINT_STATUS_ACTIVE' ? 'ACTIVE' : 'CLOSED'})</option>
 				{/each}
 			</select>
@@ -533,6 +537,15 @@
 								{/each}
 							</select>
 						</div>
+					</div>
+					<div class="edit-field">
+						<label class="edit-label" for="me-sprint">SPRINT</label>
+						<select id="me-sprint" class="hud-input" bind:value={editSprintId}>
+							<option value="">— backlog (no sprint) —</option>
+							{#each sortedSprints as sp}
+								<option value={sp.sprintId}>{sp.name}{sp.status === 'SPRINT_STATUS_ACTIVE' ? ' (ACTIVE)' : ''}</option>
+							{/each}
+						</select>
 					</div>
 
 					{#if editError}
