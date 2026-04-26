@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { auth, isAuthenticated, subjectId, isAdmin } from '$lib/stores/auth';
 	import { setToken, onUnauthorized } from '$lib/api/client';
@@ -29,7 +29,7 @@
 
 	$effect(() => {
 		hydrated = true;
-		if (!$isAuthenticated && $page.url.pathname !== '/login') {
+		if (!$isAuthenticated && page.url.pathname !== '/login') {
 			goto('/login');
 		}
 	});
@@ -44,7 +44,7 @@
 		<div class="hud-brand font-hud">J.A.R.V.I.S.</div>
 		<nav class="hud-nav">
 			{#each navItems as item}
-				<a href={item.path} class="hud-nav-link" class:active={item.path.startsWith('/tasks') ? $page.url.pathname.startsWith('/tasks') : $page.url.pathname === item.path}>
+				<a href={item.path} class="hud-nav-link" class:active={item.path.startsWith('/tasks') ? page.url.pathname.startsWith('/tasks') : page.url.pathname === item.path}>
 					<span class="nav-icon">{item.icon}</span>
 					<span class="nav-label">{item.label}</span>
 				</a>
@@ -52,7 +52,7 @@
 		</nav>
 		<div class="hud-topbar-right">
 			{#if $isAdmin}
-				<a href="/admin/users" class="hud-nav-link" class:active={$page.url.pathname.startsWith('/admin')}>
+				<a href="/admin/users" class="hud-nav-link" class:active={page.url.pathname.startsWith('/admin')}>
 					<span class="nav-icon">◫</span>
 					<span class="nav-label">ADMIN</span>
 				</a>
@@ -70,7 +70,7 @@
 	<footer class="hud-statusbar">
 		<span class="status-dot online"></span>
 		<span class="text-cyan">SYSTEMS NOMINAL</span>
-		<span class="text-muted" style="margin-left:auto">JARVIS v2.0 · REST :8080 · gRPC :50051</span>
+		<span class="text-muted" style="margin-left:auto">JARVIS v2.0 · REST + gRPC :8080</span>
 	</footer>
 </div>
 {:else}
