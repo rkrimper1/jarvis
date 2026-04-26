@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-
-	"github.com/soheilhy/cmux"
 	"os"
 	"os/signal"
 	"strconv"
@@ -17,6 +15,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/soheilhy/cmux"
 	"go.opencensus.io/trace"
 	_ "modernc.org/sqlite"
 
@@ -200,7 +199,7 @@ func main() {
 		slog.Int("services", len(serviceNames)),
 	)
 
-	errCh := make(chan error, 1)
+	errCh := make(chan error, 3)
 	go func() {
 		if err := grpcSrv.Serve(grpcL); err != nil && err != cmux.ErrServerClosed {
 			errCh <- err
