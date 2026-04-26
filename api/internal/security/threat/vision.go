@@ -83,6 +83,7 @@ func (a *SceneAnalyzer) Analyze(ctx context.Context, imageData []byte, detectedO
 
 func parseSceneResponse(text string) SceneResult {
 	res := sceneStub()
+	res.Actions = nil // cleared so only parsed ACTION lines are returned
 	for _, line := range strings.Split(text, "\n") {
 		line = strings.TrimSpace(line)
 		switch {
