@@ -119,6 +119,15 @@ services:
       - FACE_OUTPUT_FONT_SIZE=${FACE_OUTPUT_FONT_SIZE:-0}
       - FACE_MAX_IMAGE_BYTES=${FACE_MAX_IMAGE_BYTES:-0}
 
+      # ── Threat scene analysis + event logging (Security service) ──
+      # THREAT_VISION_ENABLED requires ANTHROPIC_API_KEY to be set.
+      - THREAT_VISION_ENABLED=${THREAT_VISION_ENABLED:-false}
+      # THREAT_LOG_MODE: "manual" (LOG button only) | "auto" (every analysis) | "all" (both)
+      - THREAT_LOG_MODE=${THREAT_LOG_MODE:-manual}
+      # Set THREAT_LOG_IMAGES=true and THREAT_EVENT_DIR to persist camera frames to disk.
+      - THREAT_LOG_IMAGES=${THREAT_LOG_IMAGES:-false}
+      - THREAT_EVENT_DIR=${THREAT_EVENT_DIR:-}
+
       # ── Alexa smart home ──────────────────────────────────────────
       - ALEXA_COOKIES_PATH=${ALEXA_COOKIES_PATH:-}
       - ALEXA_DEBUG=${ALEXA_DEBUG:-false}

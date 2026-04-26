@@ -20,6 +20,11 @@ import (
 	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
 	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
 	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/rkrimper1/jarvis/api/internal/security/analyticsstore"
 	"github.com/rkrimper1/jarvis/api/middleware"
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
@@ -28,6 +33,7 @@ import (
 	"github.com/rkrimper1/jarvis/api/internal/security/faceanalysis"
 	"github.com/rkrimper1/jarvis/api/internal/security/protocol"
 	"github.com/rkrimper1/jarvis/api/internal/security/threat"
+	"github.com/rkrimper1/jarvis/api/internal/security/threatstore"
 	"github.com/rkrimper1/jarvis/api/internal/security/token"
 )
 
@@ -57,6 +63,15 @@ type SecurityServer struct {
 	faceOutputDir      string
 	faceAnnotateParams faceanalysis.AnnotateParams
 	faceMaxImageBytes  int
+
+	// threat scene analysis (Claude Vision) — nil when THREAT_VISION_ENABLED=false
+	sceneAnalyzer *threat.SceneAnalyzer
+
+	// threat event persistence
+	threatStore       *threatstore.Store // nil if no shared DB
+	threatLogMode     string             // "auto" | "manual" | "all"
+	threatEventDir    string             // dir for stored frames; empty = don't store
+	threatStoreImages bool
 }
 
 // FaceConfig holds optional face-analysis configuration.
@@ -68,6 +83,15 @@ type FaceConfig struct {
 	DetectParams   faceanalysis.DetectParams
 	AnnotateParams faceanalysis.AnnotateParams
 	MaxImageBytes  int // max accepted image_data size; 0 → default 5 MiB
+
+	// ThreatVisionEnabled gates the AnalyzeThreatScene RPC.
+	// Controlled by THREAT_VISION_ENABLED env var.
+	ThreatVisionEnabled bool
+
+	// Threat event logging
+	ThreatLogMode     string // "auto" | "manual" | "all" (default "manual")
+	ThreatStoreImages bool   // THREAT_LOG_IMAGES
+	ThreatEventDir    string // THREAT_EVENT_DIR; required when ThreatStoreImages=true
 }
 
 // New wires all dependencies and returns a ready SecurityServer.
@@ -141,6 +165,30 @@ func NewWithUserStoreFace(cfg *config.Config, log *slog.Logger, users UserStore,
 			slog.String("output_dir", face.OutputDir),
 		)
 	}
+
+	if face.ThreatVisionEnabled && face.AnthropicKey != "" {
+		srv.sceneAnalyzer = threat.NewSceneAnalyzer(face.AnthropicKey, face.ClaudeModel)
+		log.Info("threat scene analysis enabled (Claude Vision)")
+	} else if face.ThreatVisionEnabled {
+		log.Warn("THREAT_VISION_ENABLED=true but ANTHROPIC_API_KEY is missing — threat vision disabled")
+	}
+
+	if db != nil {
+		ts, err := threatstore.New(db)
+		if err != nil {
+			log.Error("threatstore: init failed — threat event logging disabled", slog.Any("err", err))
+		} else {
+			srv.threatStore = ts
+		}
+	}
+
+	mode := face.ThreatLogMode
+	if mode == "" {
+		mode = "manual"
+	}
+	srv.threatLogMode     = mode
+	srv.threatStoreImages = face.ThreatStoreImages
+	srv.threatEventDir    = face.ThreatEventDir
 
 	return srv
 }
@@ -529,6 +577,155 @@ func (s *SecurityServer) AnalyzeFaces(
 		ImageUrl:  "/faces/" + filename,
 		FaceCount: int32(len(dets)),
 		Faces:     faces,
+	}, nil
+}
+
+// ── AnalyzeThreatScene ────────────────────────────────────────────────
+
+func (s *SecurityServer) AnalyzeThreatScene(
+	ctx context.Context,
+	req *securityv1.AnalyzeThreatSceneRequest,
+) (*securityv1.AnalyzeThreatSceneResponse, error) {
+
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if s.sceneAnalyzer == nil {
+		return &securityv1.AnalyzeThreatSceneResponse{
+			Meta:          metaOK(req.Meta.RequestId),
+			Level:         securityv1.ThreatLevel_THREAT_LEVEL_UNSPECIFIED,
+			ThreatSummary: "Threat vision disabled — set THREAT_VISION_ENABLED=true to enable.",
+			LogMode:       s.threatLogMode,
+		}, nil
+	}
+	if len(req.ImageData) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "image_data is required")
+	}
+
+	ctx, span := trace.StartSpan(ctx, "security/AnalyzeThreatScene")
+	defer span.End()
+
+	s.log.InfoContext(ctx, "AnalyzeThreatScene",
+		slog.String("request_id", req.Meta.RequestId),
+		slog.Int("image_bytes", len(req.ImageData)),
+		slog.Int("detected_objects", len(req.DetectedObjects)),
+	)
+
+	result := s.sceneAnalyzer.Analyze(ctx, req.ImageData, req.DetectedObjects, "")
+
+	s.auditLog.Append("system", "analyze-threat-scene", "security/vision", true)
+
+	return &securityv1.AnalyzeThreatSceneResponse{
+		Meta:               metaOK(req.Meta.RequestId),
+		Level:              result.Level,
+		Confidence:         result.Confidence,
+		ThreatSummary:      result.Summary,
+		RecommendedActions: result.Actions,
+		LogMode:            s.threatLogMode,
+	}, nil
+}
+
+// ── LogThreatEvent ────────────────────────────────────────────────────
+
+func (s *SecurityServer) LogThreatEvent(
+	ctx context.Context,
+	req *securityv1.LogThreatEventRequest,
+) (*securityv1.LogThreatEventResponse, error) {
+
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+
+	// Decide whether to persist based on server-side mode and force flag.
+	shouldLog := false
+	switch s.threatLogMode {
+	case "auto", "all":
+		shouldLog = true
+	default: // "manual" or unset
+		shouldLog = req.Force
+	}
+
+	if !shouldLog || s.threatStore == nil {
+		return &securityv1.LogThreatEventResponse{
+			Meta:   metaOK(req.Meta.RequestId),
+			Logged: false,
+		}, nil
+	}
+
+	// Optionally save the camera frame.
+	var imageURL string
+	if s.threatStoreImages && s.threatEventDir != "" && len(req.ImageData) > 0 {
+		filename := fmt.Sprintf("threat_%s_%s.jpg",
+			time.Now().UTC().Format("20060102T150405"),
+			uuid.New().String()[:8],
+		)
+		path := filepath.Join(s.threatEventDir, filename)
+		if err := os.WriteFile(path, req.ImageData, 0o644); err != nil {
+			s.log.WarnContext(ctx, "threat event: failed to save image",
+				slog.String("path", path), slog.Any("err", err))
+		} else {
+			imageURL = "/threat-events/" + filename
+		}
+	}
+
+	evt := &securityv1.ThreatEvent{
+		CameraLabel:        req.CameraLabel,
+		DetectedObjects:    req.DetectedObjects,
+		Level:              req.Level,
+		Confidence:         req.Confidence,
+		ThreatSummary:      req.ThreatSummary,
+		RecommendedActions: req.RecommendedActions,
+		ImageUrl:           imageURL,
+	}
+	saved, err := s.threatStore.Log(ctx, evt)
+	if err != nil {
+		s.log.ErrorContext(ctx, "threat event: store failed", slog.Any("err", err))
+		return nil, status.Error(codes.Internal, "failed to persist threat event")
+	}
+
+	source := req.CameraLabel
+	if source == "" {
+		source = "camera"
+	}
+	s.auditLog.Append(source, "threat-event:"+req.Level.String(), imageURL, true)
+
+	s.log.InfoContext(ctx, "threat event logged",
+		slog.String("event_id", saved.EventId),
+		slog.String("level", req.Level.String()),
+		slog.Bool("image_stored", imageURL != ""),
+	)
+
+	return &securityv1.LogThreatEventResponse{
+		Meta:   metaOK(req.Meta.RequestId),
+		Event:  saved,
+		Logged: true,
+	}, nil
+}
+
+// ── ListThreatEvents ──────────────────────────────────────────────────
+
+func (s *SecurityServer) ListThreatEvents(
+	ctx context.Context,
+	req *securityv1.ListThreatEventsRequest,
+) (*securityv1.ListThreatEventsResponse, error) {
+
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	if s.threatStore == nil {
+		return &securityv1.ListThreatEventsResponse{
+			Meta: metaOK(req.Meta.RequestId),
+		}, nil
+	}
+
+	events, err := s.threatStore.List(ctx, req.PageSize)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to list threat events")
+	}
+
+	return &securityv1.ListThreatEventsResponse{
+		Meta:   metaOK(req.Meta.RequestId),
+		Events: events,
 	}, nil
 }
 

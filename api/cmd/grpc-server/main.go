@@ -114,8 +114,12 @@ func main() {
 		Interval: envDuration("RSS_POLL_INTERVAL", 15*time.Minute),
 	}
 
-	faceOutputDir      := envString("FACE_OUTPUT_DIR", "")
-	faceCascadePath    := envString("FACE_CASCADE_PATH", "")
+	faceOutputDir          := envString("FACE_OUTPUT_DIR", "")
+	faceCascadePath        := envString("FACE_CASCADE_PATH", "")
+	threatVisionEnabled    := envString("THREAT_VISION_ENABLED", "false") == "true"
+	threatLogMode          := envString("THREAT_LOG_MODE", "manual")
+	threatStoreImages      := envString("THREAT_LOG_IMAGES", "false") == "true"
+	threatEventDir         := envString("THREAT_EVENT_DIR", "")
 	faceMinSize        := envInt("FACE_MIN_SIZE", 65)
 	faceQuality        := envFloat32("FACE_QUALITY_THRESHOLD", 6.0)
 	faceCluster        := envFloat64("FACE_CLUSTER_OVERLAP", 0.25)
@@ -155,7 +159,11 @@ func main() {
 			Opacity:      faceOpacity,
 			FontSize:     faceFontSize,
 		},
-		MaxImageBytes: faceMaxImageBytes,
+		MaxImageBytes:       faceMaxImageBytes,
+		ThreatVisionEnabled: threatVisionEnabled,
+		ThreatLogMode:       threatLogMode,
+		ThreatStoreImages:   threatStoreImages,
+		ThreatEventDir:      threatEventDir,
 	}, alexaClient, alexaDebug, alexaCookies, httpMux, tokenSecret, fusionCfg, rssCfg, taskNotifier, smtpCfg)
 	if err != nil {
 		log.Error("server init failed", slog.Any("err", err))
@@ -175,6 +183,9 @@ func main() {
 	httpMux.Handle("/v1/", gwMux)
 	if faceOutputDir != "" {
 		httpMux.Handle("/faces/", http.StripPrefix("/faces/", http.FileServer(http.Dir(faceOutputDir))))
+	}
+	if threatEventDir != "" {
+		httpMux.Handle("/threat-events/", http.StripPrefix("/threat-events/", http.FileServer(http.Dir(threatEventDir))))
 	}
 	// Fallback: anything else goes to the gateway (health, etc.)
 	httpMux.Handle("/", gwMux)

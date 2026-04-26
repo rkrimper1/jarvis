@@ -78,6 +78,35 @@ export const security = {
 			image_data: imageData,
 			filename
 		});
+	},
+	analyzeThreatScene(imageData: string, detectedObjects: string[] = []): Promise<AnalyzeThreatSceneResponse> {
+		return call('POST', '/security/threat-scene', {
+			meta: { request_id: reqId() },
+			image_data: imageData,
+			detected_objects: detectedObjects
+		});
+	},
+	logThreatEvent(params: {
+		cameraLabel: string;
+		detectedObjects: string[];
+		level: ThreatLevel;
+		confidence: number;
+		threatSummary: string;
+		recommendedActions: string[];
+		imageData?: string; // base64 JPEG; only stored when THREAT_LOG_IMAGES=true
+		force?: boolean;    // true = manual button press
+	}): Promise<LogThreatEventResponse> {
+		return call('POST', '/security/threat-events', {
+			meta:                { request_id: reqId() },
+			camera_label:        params.cameraLabel,
+			detected_objects:    params.detectedObjects,
+			level:               params.level,
+			confidence:          params.confidence,
+			threat_summary:      params.threatSummary,
+			recommended_actions: params.recommendedActions,
+			image_data:          params.imageData ?? '',
+			force:               params.force ?? false
+		});
 	}
 };
 
@@ -122,6 +151,40 @@ export interface AnalyzeFacesResponse {
 	imageUrl: string;
 	faceCount: number;
 	faces: FaceAnalysis[];
+}
+
+export type ThreatLevel =
+	| 'THREAT_LEVEL_UNSPECIFIED'
+	| 'THREAT_LEVEL_LOW'
+	| 'THREAT_LEVEL_MODERATE'
+	| 'THREAT_LEVEL_HIGH'
+	| 'THREAT_LEVEL_CRITICAL';
+
+export interface AnalyzeThreatSceneResponse {
+	meta: ResponseMeta;
+	level: ThreatLevel;
+	confidence: number;
+	threatSummary: string;
+	recommendedActions: string[];
+	logMode: string; // "auto" | "manual" | "all"
+}
+
+export interface ThreatEvent {
+	eventId: string;
+	timestamp: string;
+	cameraLabel: string;
+	detectedObjects: string[];
+	level: ThreatLevel;
+	confidence: number;
+	threatSummary: string;
+	recommendedActions: string[];
+	imageUrl: string;
+}
+
+export interface LogThreatEventResponse {
+	meta: ResponseMeta;
+	event: ThreatEvent;
+	logged: boolean;
 }
 
 // ── NLP ─────────────────────────────────────────────────────────────
