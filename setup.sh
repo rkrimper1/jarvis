@@ -300,6 +300,20 @@ if [ -f "$WEB_DIR/package.json" ]; then
   cd "$WEB_DIR" && npm install 2>&1 | tail -3
   cd - > /dev/null
   success "Web client dependencies installed"
+
+  # TF.js + COCO-SSD — required for the Security Threat AR overlay (client-side
+  # object detection). Listed in package.json so npm install above covers them,
+  # but we verify here to surface any missing-peer issues early.
+  info "Verifying TF.js + COCO-SSD packages..."
+  cd "$WEB_DIR"
+  if node -e "require('@tensorflow/tfjs'); require('@tensorflow-models/coco-ssd')" 2>/dev/null; then
+    success "TF.js + COCO-SSD ready"
+  else
+    info "Installing TF.js + COCO-SSD explicitly..."
+    npm install @tensorflow/tfjs @tensorflow-models/coco-ssd 2>&1 | tail -3
+    success "TF.js + COCO-SSD installed"
+  fi
+  cd - > /dev/null
 fi
 
 # ── 11. VS Code extensions ───────────────────────────────────────────
