@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/soheilhy/cmux"
 	"go.opencensus.io/trace"
 	_ "modernc.org/sqlite"
 
@@ -35,7 +36,6 @@ func main() {
 	}))
 	slog.SetDefault(log)
 
-	grpcPort        := envInt("GRPC_PORT", 50051)
 	httpPort        := envInt("HTTP_PORT", 8080)
 	shutdownTimeout := envDuration("SHUTDOWN_TIMEOUT", 10*time.Second)
 	maxRecv         := envInt("MAX_RECV_MSG_SIZE", 8*1024*1024)
@@ -170,16 +170,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	// ── gRPC listener ─────────────────────────────────────────────────
-	grpcAddr := fmt.Sprintf(":%d", grpcPort)
-	lis, err := net.Listen("tcp", grpcAddr)
+	// ── Single TCP listener, multiplexed by cmux ─────────────────────
+	addr := fmt.Sprintf(":%d", httpPort)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Error("grpc listen failed", slog.String("addr", grpcAddr), slog.Any("err", err))
+		log.Error("listen failed", slog.String("addr", addr), slog.Any("err", err))
 		os.Exit(1)
 	}
+	mux := cmux.New(lis)
+	// Match gRPC before HTTP so the HTTP1Fast matcher gets the remainder.
+	grpcL := mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
+	httpL := mux.Match(cmux.Any())
 
-	// ── HTTP/REST listener (grpc-gateway + static face images) ───────
-	httpAddr := fmt.Sprintf(":%d", httpPort)
+	// ── HTTP/REST routes ──────────────────────────────────────────────
 	httpMux.Handle("/v1/", gwMux)
 	if faceOutputDir != "" {
 		httpMux.Handle("/faces/", http.StripPrefix("/faces/", http.FileServer(http.Dir(faceOutputDir))))
@@ -189,25 +192,26 @@ func main() {
 	}
 	// Fallback: anything else goes to the gateway (health, etc.)
 	httpMux.Handle("/", gwMux)
-	httpSrv := &http.Server{
-		Addr:    httpAddr,
-		Handler: httpMux,
-	}
+	httpSrv := &http.Server{Handler: httpMux}
 
 	log.Info("JARVIS starting",
-		slog.String("grpc", grpcAddr),
-		slog.String("http", httpAddr),
+		slog.String("addr", addr),
 		slog.Int("services", len(serviceNames)),
 	)
 
-	errCh := make(chan error, 1)
+	errCh := make(chan error, 3)
 	go func() {
-		if err := grpcSrv.Serve(lis); err != nil {
+		if err := grpcSrv.Serve(grpcL); err != nil && err != cmux.ErrServerClosed {
 			errCh <- err
 		}
 	}()
 	go func() {
-		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpSrv.Serve(httpL); err != nil && err != http.ErrServerClosed {
+			errCh <- err
+		}
+	}()
+	go func() {
+		if err := mux.Serve(); err != nil && err != cmux.ErrServerClosed {
 			errCh <- err
 		}
 	}()
@@ -228,6 +232,8 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
+	// Shutdown order: stop accepting new HTTP connections, then drain gRPC,
+	// then close the cmux listener which unblocks mux.Serve().
 	_ = httpSrv.Shutdown(ctx)
 
 	stopped := make(chan struct{})
@@ -243,6 +249,8 @@ func main() {
 		log.Warn("shutdown timeout — forcing stop")
 		grpcSrv.Stop()
 	}
+
+	mux.Close()
 }
 
 func initTracing(enabled bool, log *slog.Logger) func() {

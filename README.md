@@ -14,7 +14,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   │   Web HUD :5173          iOS / Android       Voice / STT    │
   │   (SvelteKit)            (Swift / Kotlin)    (gRPC stream)  │
   └───────────────┬──────────────────┬───────────────┬──────────┘
-                  │  REST :8080      │               │ gRPC :50051
+                  │  REST :8080      │               │ gRPC :8080
                   ▼                  ▼               ▼
   ┌─────────────────────────────────────────────────────────────────────────┐
   │                    J.A.R.V.I.S.                                         │
@@ -69,7 +69,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `user` | User CRUD, profile management, password change, role-based access (SQLite + bcrypt) |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
 
-All 10 services are exposed as both gRPC (`:50051`) and REST (`:8080`).
+All 10 services are exposed on a single port (`:8080`) — gRPC and REST are multiplexed by cmux.
 
 ### Facility — Alexa Smart Home
 
@@ -290,7 +290,7 @@ bash setup.sh
 make docker-up
 
 # 3. Verify it's running (gRPC health)
-grpcurl -plaintext localhost:50051 list
+grpcurl -plaintext localhost:8080 list
 
 # 4. Call a REST endpoint
 curl -X POST http://localhost:8080/v1/nlp/dialogue \

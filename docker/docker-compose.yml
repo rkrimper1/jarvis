@@ -4,8 +4,7 @@ version: "3.8"
 #  JARVIS — Single binary, all services in one process
 #
 #  Ports:
-#    :50051  gRPC  (all 9 services)
-#    :8080   REST  (grpc-gateway HTTP transcoder)
+#    :8080   gRPC + REST  (cmux — single listener for both protocols)
 #    :6379   Redis (session store — opt-in via SESSION_PROVIDER=redis)
 #
 #  Volumes:
@@ -22,7 +21,6 @@ services:
       - /home/vagrant/credentials/jarvis/.env
     environment:
       # ── Server ────────────────────────────────────────────────────
-      - GRPC_PORT=50051
       - HTTP_PORT=8080
       - SHUTDOWN_TIMEOUT=10s
       - MAX_RECV_MSG_SIZE=8388608
@@ -144,7 +142,6 @@ services:
       - /home/vagrant/.jarvis:/home/vagrant/.jarvis
       - /home/vagrant/credentials/jarvis:/home/vagrant/credentials/jarvis
     ports:
-      - "50051:50051"
       - "8080:8080"
     depends_on:
       - redis

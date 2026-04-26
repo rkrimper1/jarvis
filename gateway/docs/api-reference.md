@@ -1,7 +1,7 @@
 # JARVIS REST API Reference
 
 Base URL: `http://localhost:8080`
-gRPC direct: `localhost:50051`
+gRPC direct: `localhost:8080`
 
 All 10 services are served by a single binary via grpc-gateway (in-process, no proxy hop).
 
@@ -85,7 +85,7 @@ curl -X POST http://localhost:8080/v1/command/memory-profile \
 **gRPC:**
 ```bash
 grpcurl -plaintext -d '{"meta": {"request_id": "cmd-001"}}' \
-  localhost:50051 jarvis.command.CommandService/RequestMemoryProfile
+  localhost:8080 jarvis.command.CommandService/RequestMemoryProfile
 ```
 
 ---
@@ -182,7 +182,7 @@ grpcurl -plaintext \
     "method": "AUTH_METHOD_PASSCODE",
     "credential_payload": "'"$(echo -n 'tony-stark' | base64)"'"
   }' \
-  localhost:50051 jarvis.security.SecurityService/Authenticate
+  localhost:8080 jarvis.security.SecurityService/Authenticate
 ```
 
 ### Assess Threat
@@ -243,7 +243,7 @@ curl "http://localhost:8080/v1/security/audit?meta.request_id=audit-001&page_siz
 **gRPC:**
 ```bash
 grpcurl -plaintext -d '{"meta": {"request_id": "audit-001"}, "page_size": 20}' \
-  localhost:50051 jarvis.security.SecurityService/GetAuditLog
+  localhost:8080 jarvis.security.SecurityService/GetAuditLog
 ```
 
 ### Analyze Faces
@@ -283,7 +283,7 @@ grpcurl -plaintext -d "{
   \"meta\": {\"request_id\": \"face-001\"},
   \"image_data\": \"$(base64 -w0 /path/to/photo.jpg)\",
   \"filename\": \"photo.jpg\"
-}" localhost:50051 jarvis.security.SecurityService/AnalyzeFaces
+}" localhost:8080 jarvis.security.SecurityService/AnalyzeFaces
 ```
 
 ### Analyze Threat Scene
@@ -321,7 +321,7 @@ grpcurl -plaintext -d "{
   \"meta\": {\"request_id\": \"scene-001\"},
   \"image_data\": \"$(base64 -w0 /path/to/frame.jpg)\",
   \"detected_objects\": [\"person(0.91)\", \"knife(0.78)\"]
-}" localhost:50051 jarvis.security.SecurityService/AnalyzeThreatScene
+}" localhost:8080 jarvis.security.SecurityService/AnalyzeThreatScene
 ```
 
 ### Log Threat Event
@@ -381,7 +381,7 @@ grpcurl -plaintext -d '{
   "confidence": 0.91,
   "threat_summary": "Armed individual detected.",
   "force": true
-}' localhost:50051 jarvis.security.SecurityService/LogThreatEvent
+}' localhost:8080 jarvis.security.SecurityService/LogThreatEvent
 ```
 
 ### List Threat Events
@@ -414,7 +414,7 @@ curl "http://localhost:8080/v1/security/threat-events?meta.request_id=list-001&p
 **gRPC:**
 ```bash
 grpcurl -plaintext -d '{"meta": {"request_id": "list-001"}, "page_size": 20}' \
-  localhost:50051 jarvis.security.SecurityService/ListThreatEvents
+  localhost:8080 jarvis.security.SecurityService/ListThreatEvents
 ```
 
 ---
@@ -477,7 +477,7 @@ curl http://localhost:8080/v1/facility/alexa/devices \
 **gRPC:**
 ```bash
 grpcurl -plaintext -d '{"meta": {"request_id": "fac-alexa-001"}}' \
-  localhost:50051 jarvis.facility.FacilityService/ListAlexaDevices
+  localhost:8080 jarvis.facility.FacilityService/ListAlexaDevices
 ```
 
 ### Send Alexa Command
@@ -514,7 +514,7 @@ grpcurl -plaintext -d '{
   "meta": {"request_id": "fac-cmd-001"},
   "appliance_id": "amzn1.alexa.endpoint.<uuid>",
   "action": "turnOff"
-}' localhost:50051 jarvis.facility.FacilityService/SendAlexaCommand
+}' localhost:8080 jarvis.facility.FacilityService/SendAlexaCommand
 ```
 
 ---
@@ -648,7 +648,7 @@ curl "http://localhost:8080/v1/intel/cards?meta.request_id=list-003&page_size=10
 **gRPC:**
 ```bash
 grpcurl -plaintext -d '{"meta": {"request_id": "list-001"}, "page_size": 20}' \
-  localhost:50051 jarvis.intelligence.IntelligenceService/ListIntelCards
+  localhost:8080 jarvis.intelligence.IntelligenceService/ListIntelCards
 ```
 
 #### Search Intel Cards
@@ -877,7 +877,7 @@ grpcurl -plaintext -d '{
   "query": "arc reactor palladium toxicity",
   "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
   "confirmed": true
-}' localhost:50051 jarvis.learning.LearningService/SearchKnowledge
+}' localhost:8080 jarvis.learning.LearningService/SearchKnowledge
 ```
 
 ---
@@ -988,19 +988,19 @@ curl "http://localhost:8080/v1/users/<user-uuid>/entitlements" \
 **gRPC:**
 ```bash
 grpcurl -plaintext -d '{"username": "tony-stark"}' \
-  localhost:50051 jarvis.user.UserService/GetMe
+  localhost:8080 jarvis.user.UserService/GetMe
 
 grpcurl -plaintext -d '{}' \
-  localhost:50051 jarvis.user.UserService/ListUsers
+  localhost:8080 jarvis.user.UserService/ListUsers
 
 grpcurl -plaintext -d '{"username": "pepper-potts"}' \
-  localhost:50051 jarvis.user.UserService/GetUser
+  localhost:8080 jarvis.user.UserService/GetUser
 
 grpcurl -plaintext -d '{"id": "<user-uuid>", "role": "ROLE_EDITOR"}' \
-  localhost:50051 jarvis.user.UserService/UpdateUser
+  localhost:8080 jarvis.user.UserService/UpdateUser
 
 grpcurl -plaintext -d '{"user_id": "<user-uuid>"}' \
-  localhost:50051 jarvis.user.UserService/ListEntitlements
+  localhost:8080 jarvis.user.UserService/ListEntitlements
 ```
 
 ---
@@ -1036,7 +1036,7 @@ grpcurl -plaintext -d '{
   "priority": "TASK_PRIORITY_HIGH",
   "task_type": "TASK_TYPE_TASK",
   "story_points": 5
-}' localhost:50051 jarvis.task.TaskService/CreateTask
+}' localhost:8080 jarvis.task.TaskService/CreateTask
 ```
 
 ### List Backlog
@@ -1112,7 +1112,7 @@ grpcurl -plaintext -d '{
   "goal": "Complete core repulsor upgrade",
   "start_date": "2026-04-14",
   "end_date": "2026-04-28"
-}' localhost:50051 jarvis.task.TaskService/CreateSprint
+}' localhost:8080 jarvis.task.TaskService/CreateSprint
 ```
 
 ### List Sprints
@@ -1184,25 +1184,25 @@ curl -X DELETE http://localhost:8080/v1/sprints/<sprint-uuid> \
 
 ```bash
 # List all services
-grpcurl -plaintext localhost:50051 list
+grpcurl -plaintext localhost:8080 list
 
 # Request a heap memory profile
 grpcurl -plaintext -d '{"meta": {"request_id": "grpc-cmd-001"}}' \
-  localhost:50051 jarvis.command.CommandService/RequestMemoryProfile
+  localhost:8080 jarvis.command.CommandService/RequestMemoryProfile
 
 # Parse intent
 grpcurl -plaintext -d '{
   "meta": {"request_id": "grpc-001"},
   "raw_text": "Power up the Mark VII",
   "session_id": "session-001"
-}' localhost:50051 jarvis.nlp.NLPService/ParseIntent
+}' localhost:8080 jarvis.nlp.NLPService/ParseIntent
 
 # Dialogue turn (routed to Claude based on intent)
 grpcurl -plaintext -d '{
   "meta": {"request_id": "grpc-dlg-001"},
   "session_id": "session-tony-001",
   "utterance": "What do you know about palladium toxicity?"
-}' localhost:50051 jarvis.nlp.NLPService/ProcessDialogueTurn
+}' localhost:8080 jarvis.nlp.NLPService/ProcessDialogueTurn
 
 # Schedule an event (triggers calendar invite email if SMTP is configured)
 grpcurl -plaintext -d '{
@@ -1214,7 +1214,7 @@ grpcurl -plaintext -d '{
   "start": "2026-04-01T14:00:00Z",
   "end":   "2026-04-01T15:00:00Z",
   "high_priority": true
-}' localhost:50051 jarvis.business.BusinessOpsService/ScheduleEvent
+}' localhost:8080 jarvis.business.BusinessOpsService/ScheduleEvent
 
 # Search knowledge base (confirmed external search)
 grpcurl -plaintext -d '{
@@ -1222,10 +1222,10 @@ grpcurl -plaintext -d '{
   "query": "vibranium tensile strength",
   "preferred_source": "KNOWLEDGE_SOURCE_CLAUDE_API",
   "confirmed": true
-}' localhost:50051 jarvis.learning.LearningService/SearchKnowledge
+}' localhost:8080 jarvis.learning.LearningService/SearchKnowledge
 
 # Health check
-grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
+grpcurl -plaintext localhost:8080 grpc.health.v1.Health/Check
 ```
 
 ---
@@ -1238,7 +1238,7 @@ grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
                   │  (HUD / Mobile App / Voice Interface)    │
                   └──────────────┬──────────────────────────┘
                                  │
-                    REST :8080   │   gRPC :50051
+                    REST + gRPC :8080 (cmux)
                   ┌──────────────▼──────────────────────────┐
                   │            J.A.R.V.I.S.                  │
                   │    Single Go Binary · debian:slim         │
