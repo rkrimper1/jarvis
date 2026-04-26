@@ -286,6 +286,137 @@ grpcurl -plaintext -d "{
 }" localhost:50051 jarvis.security.SecurityService/AnalyzeFaces
 ```
 
+### Analyze Threat Scene
+
+Sends a camera frame to **Claude Vision** and returns a structured threat assessment. Requires `THREAT_VISION_ENABLED=true` and `ANTHROPIC_API_KEY`. When disabled, returns `THREAT_LEVEL_UNSPECIFIED` (not an error). The response includes `log_mode` so the client knows the server-side logging policy without a separate call.
+
+`detected_objects` is an optional list of client-side COCO-SSD labels (e.g. `["person(0.91)", "knife(0.78)"]`) that are prepended to the Claude prompt as context.
+
+```bash
+curl -X POST http://localhost:8080/v1/security/threat-scene \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "scene-001"},
+    "image_data": "'"$(base64 -w0 /path/to/frame.jpg)"'",
+    "detected_objects": ["person(0.91)", "knife(0.78)"]
+  }'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "scene-001", "success": true},
+  "level": "THREAT_LEVEL_HIGH",
+  "confidence": 0.91,
+  "threatSummary": "Armed individual detected at entrance, sir.",
+  "recommendedActions": ["Lock down the area.", "Alert security personnel."],
+  "logMode": "manual"
+}
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d "{
+  \"meta\": {\"request_id\": \"scene-001\"},
+  \"image_data\": \"$(base64 -w0 /path/to/frame.jpg)\",
+  \"detected_objects\": [\"person(0.91)\", \"knife(0.78)\"]
+}" localhost:50051 jarvis.security.SecurityService/AnalyzeThreatScene
+```
+
+### Log Threat Event
+
+Persists a threat event to the `threat_events` table in the shared SQLite DB. Whether the event is actually stored depends on `THREAT_LOG_MODE` and the `force` field:
+
+| `THREAT_LOG_MODE` | `force` | Stored? |
+|---|---|---|
+| `manual` | `false` | No |
+| `manual` | `true` | Yes |
+| `auto` | any | Yes |
+| `all` | any | Yes |
+
+When `THREAT_LOG_IMAGES=true` and `THREAT_EVENT_DIR` is configured, the raw `image_data` (JPEG) is saved to disk and the URL is included in the returned event. The event is also appended to the audit log as `threat-event:<LEVEL>`.
+
+```bash
+curl -X POST http://localhost:8080/v1/security/threat-events \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meta": {"request_id": "log-001"},
+    "camera_label": "Front Door",
+    "detected_objects": ["person(0.91)", "knife(0.78)"],
+    "level": "THREAT_LEVEL_HIGH",
+    "confidence": 0.91,
+    "threat_summary": "Armed individual detected at entrance.",
+    "recommended_actions": ["Lock down the area."],
+    "force": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "log-001", "success": true},
+  "event": {
+    "eventId": "3f4a1b2c-...",
+    "timestamp": "2026-04-26T14:05:00Z",
+    "cameraLabel": "Front Door",
+    "detectedObjects": ["person(0.91)", "knife(0.78)"],
+    "level": "THREAT_LEVEL_HIGH",
+    "confidence": 0.91,
+    "threatSummary": "Armed individual detected at entrance.",
+    "recommendedActions": ["Lock down the area."],
+    "imageUrl": ""
+  },
+  "logged": true
+}
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{
+  "meta": {"request_id": "log-001"},
+  "camera_label": "Front Door",
+  "level": "THREAT_LEVEL_HIGH",
+  "confidence": 0.91,
+  "threat_summary": "Armed individual detected.",
+  "force": true
+}' localhost:50051 jarvis.security.SecurityService/LogThreatEvent
+```
+
+### List Threat Events
+
+Returns stored threat events newest-first. `page_size` is clamped: `0` or `>100` both default to `20`. Returns an empty list (no error) when `JARVIS_DB_PATH` is unset.
+
+```bash
+curl "http://localhost:8080/v1/security/threat-events?meta.request_id=list-001&pageSize=20" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response:**
+```json
+{
+  "meta": {"requestId": "list-001", "success": true},
+  "events": [
+    {
+      "eventId": "3f4a1b2c-...",
+      "timestamp": "2026-04-26T14:05:00Z",
+      "cameraLabel": "Front Door",
+      "level": "THREAT_LEVEL_HIGH",
+      "confidence": 0.91,
+      "threatSummary": "Armed individual detected at entrance.",
+      "imageUrl": ""
+    }
+  ]
+}
+```
+
+**gRPC:**
+```bash
+grpcurl -plaintext -d '{"meta": {"request_id": "list-001"}, "page_size": 20}' \
+  localhost:50051 jarvis.security.SecurityService/ListThreatEvents
+```
+
 ---
 
 ## Facility Service
