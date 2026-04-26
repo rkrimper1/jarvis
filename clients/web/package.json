@@ -22,6 +22,8 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-node": "^5.5.4",
+		"@tensorflow-models/coco-ssd": "^2.2.3",
+		"@tensorflow/tfjs": "^4.22.0",
 		"marked": "^17.0.5"
 	}
 }

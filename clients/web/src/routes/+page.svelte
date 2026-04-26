@@ -17,17 +17,14 @@
 	let restPort = $state('8080');
 	let now = $state(new Date().toISOString().slice(0, 19).replace('T', ' '));
 
-	onMount(async () => {
+	onMount(() => {
 		const interval = setInterval(() => {
 			now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 		}, 1000);
 
-		try {
-			const res = await fetch('/v1/security/audit?page_size=1');
-			health = res.status < 500 ? 'online' : 'offline';
-		} catch {
-			health = 'offline';
-		}
+		fetch('/v1/security/audit?page_size=1')
+			.then(res => { health = res.status < 500 ? 'online' : 'offline'; })
+			.catch(() => { health = 'offline'; });
 
 		return () => clearInterval(interval);
 	});

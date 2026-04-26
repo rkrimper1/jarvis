@@ -122,6 +122,65 @@ message StreamSecurityAlertsResponse {
   SecurityAlert alert             = 2;
 }
 
+// ── Threat scene analysis (Claude Vision) ─────────────────────────────────────
+
+message AnalyzeThreatSceneRequest {
+  jarvis.common.RequestMeta meta      = 1;
+  bytes  image_data                   = 2; // JPEG or PNG frame from camera
+  repeated string detected_objects    = 3; // optional: client-side COCO-SSD labels e.g. ["person(0.91)","knife(0.78)"]
+}
+
+message AnalyzeThreatSceneResponse {
+  jarvis.common.ResponseMeta meta       = 1;
+  ThreatLevel   level                   = 2;
+  float         confidence              = 3; // 0–1
+  string        threat_summary          = 4;
+  repeated string recommended_actions   = 5;
+  string        log_mode                = 6; // mirrors THREAT_LOG_MODE: "auto"|"manual"|"all"
+}
+
+// ── Threat event persistence ───────────────────────────────────────────────────
+
+message ThreatEvent {
+  string   event_id                    = 1;
+  google.protobuf.Timestamp timestamp  = 2;
+  string   camera_label               = 3;
+  repeated string detected_objects    = 4;
+  ThreatLevel level                   = 5;
+  float    confidence                 = 6;
+  string   threat_summary             = 7;
+  repeated string recommended_actions = 8;
+  string   image_url                  = 9; // empty if THREAT_LOG_IMAGES=false
+}
+
+message LogThreatEventRequest {
+  jarvis.common.RequestMeta meta      = 1;
+  string   camera_label               = 2;
+  repeated string detected_objects    = 3;
+  ThreatLevel level                   = 4;
+  float    confidence                 = 5;
+  string   threat_summary             = 6;
+  repeated string recommended_actions = 7;
+  bytes    image_data                 = 8; // JPEG; only stored if THREAT_LOG_IMAGES=true
+  bool     force                      = 9; // true = explicit manual log request
+}
+
+message LogThreatEventResponse {
+  jarvis.common.ResponseMeta meta = 1;
+  ThreatEvent event               = 2;
+  bool        logged              = 3; // false when mode="manual" and force=false
+}
+
+message ListThreatEventsRequest {
+  jarvis.common.RequestMeta meta = 1;
+  int32  page_size               = 2;
+}
+
+message ListThreatEventsResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  repeated ThreatEvent events      = 2;
+}
+
 // ── Face analysis ─────────────────────────────────────────────────────────────
 
 message BoundingBox {
@@ -166,6 +225,15 @@ service SecurityService {
   }
   rpc AnalyzeFaces(AnalyzeFacesRequest) returns (AnalyzeFacesResponse) {
     option (google.api.http) = { post: "/v1/security/faces" body: "*" };
+  }
+  rpc AnalyzeThreatScene(AnalyzeThreatSceneRequest) returns (AnalyzeThreatSceneResponse) {
+    option (google.api.http) = { post: "/v1/security/threat-scene" body: "*" };
+  }
+  rpc LogThreatEvent(LogThreatEventRequest) returns (LogThreatEventResponse) {
+    option (google.api.http) = { post: "/v1/security/threat-events" body: "*" };
+  }
+  rpc ListThreatEvents(ListThreatEventsRequest) returns (ListThreatEventsResponse) {
+    option (google.api.http) = { get: "/v1/security/threat-events" };
   }
   rpc StreamSecurityAlerts(StreamSecurityAlertsRequest) returns (stream StreamSecurityAlertsResponse);
 }

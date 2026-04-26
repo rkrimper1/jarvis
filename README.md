@@ -16,27 +16,27 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
   └───────────────┬──────────────────┬───────────────┬──────────┘
                   │  REST :8080      │               │ gRPC :50051
                   ▼                  ▼               ▼
-  ┌─────────────────────────────────────────────────────────────┐
-  │                    J.A.R.V.I.S.                             │
-  │                  Single Go Binary                           │
-  │                                                             │
-  │   grpc-gateway (in-process REST → gRPC transcoder)          │
-  │                                                             │
-  │  ┌──────────────────────────────────────────────────────┐   │
-  │  │  command      │ business-ops │ facility              │   │
-  │  │  intelligence │ learning     │ security  │ task      │   │
-  │  │  user         │ nlp ◄──────► voice (in-process)      │   │
-  │  └──────────────────────────────────────────────────────┘   │
-  │                                                             │
-  │   Claude API (NLP · knowledge search · face sentiment)      │
-  │   Alexa GraphQL API (facility smart home control)           │
-  │   Redis (session state)   SMTP (invites)                    │
-  │   pigo (face detection)   ~/.jarvis/faces/ (annotated imgs) │
-  │   /tmp/profiles          → ./profiles/    (heap profiles)   │
-  │   ~/.jarvis/jarvis.db    → host ~/.jarvis/jarvis.db (all DBs) │
-  │   ~/.jarvis/faces/       → host ~/.jarvis/faces/ (annotated) │
-  │   ~/credentials/jarvis/  → host ~/credentials/jarvis/      │
-  └─────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │                    J.A.R.V.I.S.                                         │
+  │                  Single Go Binary                                       │
+  │                                                                         │
+  │   grpc-gateway (in-process REST → gRPC transcoder)                      │
+  │                                                                         │
+  │  ┌──────────────────────────────────────────────────────┐               │
+  │  │  command      │ business-ops │ facility              │               │
+  │  │  intelligence │ learning     │ security  │ task      │               │
+  │  │  user         │ nlp ◄──────► voice (in-process)      │               │
+  │  └──────────────────────────────────────────────────────┘               │
+  │                                                                         │
+  │   Claude API (NLP · knowledge search · face sentiment · threat vision)  │
+  │   Alexa GraphQL API (facility smart home control)                       │
+  │   Redis (session state)   SMTP (invites)                                │
+  │   pigo (face detection)   ~/.jarvis/faces/ (annotated imgs)             │
+  │   /tmp/profiles          → ./profiles/    (heap profiles)               │
+  │   ~/.jarvis/jarvis.db    → host ~/.jarvis/jarvis.db (all DBs)           │
+  │   ~/.jarvis/faces/       → host ~/.jarvis/faces/ (annotated)            │
+  │   ~/credentials/jarvis/  → host ~/credentials/jarvis/                   │
+  └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 - NLP and Voice are wired in-process — no network hop between them
@@ -47,7 +47,9 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 - `ScheduleEvent` sends iCalendar invite emails to all attendees via SMTP
 - `AnalyzeFaces` detects faces with the pigo cascade detector, annotates them with a HUD overlay, and uses the Claude API to generate per-face sentiment commentary
 - Annotated face images are written to `~/.jarvis/faces/` (host-mounted) and served at `/faces/<filename>` via the HTTP server
-- All SQLite data (users, tasks, analytics, audit, knowledge) is stored in a single unified `~/.jarvis/jarvis.db` — host-mounted so data persists across container restarts
+- `AnalyzeThreatScene` sends a camera frame to Claude Vision and returns a structured threat assessment (level, confidence, summary, recommended actions); gated by `THREAT_VISION_ENABLED=true`
+- `LogThreatEvent` persists threat events to the shared SQLite DB; `THREAT_LOG_MODE` controls when logging fires (`manual` / `auto` / `all`); frames saved to `THREAT_EVENT_DIR` when `THREAT_LOG_IMAGES=true`
+- All SQLite data (users, tasks, analytics, audit, knowledge, threat events) is stored in a single unified `~/.jarvis/jarvis.db` — host-mounted so data persists across container restarts
 - The Web HUD proxies `/v1/*` to the REST gateway at `:8080`
 - Heap profiles written to `/tmp/profiles` inside Docker are mounted to `./profiles` on the host
 - OpenCensus distributed tracing exports to Stackdriver when `TRACING_ENABLED=true`; every gRPC span carries `original_request_id`, `x_request_id`, `request_id`, and `user_id` attributes
@@ -62,7 +64,7 @@ A cloud-native AI assistant platform built with **Go**, **gRPC**, **Protobuf**, 
 | `intelligence` | Research, artifact analysis, cross-referencing. **Intel Hunt**: ingest signals (manual, RSS, file), AI-powered fusion via Claude, review queue with confirm/dismiss workflow. |
 | `learning` | Feedback loops, behavior profiling, model metrics. `SearchKnowledge` queries a SQLite knowledge base with FTS5, falling back to Claude API or web search. |
 | `nlp` | Intent parsing, Claude-powered dialogue, voice transcription |
-| `security` | Auth, threat assessment, emergency protocols, face detection + sentiment analysis, audit log, surroundings analytics |
+| `security` | Auth, threat assessment, emergency protocols, face detection + sentiment analysis, Claude Vision threat scene analysis, threat event logging, audit log, surroundings analytics |
 | `task` | Task and sprint management — full Scrum backlog (CRUD, priorities, story points, parent/child hierarchy, Epics, Stories) and sprint lifecycle (`CreateSprint`, `CloseSprint`, `GetSprintVelocity`) |
 | `user` | User CRUD, profile management, password change, role-based access (SQLite + bcrypt) |
 | `voice` | Wake word, STT, bidi voice streaming, TTS |
@@ -151,6 +153,24 @@ TOKEN_SECRET=<random-string>            # optional — JWT signing secret (defau
 
 Audit events are recorded per call, and face sentiment scores feed into the `SurroundingsStatus` composite score returned by `GetAuditLog` (70 % threat weight, 30 % face weight over the last 30 minutes).
 
+### Security — Threat Scene Analysis
+
+`AnalyzeThreatScene` accepts a JPEG or PNG camera frame (and an optional list of client-side COCO-SSD object labels for context) and sends it to **Claude Vision** for a structured threat assessment. The response includes a `ThreatLevel` enum, a confidence score, a one-sentence JARVIS-style summary, and up to two recommended actions. The response also carries `log_mode` so the client knows whether logging is automatic or manual without a separate capabilities call.
+
+`LogThreatEvent` persists a threat event to the `threat_events` table in the shared SQLite DB. Whether an event is stored depends on `THREAT_LOG_MODE`:
+
+| Mode | Behaviour |
+|---|---|
+| `manual` | Only logged when the client sends `force: true` (the operator pressed the LOG button) |
+| `auto` | Logged on every `AnalyzeThreatScene` call regardless of `force` |
+| `all` | Logged on every call AND the LOG button is shown to allow additional manual entries |
+
+When `THREAT_LOG_IMAGES=true` and `THREAT_EVENT_DIR` is set, the raw camera frame is saved to disk as `threat_<timestamp>_<uuid8>.jpg` and served at `/threat-events/<filename>`. Threat events also appear in the audit log as `threat-event:<LEVEL>` entries.
+
+`ListThreatEvents` returns stored events newest-first with page-size clamping (0 or >100 → 20).
+
+All three RPCs degrade gracefully: `AnalyzeThreatScene` returns `THREAT_LEVEL_UNSPECIFIED` (not an error) when `THREAT_VISION_ENABLED=false`; `LogThreatEvent` and `ListThreatEvents` return empty/not-logged responses when `JARVIS_DB_PATH` is unset.
+
 Required env vars (store outside the repo, e.g. `$HOME/credentials/jarvis/.env`):
 
 ```
@@ -223,6 +243,12 @@ FACE_OUTPUT_OPACITY=1.0                    # optional — HUD overlay opacity 0.
 FACE_OUTPUT_FONT_SIZE=0                    # optional — annotation font size in points (default: 0 = auto from image width)
 FACE_MAX_IMAGE_BYTES=5242880               # optional — max uploaded image size in bytes (default: 5 MiB)
 
+# ── Threat scene analysis (Security service) ──────────────────
+THREAT_VISION_ENABLED=false           # optional — set true to enable Claude Vision threat analysis (requires ANTHROPIC_API_KEY)
+THREAT_LOG_MODE=manual                # optional — manual | auto | all (default: manual)
+THREAT_LOG_IMAGES=false              # optional — set true to persist camera frames to disk (default: false)
+THREAT_EVENT_DIR=                    # optional — directory for stored threat frames (required when THREAT_LOG_IMAGES=true)
+
 # ── Alexa smart home (Facility service) ───────────────────────
 ALEXA_COOKIES_PATH=/path/to/alexa-cookies.json  # optional — Cookie-Editor JSON export from alexa.amazon.com
 ALEXA_DEBUG=false                                # optional — log Alexa HTTP requests/responses (default: false)
@@ -274,7 +300,7 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
 # 5. Web UI Start Up (suggest running in a separate terminal)
 make web-dev
 
-# 6. Open a browser (login: tony-stark / tony-stark  or  rob-krimper / rob-krimper)
+# 6. Open a browser (login: tony-stark / tony-stark)
 http://localhost:5173/
 
 # 7. Shut Down Web UI
@@ -376,7 +402,8 @@ jarvis/
 │   │   │   ├── faceanalysis/     # pigo face detector + HUD annotation renderer
 │   │   │   ├── protocol/         # Protocol execution stubs
 │   │   │   ├── server/           # SecurityService gRPC implementation
-│   │   │   ├── threat/           # Threat assessment logic
+│   │   │   ├── threat/           # Threat assessment logic + SceneAnalyzer (Claude Vision)
+│   │   │   ├── threatstore/      # SQLite-backed threat event log (Log / List)
 │   │   │   └── token/            # Token store
 │   │   ├── task/
 │   │   │   ├── server/           # TaskService — CRUD, sprint lifecycle, velocity

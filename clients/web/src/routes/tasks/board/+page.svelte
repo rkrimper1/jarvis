@@ -191,8 +191,8 @@
 				taskList = taskList.map(t => t.taskId === res.task.taskId ? res.task : t);
 			}
 			// If the task was moved to a different sprint, remove it from the current board view
-			if (editSprintId !== selectedSprintId) {
-				taskList = taskList.filter(t => t.taskId !== selectedTask.taskId);
+			if (editSprintId !== selectedSprintId && selectedTask) {
+				taskList = taskList.filter(t => t.taskId !== selectedTask!.taskId);
 			}
 			editMode = false;
 		} catch (e) {
