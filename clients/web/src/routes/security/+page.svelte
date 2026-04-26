@@ -357,7 +357,7 @@
 		// Top-left: model status
 		ctx.font      = 'bold 10px monospace';
 		ctx.fillStyle = red + 'cc';
-		const modelTag = modelLoading ? 'MODEL LOADING...' : cocoModel ? 'THREAT SCAN ACTIVE' : 'THREAT SCAN ACTIVE';
+		const modelTag = modelLoading ? 'MODEL LOADING...' : 'THREAT SCAN ACTIVE';
 		ctx.fillText(modelTag, 8, 18);
 
 		// Top-right: LIVE badge + object count
