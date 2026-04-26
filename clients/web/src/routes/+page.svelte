@@ -13,8 +13,6 @@
 	];
 
 	let health = $state<'checking' | 'online' | 'offline'>('checking');
-	let grpcPort = $state('50051');
-	let restPort = $state('8080');
 	let now = $state(new Date().toISOString().slice(0, 19).replace('T', ' '));
 
 	onMount(() => {
@@ -47,12 +45,8 @@
 				</span>
 			</div>
 			<div class="endpoint-row">
-				<span class="text-muted">REST</span>
+				<span class="text-muted">REST + gRPC</span>
 				<span class="text-cyan">:8080</span>
-			</div>
-			<div class="endpoint-row">
-				<span class="text-muted">gRPC</span>
-				<span class="text-cyan">:50051</span>
 			</div>
 			<div class="endpoint-row">
 				<span class="text-muted">OPERATOR</span>
