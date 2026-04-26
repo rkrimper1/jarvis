@@ -19,3 +19,4 @@ alexa-tokens.json
 *.p12
 *.pfx
 .vscode/
+CLAUDE.md
