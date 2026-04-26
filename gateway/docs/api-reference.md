@@ -884,7 +884,7 @@ grpcurl -plaintext -d '{
 
 ## User Service
 
-Users are stored in the shared `jarvis.db` SQLite database (`JARVIS_DB_PATH`). Passwords are bcrypt-hashed. Two users are seeded on first start: `tony-stark` (ROLE_VIEWER) and `rob-krimper` (ROLE_ADMIN). The role is encoded in the JWT `granted_scopes` on every `Authenticate` call.
+Users are stored in the shared `jarvis.db` SQLite database (`JARVIS_DB_PATH`). Passwords are bcrypt-hashed. Two users are seeded on first start: `tony-stark` (ROLE_ADMIN). The role is encoded in the JWT `granted_scopes` on every `Authenticate` call.
 
 ### Get Current User
 ```bash

@@ -300,7 +300,7 @@ curl -X POST http://localhost:8080/v1/nlp/dialogue \
 # 5. Web UI Start Up (suggest running in a separate terminal)
 make web-dev
 
-# 6. Open a browser (login: tony-stark / tony-stark  or  rob-krimper / rob-krimper)
+# 6. Open a browser (login: tony-stark / tony-stark)
 http://localhost:5173/
 
 # 7. Shut Down Web UI

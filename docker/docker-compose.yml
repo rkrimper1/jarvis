@@ -100,8 +100,6 @@ services:
       # ── User store ────────────────────────────────────────────────
       - SEED_TONY_USER=${SEED_TONY_USER:-tony-stark}
       - SEED_TONY_PASSWORD=${SEED_TONY_PASSWORD:-tony-stark}
-      - SEED_ADMIN_USER=${SEED_ADMIN_USER:-rob-krimper}
-      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD:-rob-krimper}
 
       # ── Knowledge base (Learning service) ────────────────────────
       - KNOWLEDGE_STALE_DAYS=${KNOWLEDGE_STALE_DAYS:-30}

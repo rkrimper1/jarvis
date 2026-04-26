@@ -76,6 +76,7 @@
 		if (!canvasEl || !camActive) return;
 		visionError   = '';
 		visionResult  = null;
+		logResult     = null;
 		visionLoading = true;
 		try {
 			const dataUrl  = canvasEl.toDataURL('image/jpeg', 0.85);

@@ -10,21 +10,19 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"log/slog"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"go.opencensus.io/trace"
-
-	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
-	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
-	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
+	"go.opencensus.io/trace"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	commonv1 "github.com/rkrimper1/jarvis/api/pb/common"
+	securityv1 "github.com/rkrimper1/jarvis/api/pb/security"
+	userv1 "github.com/rkrimper1/jarvis/api/pb/user"
 	"github.com/rkrimper1/jarvis/api/internal/security/analyticsstore"
 	"github.com/rkrimper1/jarvis/api/middleware"
 	"github.com/rkrimper1/jarvis/api/internal/security/audit"
