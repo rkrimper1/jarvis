@@ -1,19 +1,20 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	let { children } = $props();
 
 	const tabs = [
-		{ path: '/tasks/backlog', label: 'BACKLOG' },
-		{ path: '/tasks/board',   label: 'BOARD'   },
-		{ path: '/tasks/scrum',   label: 'SCRUM'   },
+		{ path: '/tasks/backlog',  label: 'BACKLOG'  },
+		{ path: '/tasks/board',    label: 'BOARD'    },
+		{ path: '/tasks/scrum',    label: 'SCRUM'    },
+		{ path: '/tasks/reports',  label: 'REPORTS'  },
 	];
 </script>
 
 <div class="tasks-shell">
 	<nav class="tasks-tabs">
 		{#each tabs as tab}
-			<a href={tab.path} class="tab" class:active={$page.url.pathname.startsWith(tab.path)}>
+			<a href={tab.path} class="tab" class:active={page.url.pathname.startsWith(tab.path)}>
 				{tab.label}
 			</a>
 		{/each}

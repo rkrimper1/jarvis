@@ -617,6 +617,101 @@ export interface UserVelocity {
 	storyPoints: number;
 }
 
+export interface StatusLogEntry {
+	taskId: string;
+	fromStatus: string;
+	toStatus: string;
+	changedById: string;
+	changedAt: string;
+}
+
+export interface TransitionCount {
+	fromStatus: string;
+	toStatus: string;
+	count: number;
+}
+
+export interface DailyThroughput {
+	date: string;
+	count: number;
+	storyPoints: number;
+}
+
+export interface AssigneeSprintPoints {
+	sprintId: string;
+	sprintName: string;
+	points: number;
+}
+
+export interface AssigneeVelocityItem {
+	userId: string;
+	avgPoints: number;
+	stdDev: number;
+	sprints: AssigneeSprintPoints[];
+}
+
+export interface StatusBucket {
+	status: string;
+	taskCount: number;
+	storyPoints: number;
+}
+
+export interface SprintStatusReport {
+	meta: ResponseMeta;
+	sprintId: string;
+	sprintName: string;
+	buckets: StatusBucket[];
+	totalTasks: number;
+	totalPoints: number;
+}
+
+export interface StatusChangeEntry {
+	taskId: string;
+	displayId: number;
+	title: string;
+	fromStatus: string;
+	toStatus: string;
+	changedById: string;
+	changedAt: string;
+}
+
+export interface UserEodSummary {
+	userId: string;
+	completedToday: number;
+	pointsToday: number;
+	statusChanges: number;
+}
+
+export interface EodReport {
+	meta: ResponseMeta;
+	sprintId: string;
+	sprintName: string;
+	completedToday: number;
+	completedPointsToday: number;
+	totalSprintTasks: number;
+	totalSprintPoints: number;
+	totalCompleted: number;
+	totalCompletedPoints: number;
+	closeProbability: number;
+	statusChangesToday: StatusChangeEntry[];
+	userSummaries: UserEodSummary[];
+}
+
+export interface ReporterStatusCount {
+	status: string;
+	count: number;
+}
+
+export interface ReporterUsageItem {
+	reporterId: string;
+	statusCounts: ReporterStatusCount[];
+	totalTasks: number;
+	completedOnTime: number;
+	completedLate: number;
+	onTimePct: number;
+	totalPointsCompleted: number;
+}
+
 export const tasks = {
 	createTask(params: {
 		title: string;
@@ -651,6 +746,7 @@ export const tasks = {
 		title?: string;
 		description?: string;
 		assigneeId?: string;
+		reporterId?: string;
 		priority?: TaskPriority;
 		taskType?: TaskType;
 		parentId?: string;
@@ -663,6 +759,7 @@ export const tasks = {
 			title: params.title ?? '',
 			description: params.description ?? '',
 			assignee_id: params.assigneeId ?? '',
+			reporter_id: params.reporterId ?? '',
 			priority: params.priority ?? 'TASK_PRIORITY_UNSPECIFIED',
 			task_type: params.taskType ?? 'TASK_TYPE_UNSPECIFIED',
 			parent_id: params.parentId ?? '',
@@ -730,6 +827,31 @@ export const tasks = {
 	},
 	getSprintVelocity(sprintId: string): Promise<{ meta: ResponseMeta; velocities: UserVelocity[] }> {
 		return call('GET', `/sprints/${sprintId}/velocity?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	getTaskStatusLog(taskId: string, pageSize = 50): Promise<{ meta: ResponseMeta; entries: StatusLogEntry[] }> {
+		return call('GET', `/tasks/${taskId}/status-log?meta.request_id=${reqId()}&meta.user_id=${get(userId)}&page_size=${pageSize}`);
+	},
+	getTransitionReport(): Promise<{ meta: ResponseMeta; transitions: TransitionCount[] }> {
+		return call('GET', `/tasks/reports/transitions?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	getThroughputReport(days = 30): Promise<{ meta: ResponseMeta; buckets: DailyThroughput[] }> {
+		return call('GET', `/tasks/reports/throughput?meta.request_id=${reqId()}&meta.user_id=${get(userId)}&days=${days}`);
+	},
+	getAssigneeVelocityReport(): Promise<{ meta: ResponseMeta; velocities: AssigneeVelocityItem[] }> {
+		return call('GET', `/tasks/reports/assignee-velocity?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
+	},
+	getSprintStatusReport(sprintId = ''): Promise<SprintStatusReport> {
+		const p = new URLSearchParams({ 'meta.request_id': reqId(), 'meta.user_id': get(userId) ?? '' });
+		if (sprintId) p.set('sprint_id', sprintId);
+		return call('GET', `/tasks/reports/sprint-status?${p}`);
+	},
+	getEndOfDayReport(sprintId = ''): Promise<EodReport> {
+		const p = new URLSearchParams({ 'meta.request_id': reqId(), 'meta.user_id': get(userId) ?? '' });
+		if (sprintId) p.set('sprint_id', sprintId);
+		return call('GET', `/tasks/reports/end-of-day?${p}`);
+	},
+	getReporterUsageReport(): Promise<{ meta: ResponseMeta; items: ReporterUsageItem[] }> {
+		return call('GET', `/tasks/reports/reporter-usage?meta.request_id=${reqId()}&meta.user_id=${get(userId)}`);
 	}
 };
 

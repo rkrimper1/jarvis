@@ -19,21 +19,28 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TaskService_CreateTask_FullMethodName         = "/jarvis.task.TaskService/CreateTask"
-	TaskService_GetTask_FullMethodName            = "/jarvis.task.TaskService/GetTask"
-	TaskService_UpdateTask_FullMethodName         = "/jarvis.task.TaskService/UpdateTask"
-	TaskService_DeleteTask_FullMethodName         = "/jarvis.task.TaskService/DeleteTask"
-	TaskService_ListBacklog_FullMethodName        = "/jarvis.task.TaskService/ListBacklog"
-	TaskService_ListAllTasks_FullMethodName       = "/jarvis.task.TaskService/ListAllTasks"
-	TaskService_ListSprintTasks_FullMethodName    = "/jarvis.task.TaskService/ListSprintTasks"
-	TaskService_AssignTaskToSprint_FullMethodName = "/jarvis.task.TaskService/AssignTaskToSprint"
-	TaskService_MoveTaskStatus_FullMethodName     = "/jarvis.task.TaskService/MoveTaskStatus"
-	TaskService_CreateSprint_FullMethodName       = "/jarvis.task.TaskService/CreateSprint"
-	TaskService_UpdateSprint_FullMethodName       = "/jarvis.task.TaskService/UpdateSprint"
-	TaskService_DeleteSprint_FullMethodName       = "/jarvis.task.TaskService/DeleteSprint"
-	TaskService_CloseSprint_FullMethodName        = "/jarvis.task.TaskService/CloseSprint"
-	TaskService_ListSprints_FullMethodName        = "/jarvis.task.TaskService/ListSprints"
-	TaskService_GetSprintVelocity_FullMethodName  = "/jarvis.task.TaskService/GetSprintVelocity"
+	TaskService_CreateTask_FullMethodName                = "/jarvis.task.TaskService/CreateTask"
+	TaskService_GetTask_FullMethodName                   = "/jarvis.task.TaskService/GetTask"
+	TaskService_UpdateTask_FullMethodName                = "/jarvis.task.TaskService/UpdateTask"
+	TaskService_DeleteTask_FullMethodName                = "/jarvis.task.TaskService/DeleteTask"
+	TaskService_ListBacklog_FullMethodName               = "/jarvis.task.TaskService/ListBacklog"
+	TaskService_ListAllTasks_FullMethodName              = "/jarvis.task.TaskService/ListAllTasks"
+	TaskService_ListSprintTasks_FullMethodName           = "/jarvis.task.TaskService/ListSprintTasks"
+	TaskService_AssignTaskToSprint_FullMethodName        = "/jarvis.task.TaskService/AssignTaskToSprint"
+	TaskService_MoveTaskStatus_FullMethodName            = "/jarvis.task.TaskService/MoveTaskStatus"
+	TaskService_CreateSprint_FullMethodName              = "/jarvis.task.TaskService/CreateSprint"
+	TaskService_UpdateSprint_FullMethodName              = "/jarvis.task.TaskService/UpdateSprint"
+	TaskService_DeleteSprint_FullMethodName              = "/jarvis.task.TaskService/DeleteSprint"
+	TaskService_CloseSprint_FullMethodName               = "/jarvis.task.TaskService/CloseSprint"
+	TaskService_ListSprints_FullMethodName               = "/jarvis.task.TaskService/ListSprints"
+	TaskService_GetSprintVelocity_FullMethodName         = "/jarvis.task.TaskService/GetSprintVelocity"
+	TaskService_GetTaskStatusLog_FullMethodName          = "/jarvis.task.TaskService/GetTaskStatusLog"
+	TaskService_GetTransitionReport_FullMethodName       = "/jarvis.task.TaskService/GetTransitionReport"
+	TaskService_GetThroughputReport_FullMethodName       = "/jarvis.task.TaskService/GetThroughputReport"
+	TaskService_GetAssigneeVelocityReport_FullMethodName = "/jarvis.task.TaskService/GetAssigneeVelocityReport"
+	TaskService_GetSprintStatusReport_FullMethodName     = "/jarvis.task.TaskService/GetSprintStatusReport"
+	TaskService_GetEndOfDayReport_FullMethodName         = "/jarvis.task.TaskService/GetEndOfDayReport"
+	TaskService_GetReporterUsageReport_FullMethodName    = "/jarvis.task.TaskService/GetReporterUsageReport"
 )
 
 // TaskServiceClient is the client API for TaskService service.
@@ -55,6 +62,13 @@ type TaskServiceClient interface {
 	CloseSprint(ctx context.Context, in *CloseSprintRequest, opts ...grpc.CallOption) (*CloseSprintResponse, error)
 	ListSprints(ctx context.Context, in *ListSprintsRequest, opts ...grpc.CallOption) (*ListSprintsResponse, error)
 	GetSprintVelocity(ctx context.Context, in *GetSprintVelocityRequest, opts ...grpc.CallOption) (*GetSprintVelocityResponse, error)
+	GetTaskStatusLog(ctx context.Context, in *GetTaskStatusLogRequest, opts ...grpc.CallOption) (*GetTaskStatusLogResponse, error)
+	GetTransitionReport(ctx context.Context, in *GetTransitionReportRequest, opts ...grpc.CallOption) (*GetTransitionReportResponse, error)
+	GetThroughputReport(ctx context.Context, in *GetThroughputReportRequest, opts ...grpc.CallOption) (*GetThroughputReportResponse, error)
+	GetAssigneeVelocityReport(ctx context.Context, in *GetAssigneeVelocityReportRequest, opts ...grpc.CallOption) (*GetAssigneeVelocityReportResponse, error)
+	GetSprintStatusReport(ctx context.Context, in *GetSprintStatusReportRequest, opts ...grpc.CallOption) (*GetSprintStatusReportResponse, error)
+	GetEndOfDayReport(ctx context.Context, in *GetEndOfDayReportRequest, opts ...grpc.CallOption) (*GetEndOfDayReportResponse, error)
+	GetReporterUsageReport(ctx context.Context, in *GetReporterUsageReportRequest, opts ...grpc.CallOption) (*GetReporterUsageReportResponse, error)
 }
 
 type taskServiceClient struct {
@@ -215,6 +229,76 @@ func (c *taskServiceClient) GetSprintVelocity(ctx context.Context, in *GetSprint
 	return out, nil
 }
 
+func (c *taskServiceClient) GetTaskStatusLog(ctx context.Context, in *GetTaskStatusLogRequest, opts ...grpc.CallOption) (*GetTaskStatusLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTaskStatusLogResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetTaskStatusLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetTransitionReport(ctx context.Context, in *GetTransitionReportRequest, opts ...grpc.CallOption) (*GetTransitionReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTransitionReportResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetTransitionReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetThroughputReport(ctx context.Context, in *GetThroughputReportRequest, opts ...grpc.CallOption) (*GetThroughputReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetThroughputReportResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetThroughputReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetAssigneeVelocityReport(ctx context.Context, in *GetAssigneeVelocityReportRequest, opts ...grpc.CallOption) (*GetAssigneeVelocityReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAssigneeVelocityReportResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetAssigneeVelocityReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetSprintStatusReport(ctx context.Context, in *GetSprintStatusReportRequest, opts ...grpc.CallOption) (*GetSprintStatusReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSprintStatusReportResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetSprintStatusReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetEndOfDayReport(ctx context.Context, in *GetEndOfDayReportRequest, opts ...grpc.CallOption) (*GetEndOfDayReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEndOfDayReportResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetEndOfDayReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetReporterUsageReport(ctx context.Context, in *GetReporterUsageReportRequest, opts ...grpc.CallOption) (*GetReporterUsageReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetReporterUsageReportResponse)
+	err := c.cc.Invoke(ctx, TaskService_GetReporterUsageReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TaskServiceServer is the server API for TaskService service.
 // All implementations must embed UnimplementedTaskServiceServer
 // for forward compatibility.
@@ -234,6 +318,13 @@ type TaskServiceServer interface {
 	CloseSprint(context.Context, *CloseSprintRequest) (*CloseSprintResponse, error)
 	ListSprints(context.Context, *ListSprintsRequest) (*ListSprintsResponse, error)
 	GetSprintVelocity(context.Context, *GetSprintVelocityRequest) (*GetSprintVelocityResponse, error)
+	GetTaskStatusLog(context.Context, *GetTaskStatusLogRequest) (*GetTaskStatusLogResponse, error)
+	GetTransitionReport(context.Context, *GetTransitionReportRequest) (*GetTransitionReportResponse, error)
+	GetThroughputReport(context.Context, *GetThroughputReportRequest) (*GetThroughputReportResponse, error)
+	GetAssigneeVelocityReport(context.Context, *GetAssigneeVelocityReportRequest) (*GetAssigneeVelocityReportResponse, error)
+	GetSprintStatusReport(context.Context, *GetSprintStatusReportRequest) (*GetSprintStatusReportResponse, error)
+	GetEndOfDayReport(context.Context, *GetEndOfDayReportRequest) (*GetEndOfDayReportResponse, error)
+	GetReporterUsageReport(context.Context, *GetReporterUsageReportRequest) (*GetReporterUsageReportResponse, error)
 	mustEmbedUnimplementedTaskServiceServer()
 }
 
@@ -288,6 +379,27 @@ func (UnimplementedTaskServiceServer) ListSprints(context.Context, *ListSprintsR
 }
 func (UnimplementedTaskServiceServer) GetSprintVelocity(context.Context, *GetSprintVelocityRequest) (*GetSprintVelocityResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSprintVelocity not implemented")
+}
+func (UnimplementedTaskServiceServer) GetTaskStatusLog(context.Context, *GetTaskStatusLogRequest) (*GetTaskStatusLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTaskStatusLog not implemented")
+}
+func (UnimplementedTaskServiceServer) GetTransitionReport(context.Context, *GetTransitionReportRequest) (*GetTransitionReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTransitionReport not implemented")
+}
+func (UnimplementedTaskServiceServer) GetThroughputReport(context.Context, *GetThroughputReportRequest) (*GetThroughputReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetThroughputReport not implemented")
+}
+func (UnimplementedTaskServiceServer) GetAssigneeVelocityReport(context.Context, *GetAssigneeVelocityReportRequest) (*GetAssigneeVelocityReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAssigneeVelocityReport not implemented")
+}
+func (UnimplementedTaskServiceServer) GetSprintStatusReport(context.Context, *GetSprintStatusReportRequest) (*GetSprintStatusReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSprintStatusReport not implemented")
+}
+func (UnimplementedTaskServiceServer) GetEndOfDayReport(context.Context, *GetEndOfDayReportRequest) (*GetEndOfDayReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEndOfDayReport not implemented")
+}
+func (UnimplementedTaskServiceServer) GetReporterUsageReport(context.Context, *GetReporterUsageReportRequest) (*GetReporterUsageReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetReporterUsageReport not implemented")
 }
 func (UnimplementedTaskServiceServer) mustEmbedUnimplementedTaskServiceServer() {}
 func (UnimplementedTaskServiceServer) testEmbeddedByValue()                     {}
@@ -580,6 +692,132 @@ func _TaskService_GetSprintVelocity_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TaskService_GetTaskStatusLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskStatusLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetTaskStatusLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetTaskStatusLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetTaskStatusLog(ctx, req.(*GetTaskStatusLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetTransitionReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransitionReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetTransitionReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetTransitionReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetTransitionReport(ctx, req.(*GetTransitionReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetThroughputReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetThroughputReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetThroughputReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetThroughputReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetThroughputReport(ctx, req.(*GetThroughputReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetAssigneeVelocityReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAssigneeVelocityReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetAssigneeVelocityReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetAssigneeVelocityReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetAssigneeVelocityReport(ctx, req.(*GetAssigneeVelocityReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetSprintStatusReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSprintStatusReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetSprintStatusReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetSprintStatusReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetSprintStatusReport(ctx, req.(*GetSprintStatusReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetEndOfDayReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEndOfDayReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetEndOfDayReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetEndOfDayReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetEndOfDayReport(ctx, req.(*GetEndOfDayReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetReporterUsageReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReporterUsageReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetReporterUsageReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaskService_GetReporterUsageReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetReporterUsageReport(ctx, req.(*GetReporterUsageReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TaskService_ServiceDesc is the grpc.ServiceDesc for TaskService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -646,6 +884,34 @@ var TaskService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSprintVelocity",
 			Handler:    _TaskService_GetSprintVelocity_Handler,
+		},
+		{
+			MethodName: "GetTaskStatusLog",
+			Handler:    _TaskService_GetTaskStatusLog_Handler,
+		},
+		{
+			MethodName: "GetTransitionReport",
+			Handler:    _TaskService_GetTransitionReport_Handler,
+		},
+		{
+			MethodName: "GetThroughputReport",
+			Handler:    _TaskService_GetThroughputReport_Handler,
+		},
+		{
+			MethodName: "GetAssigneeVelocityReport",
+			Handler:    _TaskService_GetAssigneeVelocityReport_Handler,
+		},
+		{
+			MethodName: "GetSprintStatusReport",
+			Handler:    _TaskService_GetSprintStatusReport_Handler,
+		},
+		{
+			MethodName: "GetEndOfDayReport",
+			Handler:    _TaskService_GetEndOfDayReport_Handler,
+		},
+		{
+			MethodName: "GetReporterUsageReport",
+			Handler:    _TaskService_GetReporterUsageReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

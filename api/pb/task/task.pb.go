@@ -863,6 +863,7 @@ type UpdateTaskRequest struct {
 	DueDate       string                 `protobuf:"bytes,8,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`
 	TaskType      TaskType               `protobuf:"varint,9,opt,name=task_type,json=taskType,proto3,enum=jarvis.task.TaskType" json:"task_type,omitempty"`
 	ParentId      string                 `protobuf:"bytes,10,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	ReporterId    string                 `protobuf:"bytes,11,opt,name=reporter_id,json=reporterId,proto3" json:"reporter_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -963,6 +964,13 @@ func (x *UpdateTaskRequest) GetTaskType() TaskType {
 func (x *UpdateTaskRequest) GetParentId() string {
 	if x != nil {
 		return x.ParentId
+	}
+	return ""
+}
+
+func (x *UpdateTaskRequest) GetReporterId() string {
+	if x != nil {
+		return x.ReporterId
 	}
 	return ""
 }
@@ -2323,6 +2331,1518 @@ func (x *GetSprintVelocityResponse) GetVelocities() []*UserVelocity {
 	return nil
 }
 
+type AssigneeSprintPoints struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SprintId      string                 `protobuf:"bytes,1,opt,name=sprint_id,json=sprintId,proto3" json:"sprint_id,omitempty"`
+	SprintName    string                 `protobuf:"bytes,2,opt,name=sprint_name,json=sprintName,proto3" json:"sprint_name,omitempty"`
+	Points        int32                  `protobuf:"varint,3,opt,name=points,proto3" json:"points,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssigneeSprintPoints) Reset() {
+	*x = AssigneeSprintPoints{}
+	mi := &file_pb_task_task_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssigneeSprintPoints) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssigneeSprintPoints) ProtoMessage() {}
+
+func (x *AssigneeSprintPoints) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssigneeSprintPoints.ProtoReflect.Descriptor instead.
+func (*AssigneeSprintPoints) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *AssigneeSprintPoints) GetSprintId() string {
+	if x != nil {
+		return x.SprintId
+	}
+	return ""
+}
+
+func (x *AssigneeSprintPoints) GetSprintName() string {
+	if x != nil {
+		return x.SprintName
+	}
+	return ""
+}
+
+func (x *AssigneeSprintPoints) GetPoints() int32 {
+	if x != nil {
+		return x.Points
+	}
+	return 0
+}
+
+type AssigneeVelocityItem struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	UserId        string                  `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	AvgPoints     float32                 `protobuf:"fixed32,2,opt,name=avg_points,json=avgPoints,proto3" json:"avg_points,omitempty"`
+	StdDev        float32                 `protobuf:"fixed32,3,opt,name=std_dev,json=stdDev,proto3" json:"std_dev,omitempty"`
+	Sprints       []*AssigneeSprintPoints `protobuf:"bytes,4,rep,name=sprints,proto3" json:"sprints,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssigneeVelocityItem) Reset() {
+	*x = AssigneeVelocityItem{}
+	mi := &file_pb_task_task_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssigneeVelocityItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssigneeVelocityItem) ProtoMessage() {}
+
+func (x *AssigneeVelocityItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssigneeVelocityItem.ProtoReflect.Descriptor instead.
+func (*AssigneeVelocityItem) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *AssigneeVelocityItem) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *AssigneeVelocityItem) GetAvgPoints() float32 {
+	if x != nil {
+		return x.AvgPoints
+	}
+	return 0
+}
+
+func (x *AssigneeVelocityItem) GetStdDev() float32 {
+	if x != nil {
+		return x.StdDev
+	}
+	return 0
+}
+
+func (x *AssigneeVelocityItem) GetSprints() []*AssigneeSprintPoints {
+	if x != nil {
+		return x.Sprints
+	}
+	return nil
+}
+
+type GetAssigneeVelocityReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssigneeVelocityReportRequest) Reset() {
+	*x = GetAssigneeVelocityReportRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssigneeVelocityReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssigneeVelocityReportRequest) ProtoMessage() {}
+
+func (x *GetAssigneeVelocityReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssigneeVelocityReportRequest.ProtoReflect.Descriptor instead.
+func (*GetAssigneeVelocityReportRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *GetAssigneeVelocityReportRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetAssigneeVelocityReportResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Meta          *common.ResponseMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Velocities    []*AssigneeVelocityItem `protobuf:"bytes,2,rep,name=velocities,proto3" json:"velocities,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssigneeVelocityReportResponse) Reset() {
+	*x = GetAssigneeVelocityReportResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssigneeVelocityReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssigneeVelocityReportResponse) ProtoMessage() {}
+
+func (x *GetAssigneeVelocityReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssigneeVelocityReportResponse.ProtoReflect.Descriptor instead.
+func (*GetAssigneeVelocityReportResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *GetAssigneeVelocityReportResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetAssigneeVelocityReportResponse) GetVelocities() []*AssigneeVelocityItem {
+	if x != nil {
+		return x.Velocities
+	}
+	return nil
+}
+
+type StatusBucket struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	TaskCount     int32                  `protobuf:"varint,2,opt,name=task_count,json=taskCount,proto3" json:"task_count,omitempty"`
+	StoryPoints   int32                  `protobuf:"varint,3,opt,name=story_points,json=storyPoints,proto3" json:"story_points,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusBucket) Reset() {
+	*x = StatusBucket{}
+	mi := &file_pb_task_task_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusBucket) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusBucket) ProtoMessage() {}
+
+func (x *StatusBucket) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusBucket.ProtoReflect.Descriptor instead.
+func (*StatusBucket) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *StatusBucket) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *StatusBucket) GetTaskCount() int32 {
+	if x != nil {
+		return x.TaskCount
+	}
+	return 0
+}
+
+func (x *StatusBucket) GetStoryPoints() int32 {
+	if x != nil {
+		return x.StoryPoints
+	}
+	return 0
+}
+
+type GetSprintStatusReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	SprintId      string                 `protobuf:"bytes,2,opt,name=sprint_id,json=sprintId,proto3" json:"sprint_id,omitempty"` // empty → active sprint
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSprintStatusReportRequest) Reset() {
+	*x = GetSprintStatusReportRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSprintStatusReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSprintStatusReportRequest) ProtoMessage() {}
+
+func (x *GetSprintStatusReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSprintStatusReportRequest.ProtoReflect.Descriptor instead.
+func (*GetSprintStatusReportRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *GetSprintStatusReportRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetSprintStatusReportRequest) GetSprintId() string {
+	if x != nil {
+		return x.SprintId
+	}
+	return ""
+}
+
+type GetSprintStatusReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	SprintId      string                 `protobuf:"bytes,2,opt,name=sprint_id,json=sprintId,proto3" json:"sprint_id,omitempty"`
+	SprintName    string                 `protobuf:"bytes,3,opt,name=sprint_name,json=sprintName,proto3" json:"sprint_name,omitempty"`
+	Buckets       []*StatusBucket        `protobuf:"bytes,4,rep,name=buckets,proto3" json:"buckets,omitempty"`
+	TotalTasks    int32                  `protobuf:"varint,5,opt,name=total_tasks,json=totalTasks,proto3" json:"total_tasks,omitempty"`
+	TotalPoints   int32                  `protobuf:"varint,6,opt,name=total_points,json=totalPoints,proto3" json:"total_points,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSprintStatusReportResponse) Reset() {
+	*x = GetSprintStatusReportResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSprintStatusReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSprintStatusReportResponse) ProtoMessage() {}
+
+func (x *GetSprintStatusReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSprintStatusReportResponse.ProtoReflect.Descriptor instead.
+func (*GetSprintStatusReportResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GetSprintStatusReportResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetSprintStatusReportResponse) GetSprintId() string {
+	if x != nil {
+		return x.SprintId
+	}
+	return ""
+}
+
+func (x *GetSprintStatusReportResponse) GetSprintName() string {
+	if x != nil {
+		return x.SprintName
+	}
+	return ""
+}
+
+func (x *GetSprintStatusReportResponse) GetBuckets() []*StatusBucket {
+	if x != nil {
+		return x.Buckets
+	}
+	return nil
+}
+
+func (x *GetSprintStatusReportResponse) GetTotalTasks() int32 {
+	if x != nil {
+		return x.TotalTasks
+	}
+	return 0
+}
+
+func (x *GetSprintStatusReportResponse) GetTotalPoints() int32 {
+	if x != nil {
+		return x.TotalPoints
+	}
+	return 0
+}
+
+type StatusChangeEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TaskId        string                 `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	DisplayId     int32                  `protobuf:"varint,2,opt,name=display_id,json=displayId,proto3" json:"display_id,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	FromStatus    string                 `protobuf:"bytes,4,opt,name=from_status,json=fromStatus,proto3" json:"from_status,omitempty"`
+	ToStatus      string                 `protobuf:"bytes,5,opt,name=to_status,json=toStatus,proto3" json:"to_status,omitempty"`
+	ChangedById   string                 `protobuf:"bytes,6,opt,name=changed_by_id,json=changedById,proto3" json:"changed_by_id,omitempty"`
+	ChangedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusChangeEntry) Reset() {
+	*x = StatusChangeEntry{}
+	mi := &file_pb_task_task_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusChangeEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusChangeEntry) ProtoMessage() {}
+
+func (x *StatusChangeEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusChangeEntry.ProtoReflect.Descriptor instead.
+func (*StatusChangeEntry) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *StatusChangeEntry) GetTaskId() string {
+	if x != nil {
+		return x.TaskId
+	}
+	return ""
+}
+
+func (x *StatusChangeEntry) GetDisplayId() int32 {
+	if x != nil {
+		return x.DisplayId
+	}
+	return 0
+}
+
+func (x *StatusChangeEntry) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *StatusChangeEntry) GetFromStatus() string {
+	if x != nil {
+		return x.FromStatus
+	}
+	return ""
+}
+
+func (x *StatusChangeEntry) GetToStatus() string {
+	if x != nil {
+		return x.ToStatus
+	}
+	return ""
+}
+
+func (x *StatusChangeEntry) GetChangedById() string {
+	if x != nil {
+		return x.ChangedById
+	}
+	return ""
+}
+
+func (x *StatusChangeEntry) GetChangedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ChangedAt
+	}
+	return nil
+}
+
+type UserEodSummary struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	CompletedToday int32                  `protobuf:"varint,2,opt,name=completed_today,json=completedToday,proto3" json:"completed_today,omitempty"`
+	PointsToday    int32                  `protobuf:"varint,3,opt,name=points_today,json=pointsToday,proto3" json:"points_today,omitempty"`
+	StatusChanges  int32                  `protobuf:"varint,4,opt,name=status_changes,json=statusChanges,proto3" json:"status_changes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UserEodSummary) Reset() {
+	*x = UserEodSummary{}
+	mi := &file_pb_task_task_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserEodSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserEodSummary) ProtoMessage() {}
+
+func (x *UserEodSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserEodSummary.ProtoReflect.Descriptor instead.
+func (*UserEodSummary) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *UserEodSummary) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UserEodSummary) GetCompletedToday() int32 {
+	if x != nil {
+		return x.CompletedToday
+	}
+	return 0
+}
+
+func (x *UserEodSummary) GetPointsToday() int32 {
+	if x != nil {
+		return x.PointsToday
+	}
+	return 0
+}
+
+func (x *UserEodSummary) GetStatusChanges() int32 {
+	if x != nil {
+		return x.StatusChanges
+	}
+	return 0
+}
+
+type GetEndOfDayReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	SprintId      string                 `protobuf:"bytes,2,opt,name=sprint_id,json=sprintId,proto3" json:"sprint_id,omitempty"` // empty → active sprint
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEndOfDayReportRequest) Reset() {
+	*x = GetEndOfDayReportRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEndOfDayReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEndOfDayReportRequest) ProtoMessage() {}
+
+func (x *GetEndOfDayReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEndOfDayReportRequest.ProtoReflect.Descriptor instead.
+func (*GetEndOfDayReportRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *GetEndOfDayReportRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetEndOfDayReportRequest) GetSprintId() string {
+	if x != nil {
+		return x.SprintId
+	}
+	return ""
+}
+
+type GetEndOfDayReportResponse struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Meta                 *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	SprintId             string                 `protobuf:"bytes,2,opt,name=sprint_id,json=sprintId,proto3" json:"sprint_id,omitempty"`
+	SprintName           string                 `protobuf:"bytes,3,opt,name=sprint_name,json=sprintName,proto3" json:"sprint_name,omitempty"`
+	CompletedToday       int32                  `protobuf:"varint,4,opt,name=completed_today,json=completedToday,proto3" json:"completed_today,omitempty"`
+	CompletedPointsToday int32                  `protobuf:"varint,5,opt,name=completed_points_today,json=completedPointsToday,proto3" json:"completed_points_today,omitempty"`
+	TotalSprintTasks     int32                  `protobuf:"varint,6,opt,name=total_sprint_tasks,json=totalSprintTasks,proto3" json:"total_sprint_tasks,omitempty"`
+	TotalSprintPoints    int32                  `protobuf:"varint,7,opt,name=total_sprint_points,json=totalSprintPoints,proto3" json:"total_sprint_points,omitempty"`
+	TotalCompleted       int32                  `protobuf:"varint,8,opt,name=total_completed,json=totalCompleted,proto3" json:"total_completed,omitempty"`
+	TotalCompletedPoints int32                  `protobuf:"varint,9,opt,name=total_completed_points,json=totalCompletedPoints,proto3" json:"total_completed_points,omitempty"`
+	CloseProbability     float32                `protobuf:"fixed32,10,opt,name=close_probability,json=closeProbability,proto3" json:"close_probability,omitempty"`
+	StatusChangesToday   []*StatusChangeEntry   `protobuf:"bytes,11,rep,name=status_changes_today,json=statusChangesToday,proto3" json:"status_changes_today,omitempty"`
+	UserSummaries        []*UserEodSummary      `protobuf:"bytes,12,rep,name=user_summaries,json=userSummaries,proto3" json:"user_summaries,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *GetEndOfDayReportResponse) Reset() {
+	*x = GetEndOfDayReportResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEndOfDayReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEndOfDayReportResponse) ProtoMessage() {}
+
+func (x *GetEndOfDayReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEndOfDayReportResponse.ProtoReflect.Descriptor instead.
+func (*GetEndOfDayReportResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *GetEndOfDayReportResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetEndOfDayReportResponse) GetSprintId() string {
+	if x != nil {
+		return x.SprintId
+	}
+	return ""
+}
+
+func (x *GetEndOfDayReportResponse) GetSprintName() string {
+	if x != nil {
+		return x.SprintName
+	}
+	return ""
+}
+
+func (x *GetEndOfDayReportResponse) GetCompletedToday() int32 {
+	if x != nil {
+		return x.CompletedToday
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetCompletedPointsToday() int32 {
+	if x != nil {
+		return x.CompletedPointsToday
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetTotalSprintTasks() int32 {
+	if x != nil {
+		return x.TotalSprintTasks
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetTotalSprintPoints() int32 {
+	if x != nil {
+		return x.TotalSprintPoints
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetTotalCompleted() int32 {
+	if x != nil {
+		return x.TotalCompleted
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetTotalCompletedPoints() int32 {
+	if x != nil {
+		return x.TotalCompletedPoints
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetCloseProbability() float32 {
+	if x != nil {
+		return x.CloseProbability
+	}
+	return 0
+}
+
+func (x *GetEndOfDayReportResponse) GetStatusChangesToday() []*StatusChangeEntry {
+	if x != nil {
+		return x.StatusChangesToday
+	}
+	return nil
+}
+
+func (x *GetEndOfDayReportResponse) GetUserSummaries() []*UserEodSummary {
+	if x != nil {
+		return x.UserSummaries
+	}
+	return nil
+}
+
+type ReporterStatusCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Count         int32                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReporterStatusCount) Reset() {
+	*x = ReporterStatusCount{}
+	mi := &file_pb_task_task_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReporterStatusCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReporterStatusCount) ProtoMessage() {}
+
+func (x *ReporterStatusCount) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReporterStatusCount.ProtoReflect.Descriptor instead.
+func (*ReporterStatusCount) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ReporterStatusCount) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ReporterStatusCount) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type ReporterUsageItem struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	ReporterId           string                 `protobuf:"bytes,1,opt,name=reporter_id,json=reporterId,proto3" json:"reporter_id,omitempty"`
+	StatusCounts         []*ReporterStatusCount `protobuf:"bytes,2,rep,name=status_counts,json=statusCounts,proto3" json:"status_counts,omitempty"`
+	TotalTasks           int32                  `protobuf:"varint,3,opt,name=total_tasks,json=totalTasks,proto3" json:"total_tasks,omitempty"`
+	CompletedOnTime      int32                  `protobuf:"varint,4,opt,name=completed_on_time,json=completedOnTime,proto3" json:"completed_on_time,omitempty"`
+	CompletedLate        int32                  `protobuf:"varint,5,opt,name=completed_late,json=completedLate,proto3" json:"completed_late,omitempty"`
+	OnTimePct            float32                `protobuf:"fixed32,6,opt,name=on_time_pct,json=onTimePct,proto3" json:"on_time_pct,omitempty"`
+	TotalPointsCompleted int32                  `protobuf:"varint,7,opt,name=total_points_completed,json=totalPointsCompleted,proto3" json:"total_points_completed,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ReporterUsageItem) Reset() {
+	*x = ReporterUsageItem{}
+	mi := &file_pb_task_task_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReporterUsageItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReporterUsageItem) ProtoMessage() {}
+
+func (x *ReporterUsageItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReporterUsageItem.ProtoReflect.Descriptor instead.
+func (*ReporterUsageItem) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ReporterUsageItem) GetReporterId() string {
+	if x != nil {
+		return x.ReporterId
+	}
+	return ""
+}
+
+func (x *ReporterUsageItem) GetStatusCounts() []*ReporterStatusCount {
+	if x != nil {
+		return x.StatusCounts
+	}
+	return nil
+}
+
+func (x *ReporterUsageItem) GetTotalTasks() int32 {
+	if x != nil {
+		return x.TotalTasks
+	}
+	return 0
+}
+
+func (x *ReporterUsageItem) GetCompletedOnTime() int32 {
+	if x != nil {
+		return x.CompletedOnTime
+	}
+	return 0
+}
+
+func (x *ReporterUsageItem) GetCompletedLate() int32 {
+	if x != nil {
+		return x.CompletedLate
+	}
+	return 0
+}
+
+func (x *ReporterUsageItem) GetOnTimePct() float32 {
+	if x != nil {
+		return x.OnTimePct
+	}
+	return 0
+}
+
+func (x *ReporterUsageItem) GetTotalPointsCompleted() int32 {
+	if x != nil {
+		return x.TotalPointsCompleted
+	}
+	return 0
+}
+
+type GetReporterUsageReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReporterUsageReportRequest) Reset() {
+	*x = GetReporterUsageReportRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReporterUsageReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReporterUsageReportRequest) ProtoMessage() {}
+
+func (x *GetReporterUsageReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReporterUsageReportRequest.ProtoReflect.Descriptor instead.
+func (*GetReporterUsageReportRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetReporterUsageReportRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetReporterUsageReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Items         []*ReporterUsageItem   `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReporterUsageReportResponse) Reset() {
+	*x = GetReporterUsageReportResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReporterUsageReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReporterUsageReportResponse) ProtoMessage() {}
+
+func (x *GetReporterUsageReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReporterUsageReportResponse.ProtoReflect.Descriptor instead.
+func (*GetReporterUsageReportResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *GetReporterUsageReportResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetReporterUsageReportResponse) GetItems() []*ReporterUsageItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type StatusLogEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TaskId        string                 `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	FromStatus    string                 `protobuf:"bytes,2,opt,name=from_status,json=fromStatus,proto3" json:"from_status,omitempty"`
+	ToStatus      string                 `protobuf:"bytes,3,opt,name=to_status,json=toStatus,proto3" json:"to_status,omitempty"`
+	ChangedById   string                 `protobuf:"bytes,4,opt,name=changed_by_id,json=changedById,proto3" json:"changed_by_id,omitempty"`
+	ChangedAt     string                 `protobuf:"bytes,5,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"` // RFC3339
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusLogEntry) Reset() {
+	*x = StatusLogEntry{}
+	mi := &file_pb_task_task_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusLogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusLogEntry) ProtoMessage() {}
+
+func (x *StatusLogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusLogEntry.ProtoReflect.Descriptor instead.
+func (*StatusLogEntry) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *StatusLogEntry) GetTaskId() string {
+	if x != nil {
+		return x.TaskId
+	}
+	return ""
+}
+
+func (x *StatusLogEntry) GetFromStatus() string {
+	if x != nil {
+		return x.FromStatus
+	}
+	return ""
+}
+
+func (x *StatusLogEntry) GetToStatus() string {
+	if x != nil {
+		return x.ToStatus
+	}
+	return ""
+}
+
+func (x *StatusLogEntry) GetChangedById() string {
+	if x != nil {
+		return x.ChangedById
+	}
+	return ""
+}
+
+func (x *StatusLogEntry) GetChangedAt() string {
+	if x != nil {
+		return x.ChangedAt
+	}
+	return ""
+}
+
+type TransitionCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromStatus    string                 `protobuf:"bytes,1,opt,name=from_status,json=fromStatus,proto3" json:"from_status,omitempty"`
+	ToStatus      string                 `protobuf:"bytes,2,opt,name=to_status,json=toStatus,proto3" json:"to_status,omitempty"`
+	Count         int32                  `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TransitionCount) Reset() {
+	*x = TransitionCount{}
+	mi := &file_pb_task_task_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TransitionCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TransitionCount) ProtoMessage() {}
+
+func (x *TransitionCount) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TransitionCount.ProtoReflect.Descriptor instead.
+func (*TransitionCount) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *TransitionCount) GetFromStatus() string {
+	if x != nil {
+		return x.FromStatus
+	}
+	return ""
+}
+
+func (x *TransitionCount) GetToStatus() string {
+	if x != nil {
+		return x.ToStatus
+	}
+	return ""
+}
+
+func (x *TransitionCount) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type DailyThroughput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Date          string                 `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"` // YYYY-MM-DD
+	Count         int32                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	StoryPoints   int32                  `protobuf:"varint,3,opt,name=story_points,json=storyPoints,proto3" json:"story_points,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DailyThroughput) Reset() {
+	*x = DailyThroughput{}
+	mi := &file_pb_task_task_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DailyThroughput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DailyThroughput) ProtoMessage() {}
+
+func (x *DailyThroughput) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DailyThroughput.ProtoReflect.Descriptor instead.
+func (*DailyThroughput) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *DailyThroughput) GetDate() string {
+	if x != nil {
+		return x.Date
+	}
+	return ""
+}
+
+func (x *DailyThroughput) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+func (x *DailyThroughput) GetStoryPoints() int32 {
+	if x != nil {
+		return x.StoryPoints
+	}
+	return 0
+}
+
+type GetTaskStatusLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	TaskId        string                 `protobuf:"bytes,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTaskStatusLogRequest) Reset() {
+	*x = GetTaskStatusLogRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTaskStatusLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTaskStatusLogRequest) ProtoMessage() {}
+
+func (x *GetTaskStatusLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTaskStatusLogRequest.ProtoReflect.Descriptor instead.
+func (*GetTaskStatusLogRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *GetTaskStatusLogRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetTaskStatusLogRequest) GetTaskId() string {
+	if x != nil {
+		return x.TaskId
+	}
+	return ""
+}
+
+func (x *GetTaskStatusLogRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetTaskStatusLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Entries       []*StatusLogEntry      `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTaskStatusLogResponse) Reset() {
+	*x = GetTaskStatusLogResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTaskStatusLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTaskStatusLogResponse) ProtoMessage() {}
+
+func (x *GetTaskStatusLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTaskStatusLogResponse.ProtoReflect.Descriptor instead.
+func (*GetTaskStatusLogResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *GetTaskStatusLogResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetTaskStatusLogResponse) GetEntries() []*StatusLogEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type GetTransitionReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTransitionReportRequest) Reset() {
+	*x = GetTransitionReportRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTransitionReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTransitionReportRequest) ProtoMessage() {}
+
+func (x *GetTransitionReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTransitionReportRequest.ProtoReflect.Descriptor instead.
+func (*GetTransitionReportRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *GetTransitionReportRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetTransitionReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Transitions   []*TransitionCount     `protobuf:"bytes,2,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTransitionReportResponse) Reset() {
+	*x = GetTransitionReportResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTransitionReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTransitionReportResponse) ProtoMessage() {}
+
+func (x *GetTransitionReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTransitionReportResponse.ProtoReflect.Descriptor instead.
+func (*GetTransitionReportResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *GetTransitionReportResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetTransitionReportResponse) GetTransitions() []*TransitionCount {
+	if x != nil {
+		return x.Transitions
+	}
+	return nil
+}
+
+type GetThroughputReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.RequestMeta    `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Days          int32                  `protobuf:"varint,2,opt,name=days,proto3" json:"days,omitempty"` // lookback window; 0 → 30
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetThroughputReportRequest) Reset() {
+	*x = GetThroughputReportRequest{}
+	mi := &file_pb_task_task_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetThroughputReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetThroughputReportRequest) ProtoMessage() {}
+
+func (x *GetThroughputReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetThroughputReportRequest.ProtoReflect.Descriptor instead.
+func (*GetThroughputReportRequest) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *GetThroughputReportRequest) GetMeta() *common.RequestMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetThroughputReportRequest) GetDays() int32 {
+	if x != nil {
+		return x.Days
+	}
+	return 0
+}
+
+type GetThroughputReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Meta          *common.ResponseMeta   `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	Buckets       []*DailyThroughput     `protobuf:"bytes,2,rep,name=buckets,proto3" json:"buckets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetThroughputReportResponse) Reset() {
+	*x = GetThroughputReportResponse{}
+	mi := &file_pb_task_task_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetThroughputReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetThroughputReportResponse) ProtoMessage() {}
+
+func (x *GetThroughputReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_task_task_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetThroughputReportResponse.ProtoReflect.Descriptor instead.
+func (*GetThroughputReportResponse) Descriptor() ([]byte, []int) {
+	return file_pb_task_task_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *GetThroughputReportResponse) GetMeta() *common.ResponseMeta {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+func (x *GetThroughputReportResponse) GetBuckets() []*DailyThroughput {
+	if x != nil {
+		return x.Buckets
+	}
+	return nil
+}
+
 var File_pb_task_task_proto protoreflect.FileDescriptor
 
 const file_pb_task_task_proto_rawDesc = "" +
@@ -2390,7 +3910,7 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\atask_id\x18\x02 \x01(\tR\x06taskId\"i\n" +
 	"\x0fGetTaskResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12%\n" +
-	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"\xfb\x02\n" +
+	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"\x9c\x03\n" +
 	"\x11UpdateTaskRequest\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x17\n" +
 	"\atask_id\x18\x02 \x01(\tR\x06taskId\x12\x14\n" +
@@ -2403,7 +3923,9 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\bdue_date\x18\b \x01(\tR\adueDate\x122\n" +
 	"\ttask_type\x18\t \x01(\x0e2\x15.jarvis.task.TaskTypeR\btaskType\x12\x1b\n" +
 	"\tparent_id\x18\n" +
-	" \x01(\tR\bparentId\"l\n" +
+	" \x01(\tR\bparentId\x12\x1f\n" +
+	"\vreporter_id\x18\v \x01(\tR\n" +
+	"reporterId\"l\n" +
 	"\x12UpdateTaskResponse\x12/\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12%\n" +
 	"\x04task\x18\x02 \x01(\v2\x11.jarvis.task.TaskR\x04task\"\\\n" +
@@ -2490,7 +4012,129 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x129\n" +
 	"\n" +
 	"velocities\x18\x02 \x03(\v2\x19.jarvis.task.UserVelocityR\n" +
-	"velocities*\x8c\x01\n" +
+	"velocities\"l\n" +
+	"\x14AssigneeSprintPoints\x12\x1b\n" +
+	"\tsprint_id\x18\x01 \x01(\tR\bsprintId\x12\x1f\n" +
+	"\vsprint_name\x18\x02 \x01(\tR\n" +
+	"sprintName\x12\x16\n" +
+	"\x06points\x18\x03 \x01(\x05R\x06points\"\xa4\x01\n" +
+	"\x14AssigneeVelocityItem\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\n" +
+	"avg_points\x18\x02 \x01(\x02R\tavgPoints\x12\x17\n" +
+	"\astd_dev\x18\x03 \x01(\x02R\x06stdDev\x12;\n" +
+	"\asprints\x18\x04 \x03(\v2!.jarvis.task.AssigneeSprintPointsR\asprints\"R\n" +
+	" GetAssigneeVelocityReportRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x97\x01\n" +
+	"!GetAssigneeVelocityReportResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12A\n" +
+	"\n" +
+	"velocities\x18\x02 \x03(\v2!.jarvis.task.AssigneeVelocityItemR\n" +
+	"velocities\"h\n" +
+	"\fStatusBucket\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"task_count\x18\x02 \x01(\x05R\ttaskCount\x12!\n" +
+	"\fstory_points\x18\x03 \x01(\x05R\vstoryPoints\"k\n" +
+	"\x1cGetSprintStatusReportRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x1b\n" +
+	"\tsprint_id\x18\x02 \x01(\tR\bsprintId\"\x87\x02\n" +
+	"\x1dGetSprintStatusReportResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12\x1b\n" +
+	"\tsprint_id\x18\x02 \x01(\tR\bsprintId\x12\x1f\n" +
+	"\vsprint_name\x18\x03 \x01(\tR\n" +
+	"sprintName\x123\n" +
+	"\abuckets\x18\x04 \x03(\v2\x19.jarvis.task.StatusBucketR\abuckets\x12\x1f\n" +
+	"\vtotal_tasks\x18\x05 \x01(\x05R\n" +
+	"totalTasks\x12!\n" +
+	"\ftotal_points\x18\x06 \x01(\x05R\vtotalPoints\"\xfe\x01\n" +
+	"\x11StatusChangeEntry\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\tR\x06taskId\x12\x1d\n" +
+	"\n" +
+	"display_id\x18\x02 \x01(\x05R\tdisplayId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x1f\n" +
+	"\vfrom_status\x18\x04 \x01(\tR\n" +
+	"fromStatus\x12\x1b\n" +
+	"\tto_status\x18\x05 \x01(\tR\btoStatus\x12\"\n" +
+	"\rchanged_by_id\x18\x06 \x01(\tR\vchangedById\x129\n" +
+	"\n" +
+	"changed_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tchangedAt\"\x9c\x01\n" +
+	"\x0eUserEodSummary\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12'\n" +
+	"\x0fcompleted_today\x18\x02 \x01(\x05R\x0ecompletedToday\x12!\n" +
+	"\fpoints_today\x18\x03 \x01(\x05R\vpointsToday\x12%\n" +
+	"\x0estatus_changes\x18\x04 \x01(\x05R\rstatusChanges\"g\n" +
+	"\x18GetEndOfDayReportRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x1b\n" +
+	"\tsprint_id\x18\x02 \x01(\tR\bsprintId\"\xe9\x04\n" +
+	"\x19GetEndOfDayReportResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12\x1b\n" +
+	"\tsprint_id\x18\x02 \x01(\tR\bsprintId\x12\x1f\n" +
+	"\vsprint_name\x18\x03 \x01(\tR\n" +
+	"sprintName\x12'\n" +
+	"\x0fcompleted_today\x18\x04 \x01(\x05R\x0ecompletedToday\x124\n" +
+	"\x16completed_points_today\x18\x05 \x01(\x05R\x14completedPointsToday\x12,\n" +
+	"\x12total_sprint_tasks\x18\x06 \x01(\x05R\x10totalSprintTasks\x12.\n" +
+	"\x13total_sprint_points\x18\a \x01(\x05R\x11totalSprintPoints\x12'\n" +
+	"\x0ftotal_completed\x18\b \x01(\x05R\x0etotalCompleted\x124\n" +
+	"\x16total_completed_points\x18\t \x01(\x05R\x14totalCompletedPoints\x12+\n" +
+	"\x11close_probability\x18\n" +
+	" \x01(\x02R\x10closeProbability\x12P\n" +
+	"\x14status_changes_today\x18\v \x03(\v2\x1e.jarvis.task.StatusChangeEntryR\x12statusChangesToday\x12B\n" +
+	"\x0euser_summaries\x18\f \x03(\v2\x1b.jarvis.task.UserEodSummaryR\ruserSummaries\"C\n" +
+	"\x13ReporterStatusCount\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"\xc5\x02\n" +
+	"\x11ReporterUsageItem\x12\x1f\n" +
+	"\vreporter_id\x18\x01 \x01(\tR\n" +
+	"reporterId\x12E\n" +
+	"\rstatus_counts\x18\x02 \x03(\v2 .jarvis.task.ReporterStatusCountR\fstatusCounts\x12\x1f\n" +
+	"\vtotal_tasks\x18\x03 \x01(\x05R\n" +
+	"totalTasks\x12*\n" +
+	"\x11completed_on_time\x18\x04 \x01(\x05R\x0fcompletedOnTime\x12%\n" +
+	"\x0ecompleted_late\x18\x05 \x01(\x05R\rcompletedLate\x12\x1e\n" +
+	"\von_time_pct\x18\x06 \x01(\x02R\tonTimePct\x124\n" +
+	"\x16total_points_completed\x18\a \x01(\x05R\x14totalPointsCompleted\"O\n" +
+	"\x1dGetReporterUsageReportRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x87\x01\n" +
+	"\x1eGetReporterUsageReportResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x124\n" +
+	"\x05items\x18\x02 \x03(\v2\x1e.jarvis.task.ReporterUsageItemR\x05items\"\xaa\x01\n" +
+	"\x0eStatusLogEntry\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\tR\x06taskId\x12\x1f\n" +
+	"\vfrom_status\x18\x02 \x01(\tR\n" +
+	"fromStatus\x12\x1b\n" +
+	"\tto_status\x18\x03 \x01(\tR\btoStatus\x12\"\n" +
+	"\rchanged_by_id\x18\x04 \x01(\tR\vchangedById\x12\x1d\n" +
+	"\n" +
+	"changed_at\x18\x05 \x01(\tR\tchangedAt\"e\n" +
+	"\x0fTransitionCount\x12\x1f\n" +
+	"\vfrom_status\x18\x01 \x01(\tR\n" +
+	"fromStatus\x12\x1b\n" +
+	"\tto_status\x18\x02 \x01(\tR\btoStatus\x12\x14\n" +
+	"\x05count\x18\x03 \x01(\x05R\x05count\"^\n" +
+	"\x0fDailyThroughput\x12\x12\n" +
+	"\x04date\x18\x01 \x01(\tR\x04date\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\x12!\n" +
+	"\fstory_points\x18\x03 \x01(\x05R\vstoryPoints\"\x7f\n" +
+	"\x17GetTaskStatusLogRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x17\n" +
+	"\atask_id\x18\x02 \x01(\tR\x06taskId\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x82\x01\n" +
+	"\x18GetTaskStatusLogResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x125\n" +
+	"\aentries\x18\x02 \x03(\v2\x1b.jarvis.task.StatusLogEntryR\aentries\"L\n" +
+	"\x1aGetTransitionReportRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\"\x8e\x01\n" +
+	"\x1bGetTransitionReportResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x12>\n" +
+	"\vtransitions\x18\x02 \x03(\v2\x1c.jarvis.task.TransitionCountR\vtransitions\"`\n" +
+	"\x1aGetThroughputReportRequest\x12.\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.jarvis.common.RequestMetaR\x04meta\x12\x12\n" +
+	"\x04days\x18\x02 \x01(\x05R\x04days\"\x86\x01\n" +
+	"\x1bGetThroughputReportResponse\x12/\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1b.jarvis.common.ResponseMetaR\x04meta\x126\n" +
+	"\abuckets\x18\x02 \x03(\v2\x1c.jarvis.task.DailyThroughputR\abuckets*\x8c\x01\n" +
 	"\bTaskType\x12\x19\n" +
 	"\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eTASK_TYPE_TASK\x10\x01\x12\x12\n" +
@@ -2516,7 +4160,7 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\fSprintStatus\x12\x1d\n" +
 	"\x19SPRINT_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SPRINT_STATUS_ACTIVE\x10\x01\x12\x18\n" +
-	"\x14SPRINT_STATUS_CLOSED\x10\x022\xeb\r\n" +
+	"\x14SPRINT_STATUS_CLOSED\x10\x022\x85\x16\n" +
 	"\vTaskService\x12c\n" +
 	"\n" +
 	"CreateTask\x12\x1e.jarvis.task.CreateTaskRequest\x1a\x1f.jarvis.task.CreateTaskResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/tasks\x12a\n" +
@@ -2535,7 +4179,14 @@ const file_pb_task_task_proto_rawDesc = "" +
 	"\fDeleteSprint\x12 .jarvis.task.DeleteSprintRequest\x1a!.jarvis.task.DeleteSprintResponse\"\x1f\x82\xd3\xe4\x93\x02\x19*\x17/v1/sprints/{sprint_id}\x12z\n" +
 	"\vCloseSprint\x12\x1f.jarvis.task.CloseSprintRequest\x1a .jarvis.task.CloseSprintResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/v1/sprints/{sprint_id}/close\x12e\n" +
 	"\vListSprints\x12\x1f.jarvis.task.ListSprintsRequest\x1a .jarvis.task.ListSprintsResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/sprints\x12\x8c\x01\n" +
-	"\x11GetSprintVelocity\x12%.jarvis.task.GetSprintVelocityRequest\x1a&.jarvis.task.GetSprintVelocityResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/sprints/{sprint_id}/velocityB\x92\x01\n" +
+	"\x11GetSprintVelocity\x12%.jarvis.task.GetSprintVelocityRequest\x1a&.jarvis.task.GetSprintVelocityResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/sprints/{sprint_id}/velocity\x12\x87\x01\n" +
+	"\x10GetTaskStatusLog\x12$.jarvis.task.GetTaskStatusLogRequest\x1a%.jarvis.task.GetTaskStatusLogResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/tasks/{task_id}/status-log\x12\x8f\x01\n" +
+	"\x13GetTransitionReport\x12'.jarvis.task.GetTransitionReportRequest\x1a(.jarvis.task.GetTransitionReportResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/tasks/reports/transitions\x12\x8e\x01\n" +
+	"\x13GetThroughputReport\x12'.jarvis.task.GetThroughputReportRequest\x1a(.jarvis.task.GetThroughputReportResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/v1/tasks/reports/throughput\x12\xa7\x01\n" +
+	"\x19GetAssigneeVelocityReport\x12-.jarvis.task.GetAssigneeVelocityReportRequest\x1a..jarvis.task.GetAssigneeVelocityReportResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/tasks/reports/assignee-velocity\x12\x97\x01\n" +
+	"\x15GetSprintStatusReport\x12).jarvis.task.GetSprintStatusReportRequest\x1a*.jarvis.task.GetSprintStatusReportResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/tasks/reports/sprint-status\x12\x88\x01\n" +
+	"\x11GetEndOfDayReport\x12%.jarvis.task.GetEndOfDayReportRequest\x1a&.jarvis.task.GetEndOfDayReportResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/v1/tasks/reports/end-of-day\x12\x9b\x01\n" +
+	"\x16GetReporterUsageReport\x12*.jarvis.task.GetReporterUsageReportRequest\x1a+.jarvis.task.GetReporterUsageReportResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/tasks/reports/reporter-usageB\x92\x01\n" +
 	"\x0fcom.jarvis.taskB\tTaskProtoP\x01Z'github.com/rkrimper1/jarvis/api/pb/task\xa2\x02\x03JTX\xaa\x02\vJarvis.Task\xca\x02\vJarvis\\Task\xe2\x02\x17Jarvis\\Task\\GPBMetadata\xea\x02\fJarvis::Taskb\x06proto3"
 
 var (
@@ -2551,142 +4202,205 @@ func file_pb_task_task_proto_rawDescGZIP() []byte {
 }
 
 var file_pb_task_task_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_pb_task_task_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_pb_task_task_proto_msgTypes = make([]protoimpl.MessageInfo, 57)
 var file_pb_task_task_proto_goTypes = []any{
-	(TaskType)(0),                      // 0: jarvis.task.TaskType
-	(TaskPriority)(0),                  // 1: jarvis.task.TaskPriority
-	(TaskStatus)(0),                    // 2: jarvis.task.TaskStatus
-	(SprintStatus)(0),                  // 3: jarvis.task.SprintStatus
-	(*Sprint)(nil),                     // 4: jarvis.task.Sprint
-	(*Task)(nil),                       // 5: jarvis.task.Task
-	(*UserVelocity)(nil),               // 6: jarvis.task.UserVelocity
-	(*CreateTaskRequest)(nil),          // 7: jarvis.task.CreateTaskRequest
-	(*CreateTaskResponse)(nil),         // 8: jarvis.task.CreateTaskResponse
-	(*GetTaskRequest)(nil),             // 9: jarvis.task.GetTaskRequest
-	(*GetTaskResponse)(nil),            // 10: jarvis.task.GetTaskResponse
-	(*UpdateTaskRequest)(nil),          // 11: jarvis.task.UpdateTaskRequest
-	(*UpdateTaskResponse)(nil),         // 12: jarvis.task.UpdateTaskResponse
-	(*DeleteTaskRequest)(nil),          // 13: jarvis.task.DeleteTaskRequest
-	(*DeleteTaskResponse)(nil),         // 14: jarvis.task.DeleteTaskResponse
-	(*ListBacklogRequest)(nil),         // 15: jarvis.task.ListBacklogRequest
-	(*ListBacklogResponse)(nil),        // 16: jarvis.task.ListBacklogResponse
-	(*ListAllTasksRequest)(nil),        // 17: jarvis.task.ListAllTasksRequest
-	(*ListAllTasksResponse)(nil),       // 18: jarvis.task.ListAllTasksResponse
-	(*ListSprintTasksRequest)(nil),     // 19: jarvis.task.ListSprintTasksRequest
-	(*ListSprintTasksResponse)(nil),    // 20: jarvis.task.ListSprintTasksResponse
-	(*AssignTaskToSprintRequest)(nil),  // 21: jarvis.task.AssignTaskToSprintRequest
-	(*AssignTaskToSprintResponse)(nil), // 22: jarvis.task.AssignTaskToSprintResponse
-	(*MoveTaskStatusRequest)(nil),      // 23: jarvis.task.MoveTaskStatusRequest
-	(*MoveTaskStatusResponse)(nil),     // 24: jarvis.task.MoveTaskStatusResponse
-	(*CreateSprintRequest)(nil),        // 25: jarvis.task.CreateSprintRequest
-	(*CreateSprintResponse)(nil),       // 26: jarvis.task.CreateSprintResponse
-	(*UpdateSprintRequest)(nil),        // 27: jarvis.task.UpdateSprintRequest
-	(*UpdateSprintResponse)(nil),       // 28: jarvis.task.UpdateSprintResponse
-	(*DeleteSprintRequest)(nil),        // 29: jarvis.task.DeleteSprintRequest
-	(*DeleteSprintResponse)(nil),       // 30: jarvis.task.DeleteSprintResponse
-	(*CloseSprintRequest)(nil),         // 31: jarvis.task.CloseSprintRequest
-	(*CloseSprintResponse)(nil),        // 32: jarvis.task.CloseSprintResponse
-	(*ListSprintsRequest)(nil),         // 33: jarvis.task.ListSprintsRequest
-	(*ListSprintsResponse)(nil),        // 34: jarvis.task.ListSprintsResponse
-	(*GetSprintVelocityRequest)(nil),   // 35: jarvis.task.GetSprintVelocityRequest
-	(*GetSprintVelocityResponse)(nil),  // 36: jarvis.task.GetSprintVelocityResponse
-	(*timestamppb.Timestamp)(nil),      // 37: google.protobuf.Timestamp
-	(*common.RequestMeta)(nil),         // 38: jarvis.common.RequestMeta
-	(*common.ResponseMeta)(nil),        // 39: jarvis.common.ResponseMeta
+	(TaskType)(0),                             // 0: jarvis.task.TaskType
+	(TaskPriority)(0),                         // 1: jarvis.task.TaskPriority
+	(TaskStatus)(0),                           // 2: jarvis.task.TaskStatus
+	(SprintStatus)(0),                         // 3: jarvis.task.SprintStatus
+	(*Sprint)(nil),                            // 4: jarvis.task.Sprint
+	(*Task)(nil),                              // 5: jarvis.task.Task
+	(*UserVelocity)(nil),                      // 6: jarvis.task.UserVelocity
+	(*CreateTaskRequest)(nil),                 // 7: jarvis.task.CreateTaskRequest
+	(*CreateTaskResponse)(nil),                // 8: jarvis.task.CreateTaskResponse
+	(*GetTaskRequest)(nil),                    // 9: jarvis.task.GetTaskRequest
+	(*GetTaskResponse)(nil),                   // 10: jarvis.task.GetTaskResponse
+	(*UpdateTaskRequest)(nil),                 // 11: jarvis.task.UpdateTaskRequest
+	(*UpdateTaskResponse)(nil),                // 12: jarvis.task.UpdateTaskResponse
+	(*DeleteTaskRequest)(nil),                 // 13: jarvis.task.DeleteTaskRequest
+	(*DeleteTaskResponse)(nil),                // 14: jarvis.task.DeleteTaskResponse
+	(*ListBacklogRequest)(nil),                // 15: jarvis.task.ListBacklogRequest
+	(*ListBacklogResponse)(nil),               // 16: jarvis.task.ListBacklogResponse
+	(*ListAllTasksRequest)(nil),               // 17: jarvis.task.ListAllTasksRequest
+	(*ListAllTasksResponse)(nil),              // 18: jarvis.task.ListAllTasksResponse
+	(*ListSprintTasksRequest)(nil),            // 19: jarvis.task.ListSprintTasksRequest
+	(*ListSprintTasksResponse)(nil),           // 20: jarvis.task.ListSprintTasksResponse
+	(*AssignTaskToSprintRequest)(nil),         // 21: jarvis.task.AssignTaskToSprintRequest
+	(*AssignTaskToSprintResponse)(nil),        // 22: jarvis.task.AssignTaskToSprintResponse
+	(*MoveTaskStatusRequest)(nil),             // 23: jarvis.task.MoveTaskStatusRequest
+	(*MoveTaskStatusResponse)(nil),            // 24: jarvis.task.MoveTaskStatusResponse
+	(*CreateSprintRequest)(nil),               // 25: jarvis.task.CreateSprintRequest
+	(*CreateSprintResponse)(nil),              // 26: jarvis.task.CreateSprintResponse
+	(*UpdateSprintRequest)(nil),               // 27: jarvis.task.UpdateSprintRequest
+	(*UpdateSprintResponse)(nil),              // 28: jarvis.task.UpdateSprintResponse
+	(*DeleteSprintRequest)(nil),               // 29: jarvis.task.DeleteSprintRequest
+	(*DeleteSprintResponse)(nil),              // 30: jarvis.task.DeleteSprintResponse
+	(*CloseSprintRequest)(nil),                // 31: jarvis.task.CloseSprintRequest
+	(*CloseSprintResponse)(nil),               // 32: jarvis.task.CloseSprintResponse
+	(*ListSprintsRequest)(nil),                // 33: jarvis.task.ListSprintsRequest
+	(*ListSprintsResponse)(nil),               // 34: jarvis.task.ListSprintsResponse
+	(*GetSprintVelocityRequest)(nil),          // 35: jarvis.task.GetSprintVelocityRequest
+	(*GetSprintVelocityResponse)(nil),         // 36: jarvis.task.GetSprintVelocityResponse
+	(*AssigneeSprintPoints)(nil),              // 37: jarvis.task.AssigneeSprintPoints
+	(*AssigneeVelocityItem)(nil),              // 38: jarvis.task.AssigneeVelocityItem
+	(*GetAssigneeVelocityReportRequest)(nil),  // 39: jarvis.task.GetAssigneeVelocityReportRequest
+	(*GetAssigneeVelocityReportResponse)(nil), // 40: jarvis.task.GetAssigneeVelocityReportResponse
+	(*StatusBucket)(nil),                      // 41: jarvis.task.StatusBucket
+	(*GetSprintStatusReportRequest)(nil),      // 42: jarvis.task.GetSprintStatusReportRequest
+	(*GetSprintStatusReportResponse)(nil),     // 43: jarvis.task.GetSprintStatusReportResponse
+	(*StatusChangeEntry)(nil),                 // 44: jarvis.task.StatusChangeEntry
+	(*UserEodSummary)(nil),                    // 45: jarvis.task.UserEodSummary
+	(*GetEndOfDayReportRequest)(nil),          // 46: jarvis.task.GetEndOfDayReportRequest
+	(*GetEndOfDayReportResponse)(nil),         // 47: jarvis.task.GetEndOfDayReportResponse
+	(*ReporterStatusCount)(nil),               // 48: jarvis.task.ReporterStatusCount
+	(*ReporterUsageItem)(nil),                 // 49: jarvis.task.ReporterUsageItem
+	(*GetReporterUsageReportRequest)(nil),     // 50: jarvis.task.GetReporterUsageReportRequest
+	(*GetReporterUsageReportResponse)(nil),    // 51: jarvis.task.GetReporterUsageReportResponse
+	(*StatusLogEntry)(nil),                    // 52: jarvis.task.StatusLogEntry
+	(*TransitionCount)(nil),                   // 53: jarvis.task.TransitionCount
+	(*DailyThroughput)(nil),                   // 54: jarvis.task.DailyThroughput
+	(*GetTaskStatusLogRequest)(nil),           // 55: jarvis.task.GetTaskStatusLogRequest
+	(*GetTaskStatusLogResponse)(nil),          // 56: jarvis.task.GetTaskStatusLogResponse
+	(*GetTransitionReportRequest)(nil),        // 57: jarvis.task.GetTransitionReportRequest
+	(*GetTransitionReportResponse)(nil),       // 58: jarvis.task.GetTransitionReportResponse
+	(*GetThroughputReportRequest)(nil),        // 59: jarvis.task.GetThroughputReportRequest
+	(*GetThroughputReportResponse)(nil),       // 60: jarvis.task.GetThroughputReportResponse
+	(*timestamppb.Timestamp)(nil),             // 61: google.protobuf.Timestamp
+	(*common.RequestMeta)(nil),                // 62: jarvis.common.RequestMeta
+	(*common.ResponseMeta)(nil),               // 63: jarvis.common.ResponseMeta
 }
 var file_pb_task_task_proto_depIdxs = []int32{
-	3,  // 0: jarvis.task.Sprint.status:type_name -> jarvis.task.SprintStatus
-	37, // 1: jarvis.task.Sprint.created_at:type_name -> google.protobuf.Timestamp
-	37, // 2: jarvis.task.Sprint.updated_at:type_name -> google.protobuf.Timestamp
-	1,  // 3: jarvis.task.Task.priority:type_name -> jarvis.task.TaskPriority
-	2,  // 4: jarvis.task.Task.status:type_name -> jarvis.task.TaskStatus
-	37, // 5: jarvis.task.Task.completed_at:type_name -> google.protobuf.Timestamp
-	37, // 6: jarvis.task.Task.created_at:type_name -> google.protobuf.Timestamp
-	37, // 7: jarvis.task.Task.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 8: jarvis.task.Task.task_type:type_name -> jarvis.task.TaskType
-	38, // 9: jarvis.task.CreateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	1,  // 10: jarvis.task.CreateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
-	0,  // 11: jarvis.task.CreateTaskRequest.task_type:type_name -> jarvis.task.TaskType
-	39, // 12: jarvis.task.CreateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 13: jarvis.task.CreateTaskResponse.task:type_name -> jarvis.task.Task
-	38, // 14: jarvis.task.GetTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 15: jarvis.task.GetTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 16: jarvis.task.GetTaskResponse.task:type_name -> jarvis.task.Task
-	38, // 17: jarvis.task.UpdateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	1,  // 18: jarvis.task.UpdateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
-	0,  // 19: jarvis.task.UpdateTaskRequest.task_type:type_name -> jarvis.task.TaskType
-	39, // 20: jarvis.task.UpdateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 21: jarvis.task.UpdateTaskResponse.task:type_name -> jarvis.task.Task
-	38, // 22: jarvis.task.DeleteTaskRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 23: jarvis.task.DeleteTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
-	38, // 24: jarvis.task.ListBacklogRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 25: jarvis.task.ListBacklogResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 26: jarvis.task.ListBacklogResponse.tasks:type_name -> jarvis.task.Task
-	38, // 27: jarvis.task.ListAllTasksRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 28: jarvis.task.ListAllTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 29: jarvis.task.ListAllTasksResponse.tasks:type_name -> jarvis.task.Task
-	38, // 30: jarvis.task.ListSprintTasksRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 31: jarvis.task.ListSprintTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 32: jarvis.task.ListSprintTasksResponse.tasks:type_name -> jarvis.task.Task
-	38, // 33: jarvis.task.AssignTaskToSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 34: jarvis.task.AssignTaskToSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 35: jarvis.task.AssignTaskToSprintResponse.task:type_name -> jarvis.task.Task
-	38, // 36: jarvis.task.MoveTaskStatusRequest.meta:type_name -> jarvis.common.RequestMeta
-	2,  // 37: jarvis.task.MoveTaskStatusRequest.new_status:type_name -> jarvis.task.TaskStatus
-	39, // 38: jarvis.task.MoveTaskStatusResponse.meta:type_name -> jarvis.common.ResponseMeta
-	5,  // 39: jarvis.task.MoveTaskStatusResponse.task:type_name -> jarvis.task.Task
-	38, // 40: jarvis.task.CreateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 41: jarvis.task.CreateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 42: jarvis.task.CreateSprintResponse.sprint:type_name -> jarvis.task.Sprint
-	38, // 43: jarvis.task.UpdateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 44: jarvis.task.UpdateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 45: jarvis.task.UpdateSprintResponse.sprint:type_name -> jarvis.task.Sprint
-	38, // 46: jarvis.task.DeleteSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 47: jarvis.task.DeleteSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	38, // 48: jarvis.task.CloseSprintRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 49: jarvis.task.CloseSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 50: jarvis.task.CloseSprintResponse.sprint:type_name -> jarvis.task.Sprint
-	38, // 51: jarvis.task.ListSprintsRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 52: jarvis.task.ListSprintsResponse.meta:type_name -> jarvis.common.ResponseMeta
-	4,  // 53: jarvis.task.ListSprintsResponse.sprints:type_name -> jarvis.task.Sprint
-	38, // 54: jarvis.task.GetSprintVelocityRequest.meta:type_name -> jarvis.common.RequestMeta
-	39, // 55: jarvis.task.GetSprintVelocityResponse.meta:type_name -> jarvis.common.ResponseMeta
-	6,  // 56: jarvis.task.GetSprintVelocityResponse.velocities:type_name -> jarvis.task.UserVelocity
-	7,  // 57: jarvis.task.TaskService.CreateTask:input_type -> jarvis.task.CreateTaskRequest
-	9,  // 58: jarvis.task.TaskService.GetTask:input_type -> jarvis.task.GetTaskRequest
-	11, // 59: jarvis.task.TaskService.UpdateTask:input_type -> jarvis.task.UpdateTaskRequest
-	13, // 60: jarvis.task.TaskService.DeleteTask:input_type -> jarvis.task.DeleteTaskRequest
-	15, // 61: jarvis.task.TaskService.ListBacklog:input_type -> jarvis.task.ListBacklogRequest
-	17, // 62: jarvis.task.TaskService.ListAllTasks:input_type -> jarvis.task.ListAllTasksRequest
-	19, // 63: jarvis.task.TaskService.ListSprintTasks:input_type -> jarvis.task.ListSprintTasksRequest
-	21, // 64: jarvis.task.TaskService.AssignTaskToSprint:input_type -> jarvis.task.AssignTaskToSprintRequest
-	23, // 65: jarvis.task.TaskService.MoveTaskStatus:input_type -> jarvis.task.MoveTaskStatusRequest
-	25, // 66: jarvis.task.TaskService.CreateSprint:input_type -> jarvis.task.CreateSprintRequest
-	27, // 67: jarvis.task.TaskService.UpdateSprint:input_type -> jarvis.task.UpdateSprintRequest
-	29, // 68: jarvis.task.TaskService.DeleteSprint:input_type -> jarvis.task.DeleteSprintRequest
-	31, // 69: jarvis.task.TaskService.CloseSprint:input_type -> jarvis.task.CloseSprintRequest
-	33, // 70: jarvis.task.TaskService.ListSprints:input_type -> jarvis.task.ListSprintsRequest
-	35, // 71: jarvis.task.TaskService.GetSprintVelocity:input_type -> jarvis.task.GetSprintVelocityRequest
-	8,  // 72: jarvis.task.TaskService.CreateTask:output_type -> jarvis.task.CreateTaskResponse
-	10, // 73: jarvis.task.TaskService.GetTask:output_type -> jarvis.task.GetTaskResponse
-	12, // 74: jarvis.task.TaskService.UpdateTask:output_type -> jarvis.task.UpdateTaskResponse
-	14, // 75: jarvis.task.TaskService.DeleteTask:output_type -> jarvis.task.DeleteTaskResponse
-	16, // 76: jarvis.task.TaskService.ListBacklog:output_type -> jarvis.task.ListBacklogResponse
-	18, // 77: jarvis.task.TaskService.ListAllTasks:output_type -> jarvis.task.ListAllTasksResponse
-	20, // 78: jarvis.task.TaskService.ListSprintTasks:output_type -> jarvis.task.ListSprintTasksResponse
-	22, // 79: jarvis.task.TaskService.AssignTaskToSprint:output_type -> jarvis.task.AssignTaskToSprintResponse
-	24, // 80: jarvis.task.TaskService.MoveTaskStatus:output_type -> jarvis.task.MoveTaskStatusResponse
-	26, // 81: jarvis.task.TaskService.CreateSprint:output_type -> jarvis.task.CreateSprintResponse
-	28, // 82: jarvis.task.TaskService.UpdateSprint:output_type -> jarvis.task.UpdateSprintResponse
-	30, // 83: jarvis.task.TaskService.DeleteSprint:output_type -> jarvis.task.DeleteSprintResponse
-	32, // 84: jarvis.task.TaskService.CloseSprint:output_type -> jarvis.task.CloseSprintResponse
-	34, // 85: jarvis.task.TaskService.ListSprints:output_type -> jarvis.task.ListSprintsResponse
-	36, // 86: jarvis.task.TaskService.GetSprintVelocity:output_type -> jarvis.task.GetSprintVelocityResponse
-	72, // [72:87] is the sub-list for method output_type
-	57, // [57:72] is the sub-list for method input_type
-	57, // [57:57] is the sub-list for extension type_name
-	57, // [57:57] is the sub-list for extension extendee
-	0,  // [0:57] is the sub-list for field type_name
+	3,   // 0: jarvis.task.Sprint.status:type_name -> jarvis.task.SprintStatus
+	61,  // 1: jarvis.task.Sprint.created_at:type_name -> google.protobuf.Timestamp
+	61,  // 2: jarvis.task.Sprint.updated_at:type_name -> google.protobuf.Timestamp
+	1,   // 3: jarvis.task.Task.priority:type_name -> jarvis.task.TaskPriority
+	2,   // 4: jarvis.task.Task.status:type_name -> jarvis.task.TaskStatus
+	61,  // 5: jarvis.task.Task.completed_at:type_name -> google.protobuf.Timestamp
+	61,  // 6: jarvis.task.Task.created_at:type_name -> google.protobuf.Timestamp
+	61,  // 7: jarvis.task.Task.updated_at:type_name -> google.protobuf.Timestamp
+	0,   // 8: jarvis.task.Task.task_type:type_name -> jarvis.task.TaskType
+	62,  // 9: jarvis.task.CreateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	1,   // 10: jarvis.task.CreateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
+	0,   // 11: jarvis.task.CreateTaskRequest.task_type:type_name -> jarvis.task.TaskType
+	63,  // 12: jarvis.task.CreateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 13: jarvis.task.CreateTaskResponse.task:type_name -> jarvis.task.Task
+	62,  // 14: jarvis.task.GetTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 15: jarvis.task.GetTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 16: jarvis.task.GetTaskResponse.task:type_name -> jarvis.task.Task
+	62,  // 17: jarvis.task.UpdateTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	1,   // 18: jarvis.task.UpdateTaskRequest.priority:type_name -> jarvis.task.TaskPriority
+	0,   // 19: jarvis.task.UpdateTaskRequest.task_type:type_name -> jarvis.task.TaskType
+	63,  // 20: jarvis.task.UpdateTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 21: jarvis.task.UpdateTaskResponse.task:type_name -> jarvis.task.Task
+	62,  // 22: jarvis.task.DeleteTaskRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 23: jarvis.task.DeleteTaskResponse.meta:type_name -> jarvis.common.ResponseMeta
+	62,  // 24: jarvis.task.ListBacklogRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 25: jarvis.task.ListBacklogResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 26: jarvis.task.ListBacklogResponse.tasks:type_name -> jarvis.task.Task
+	62,  // 27: jarvis.task.ListAllTasksRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 28: jarvis.task.ListAllTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 29: jarvis.task.ListAllTasksResponse.tasks:type_name -> jarvis.task.Task
+	62,  // 30: jarvis.task.ListSprintTasksRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 31: jarvis.task.ListSprintTasksResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 32: jarvis.task.ListSprintTasksResponse.tasks:type_name -> jarvis.task.Task
+	62,  // 33: jarvis.task.AssignTaskToSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 34: jarvis.task.AssignTaskToSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 35: jarvis.task.AssignTaskToSprintResponse.task:type_name -> jarvis.task.Task
+	62,  // 36: jarvis.task.MoveTaskStatusRequest.meta:type_name -> jarvis.common.RequestMeta
+	2,   // 37: jarvis.task.MoveTaskStatusRequest.new_status:type_name -> jarvis.task.TaskStatus
+	63,  // 38: jarvis.task.MoveTaskStatusResponse.meta:type_name -> jarvis.common.ResponseMeta
+	5,   // 39: jarvis.task.MoveTaskStatusResponse.task:type_name -> jarvis.task.Task
+	62,  // 40: jarvis.task.CreateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 41: jarvis.task.CreateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,   // 42: jarvis.task.CreateSprintResponse.sprint:type_name -> jarvis.task.Sprint
+	62,  // 43: jarvis.task.UpdateSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 44: jarvis.task.UpdateSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,   // 45: jarvis.task.UpdateSprintResponse.sprint:type_name -> jarvis.task.Sprint
+	62,  // 46: jarvis.task.DeleteSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 47: jarvis.task.DeleteSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	62,  // 48: jarvis.task.CloseSprintRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 49: jarvis.task.CloseSprintResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,   // 50: jarvis.task.CloseSprintResponse.sprint:type_name -> jarvis.task.Sprint
+	62,  // 51: jarvis.task.ListSprintsRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 52: jarvis.task.ListSprintsResponse.meta:type_name -> jarvis.common.ResponseMeta
+	4,   // 53: jarvis.task.ListSprintsResponse.sprints:type_name -> jarvis.task.Sprint
+	62,  // 54: jarvis.task.GetSprintVelocityRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 55: jarvis.task.GetSprintVelocityResponse.meta:type_name -> jarvis.common.ResponseMeta
+	6,   // 56: jarvis.task.GetSprintVelocityResponse.velocities:type_name -> jarvis.task.UserVelocity
+	37,  // 57: jarvis.task.AssigneeVelocityItem.sprints:type_name -> jarvis.task.AssigneeSprintPoints
+	62,  // 58: jarvis.task.GetAssigneeVelocityReportRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 59: jarvis.task.GetAssigneeVelocityReportResponse.meta:type_name -> jarvis.common.ResponseMeta
+	38,  // 60: jarvis.task.GetAssigneeVelocityReportResponse.velocities:type_name -> jarvis.task.AssigneeVelocityItem
+	62,  // 61: jarvis.task.GetSprintStatusReportRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 62: jarvis.task.GetSprintStatusReportResponse.meta:type_name -> jarvis.common.ResponseMeta
+	41,  // 63: jarvis.task.GetSprintStatusReportResponse.buckets:type_name -> jarvis.task.StatusBucket
+	61,  // 64: jarvis.task.StatusChangeEntry.changed_at:type_name -> google.protobuf.Timestamp
+	62,  // 65: jarvis.task.GetEndOfDayReportRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 66: jarvis.task.GetEndOfDayReportResponse.meta:type_name -> jarvis.common.ResponseMeta
+	44,  // 67: jarvis.task.GetEndOfDayReportResponse.status_changes_today:type_name -> jarvis.task.StatusChangeEntry
+	45,  // 68: jarvis.task.GetEndOfDayReportResponse.user_summaries:type_name -> jarvis.task.UserEodSummary
+	48,  // 69: jarvis.task.ReporterUsageItem.status_counts:type_name -> jarvis.task.ReporterStatusCount
+	62,  // 70: jarvis.task.GetReporterUsageReportRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 71: jarvis.task.GetReporterUsageReportResponse.meta:type_name -> jarvis.common.ResponseMeta
+	49,  // 72: jarvis.task.GetReporterUsageReportResponse.items:type_name -> jarvis.task.ReporterUsageItem
+	62,  // 73: jarvis.task.GetTaskStatusLogRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 74: jarvis.task.GetTaskStatusLogResponse.meta:type_name -> jarvis.common.ResponseMeta
+	52,  // 75: jarvis.task.GetTaskStatusLogResponse.entries:type_name -> jarvis.task.StatusLogEntry
+	62,  // 76: jarvis.task.GetTransitionReportRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 77: jarvis.task.GetTransitionReportResponse.meta:type_name -> jarvis.common.ResponseMeta
+	53,  // 78: jarvis.task.GetTransitionReportResponse.transitions:type_name -> jarvis.task.TransitionCount
+	62,  // 79: jarvis.task.GetThroughputReportRequest.meta:type_name -> jarvis.common.RequestMeta
+	63,  // 80: jarvis.task.GetThroughputReportResponse.meta:type_name -> jarvis.common.ResponseMeta
+	54,  // 81: jarvis.task.GetThroughputReportResponse.buckets:type_name -> jarvis.task.DailyThroughput
+	7,   // 82: jarvis.task.TaskService.CreateTask:input_type -> jarvis.task.CreateTaskRequest
+	9,   // 83: jarvis.task.TaskService.GetTask:input_type -> jarvis.task.GetTaskRequest
+	11,  // 84: jarvis.task.TaskService.UpdateTask:input_type -> jarvis.task.UpdateTaskRequest
+	13,  // 85: jarvis.task.TaskService.DeleteTask:input_type -> jarvis.task.DeleteTaskRequest
+	15,  // 86: jarvis.task.TaskService.ListBacklog:input_type -> jarvis.task.ListBacklogRequest
+	17,  // 87: jarvis.task.TaskService.ListAllTasks:input_type -> jarvis.task.ListAllTasksRequest
+	19,  // 88: jarvis.task.TaskService.ListSprintTasks:input_type -> jarvis.task.ListSprintTasksRequest
+	21,  // 89: jarvis.task.TaskService.AssignTaskToSprint:input_type -> jarvis.task.AssignTaskToSprintRequest
+	23,  // 90: jarvis.task.TaskService.MoveTaskStatus:input_type -> jarvis.task.MoveTaskStatusRequest
+	25,  // 91: jarvis.task.TaskService.CreateSprint:input_type -> jarvis.task.CreateSprintRequest
+	27,  // 92: jarvis.task.TaskService.UpdateSprint:input_type -> jarvis.task.UpdateSprintRequest
+	29,  // 93: jarvis.task.TaskService.DeleteSprint:input_type -> jarvis.task.DeleteSprintRequest
+	31,  // 94: jarvis.task.TaskService.CloseSprint:input_type -> jarvis.task.CloseSprintRequest
+	33,  // 95: jarvis.task.TaskService.ListSprints:input_type -> jarvis.task.ListSprintsRequest
+	35,  // 96: jarvis.task.TaskService.GetSprintVelocity:input_type -> jarvis.task.GetSprintVelocityRequest
+	55,  // 97: jarvis.task.TaskService.GetTaskStatusLog:input_type -> jarvis.task.GetTaskStatusLogRequest
+	57,  // 98: jarvis.task.TaskService.GetTransitionReport:input_type -> jarvis.task.GetTransitionReportRequest
+	59,  // 99: jarvis.task.TaskService.GetThroughputReport:input_type -> jarvis.task.GetThroughputReportRequest
+	39,  // 100: jarvis.task.TaskService.GetAssigneeVelocityReport:input_type -> jarvis.task.GetAssigneeVelocityReportRequest
+	42,  // 101: jarvis.task.TaskService.GetSprintStatusReport:input_type -> jarvis.task.GetSprintStatusReportRequest
+	46,  // 102: jarvis.task.TaskService.GetEndOfDayReport:input_type -> jarvis.task.GetEndOfDayReportRequest
+	50,  // 103: jarvis.task.TaskService.GetReporterUsageReport:input_type -> jarvis.task.GetReporterUsageReportRequest
+	8,   // 104: jarvis.task.TaskService.CreateTask:output_type -> jarvis.task.CreateTaskResponse
+	10,  // 105: jarvis.task.TaskService.GetTask:output_type -> jarvis.task.GetTaskResponse
+	12,  // 106: jarvis.task.TaskService.UpdateTask:output_type -> jarvis.task.UpdateTaskResponse
+	14,  // 107: jarvis.task.TaskService.DeleteTask:output_type -> jarvis.task.DeleteTaskResponse
+	16,  // 108: jarvis.task.TaskService.ListBacklog:output_type -> jarvis.task.ListBacklogResponse
+	18,  // 109: jarvis.task.TaskService.ListAllTasks:output_type -> jarvis.task.ListAllTasksResponse
+	20,  // 110: jarvis.task.TaskService.ListSprintTasks:output_type -> jarvis.task.ListSprintTasksResponse
+	22,  // 111: jarvis.task.TaskService.AssignTaskToSprint:output_type -> jarvis.task.AssignTaskToSprintResponse
+	24,  // 112: jarvis.task.TaskService.MoveTaskStatus:output_type -> jarvis.task.MoveTaskStatusResponse
+	26,  // 113: jarvis.task.TaskService.CreateSprint:output_type -> jarvis.task.CreateSprintResponse
+	28,  // 114: jarvis.task.TaskService.UpdateSprint:output_type -> jarvis.task.UpdateSprintResponse
+	30,  // 115: jarvis.task.TaskService.DeleteSprint:output_type -> jarvis.task.DeleteSprintResponse
+	32,  // 116: jarvis.task.TaskService.CloseSprint:output_type -> jarvis.task.CloseSprintResponse
+	34,  // 117: jarvis.task.TaskService.ListSprints:output_type -> jarvis.task.ListSprintsResponse
+	36,  // 118: jarvis.task.TaskService.GetSprintVelocity:output_type -> jarvis.task.GetSprintVelocityResponse
+	56,  // 119: jarvis.task.TaskService.GetTaskStatusLog:output_type -> jarvis.task.GetTaskStatusLogResponse
+	58,  // 120: jarvis.task.TaskService.GetTransitionReport:output_type -> jarvis.task.GetTransitionReportResponse
+	60,  // 121: jarvis.task.TaskService.GetThroughputReport:output_type -> jarvis.task.GetThroughputReportResponse
+	40,  // 122: jarvis.task.TaskService.GetAssigneeVelocityReport:output_type -> jarvis.task.GetAssigneeVelocityReportResponse
+	43,  // 123: jarvis.task.TaskService.GetSprintStatusReport:output_type -> jarvis.task.GetSprintStatusReportResponse
+	47,  // 124: jarvis.task.TaskService.GetEndOfDayReport:output_type -> jarvis.task.GetEndOfDayReportResponse
+	51,  // 125: jarvis.task.TaskService.GetReporterUsageReport:output_type -> jarvis.task.GetReporterUsageReportResponse
+	104, // [104:126] is the sub-list for method output_type
+	82,  // [82:104] is the sub-list for method input_type
+	82,  // [82:82] is the sub-list for extension type_name
+	82,  // [82:82] is the sub-list for extension extendee
+	0,   // [0:82] is the sub-list for field type_name
 }
 
 func init() { file_pb_task_task_proto_init() }
@@ -2700,7 +4414,7 @@ func file_pb_task_task_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pb_task_task_proto_rawDesc), len(file_pb_task_task_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   33,
+			NumMessages:   57,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

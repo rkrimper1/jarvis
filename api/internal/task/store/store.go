@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,7 +18,21 @@ import (
 // ErrNotFound is returned by store methods when a requested record does not exist.
 var ErrNotFound = errors.New("not found")
 
+// ErrNoActiveSprint is returned when a report requires an active sprint but none exists.
+var ErrNoActiveSprint = errors.New("no active sprint")
+
 const schema = `
+CREATE TABLE IF NOT EXISTS task_status_log (
+    id            TEXT PRIMARY KEY,
+    task_id       TEXT NOT NULL,
+    from_status   TEXT NOT NULL DEFAULT '',
+    to_status     TEXT NOT NULL,
+    changed_by_id TEXT NOT NULL DEFAULT '',
+    changed_at    DATETIME DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_status_log_task       ON task_status_log(task_id);
+CREATE INDEX IF NOT EXISTS idx_status_log_changed_at ON task_status_log(changed_at);
+
 CREATE TABLE IF NOT EXISTS sprints (
     id         TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
@@ -132,13 +147,17 @@ func (s *Store) GetTask(ctx context.Context, id string) (*taskv1.Task, error) {
 	return s.scanTask(row)
 }
 
-func (s *Store) UpdateTask(ctx context.Context, id, title, description, assigneeID, priority, taskType, parentID string, storyPoints int32, dueDate string) (*taskv1.Task, error) {
-	_, err := s.db.ExecContext(ctx,
-		`UPDATE tasks SET title=?,description=?,assignee_id=?,priority=?,task_type=?,
-		       parent_id=nullif(?,?),story_points=?,due_date=nullif(?,?),updated_at=datetime('now') WHERE id=?`,
-		title, description, assigneeID, priority, taskType, parentID, "", storyPoints, dueDate, "", id,
-	)
-	if err != nil {
+func (s *Store) UpdateTask(ctx context.Context, id, title, description, assigneeID, reporterID, priority, taskType, parentID string, storyPoints int32, dueDate string) (*taskv1.Task, error) {
+	q := `UPDATE tasks SET title=?,description=?,assignee_id=?,priority=?,task_type=?,
+		       parent_id=nullif(?,?),story_points=?,due_date=nullif(?,?),updated_at=datetime('now')`
+	args := []any{title, description, assigneeID, priority, taskType, parentID, "", storyPoints, dueDate, ""}
+	if reporterID != "" {
+		q += `,reporter_id=?`
+		args = append(args, reporterID)
+	}
+	q += ` WHERE id=?`
+	args = append(args, id)
+	if _, err := s.db.ExecContext(ctx, q, args...); err != nil {
 		return nil, fmt.Errorf("task store: update task: %w", err)
 	}
 	return s.GetTask(ctx, id)
@@ -195,11 +214,20 @@ func (s *Store) ListAll(ctx context.Context) ([]*taskv1.Task, error) {
 	return s.scanTasks(rows)
 }
 
-func (s *Store) AssignToSprint(ctx context.Context, taskID, sprintID string) (*taskv1.Task, error) {
-	_, err := s.db.ExecContext(ctx,
-		`UPDATE tasks SET sprint_id=?,status='assigned',updated_at=datetime('now') WHERE id=?`,
-		sprintID, taskID,
-	)
+func (s *Store) AssignToSprint(ctx context.Context, taskID, sprintID, changedByID string) (*taskv1.Task, error) {
+	err := s.inTx(ctx, func(tx *sql.Tx) error {
+		var fromStatus string
+		if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id=?`, taskID).Scan(&fromStatus); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE tasks SET sprint_id=?,status='assigned',updated_at=datetime('now') WHERE id=?`,
+			sprintID, taskID,
+		); err != nil {
+			return err
+		}
+		return s.insertLogTx(ctx, tx, taskID, fromStatus, "assigned", changedByID)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("task store: assign to sprint: %w", err)
 	}
@@ -207,11 +235,20 @@ func (s *Store) AssignToSprint(ctx context.Context, taskID, sprintID string) (*t
 }
 
 // RemoveFromSprint clears the sprint assignment and resets the task status to unassigned.
-func (s *Store) RemoveFromSprint(ctx context.Context, taskID string) (*taskv1.Task, error) {
-	_, err := s.db.ExecContext(ctx,
-		`UPDATE tasks SET sprint_id=NULL,status='unassigned',updated_at=datetime('now') WHERE id=?`,
-		taskID,
-	)
+func (s *Store) RemoveFromSprint(ctx context.Context, taskID, changedByID string) (*taskv1.Task, error) {
+	err := s.inTx(ctx, func(tx *sql.Tx) error {
+		var fromStatus string
+		if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id=?`, taskID).Scan(&fromStatus); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE tasks SET sprint_id=NULL,status='unassigned',updated_at=datetime('now') WHERE id=?`,
+			taskID,
+		); err != nil {
+			return err
+		}
+		return s.insertLogTx(ctx, tx, taskID, fromStatus, "unassigned", changedByID)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("task store: remove from sprint: %w", err)
 	}
@@ -219,22 +256,515 @@ func (s *Store) RemoveFromSprint(ctx context.Context, taskID string) (*taskv1.Ta
 }
 
 func (s *Store) MoveStatus(ctx context.Context, taskID, newStatus, completedBy string) (*taskv1.Task, error) {
-	var err error
-	if newStatus == "completed" {
-		_, err = s.db.ExecContext(ctx,
-			`UPDATE tasks SET status=?,completed_by_id=?,completed_at=datetime('now'),updated_at=datetime('now') WHERE id=?`,
-			newStatus, completedBy, taskID,
-		)
-	} else {
-		_, err = s.db.ExecContext(ctx,
-			`UPDATE tasks SET status=?,completed_by_id=NULL,completed_at=NULL,updated_at=datetime('now') WHERE id=?`,
-			newStatus, taskID,
-		)
-	}
+	err := s.inTx(ctx, func(tx *sql.Tx) error {
+		var fromStatus string
+		if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id=?`, taskID).Scan(&fromStatus); err != nil {
+			return err
+		}
+		if newStatus == "completed" {
+			if _, err := tx.ExecContext(ctx,
+				`UPDATE tasks SET status=?,completed_by_id=?,completed_at=datetime('now'),updated_at=datetime('now') WHERE id=?`,
+				newStatus, completedBy, taskID,
+			); err != nil {
+				return err
+			}
+		} else {
+			if _, err := tx.ExecContext(ctx,
+				`UPDATE tasks SET status=?,completed_by_id=NULL,completed_at=NULL,updated_at=datetime('now') WHERE id=?`,
+				newStatus, taskID,
+			); err != nil {
+				return err
+			}
+		}
+		return s.insertLogTx(ctx, tx, taskID, fromStatus, newStatus, completedBy)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("task store: move status: %w", err)
 	}
 	return s.GetTask(ctx, taskID)
+}
+
+// ── Status log ────────────────────────────────────────────────────────────────
+
+// StatusLogEntry is a single row from task_status_log.
+type StatusLogEntry struct {
+	ID              string
+	TaskID          string
+	FromStatus      string
+	ToStatus        string
+	ChangedByID     string
+	ChangedByName   string // display_name from users; empty if user not found
+	ChangedAt       string
+}
+
+// TransitionCount is an aggregated from→to transition count.
+type TransitionCount struct {
+	FromStatus string
+	ToStatus   string
+	Count      int32
+}
+
+// DailyThroughput is the number of tasks completed and story points delivered on a single day.
+type DailyThroughput struct {
+	Date        string
+	Count       int32
+	StoryPoints int32
+}
+
+func (s *Store) GetTaskStatusLog(ctx context.Context, taskID string, pageSize int32) ([]*StatusLogEntry, error) {
+	if pageSize <= 0 || pageSize > 200 {
+		pageSize = 50
+	}
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT l.id, l.task_id, l.from_status, l.to_status, l.changed_by_id,
+		        COALESCE(u.display_name,''), strftime('%Y-%m-%dT%H:%M:%SZ',l.changed_at)
+		 FROM task_status_log l
+		 LEFT JOIN users u ON u.id = l.changed_by_id
+		 WHERE l.task_id=?
+		 ORDER BY l.changed_at DESC LIMIT ?`, taskID, pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("task store: status log: %w", err)
+	}
+	defer rows.Close()
+	var out []*StatusLogEntry
+	for rows.Next() {
+		e := &StatusLogEntry{}
+		if err := rows.Scan(&e.ID, &e.TaskID, &e.FromStatus, &e.ToStatus, &e.ChangedByID, &e.ChangedByName, &e.ChangedAt); err != nil {
+			return nil, fmt.Errorf("task store: scan status log: %w", err)
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) GetTransitionReport(ctx context.Context) ([]*TransitionCount, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT from_status,to_status,COUNT(*) FROM task_status_log
+		 GROUP BY from_status,to_status ORDER BY COUNT(*) DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("task store: transition report: %w", err)
+	}
+	defer rows.Close()
+	var out []*TransitionCount
+	for rows.Next() {
+		tc := &TransitionCount{}
+		if err := rows.Scan(&tc.FromStatus, &tc.ToStatus, &tc.Count); err != nil {
+			return nil, fmt.Errorf("task store: scan transition: %w", err)
+		}
+		out = append(out, tc)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) GetThroughputReport(ctx context.Context, days int32) ([]*DailyThroughput, error) {
+	if days <= 0 || days > 365 {
+		days = 30
+	}
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT date(changed_at) as day, COUNT(*), COALESCE(SUM(t.story_points),0)
+		 FROM task_status_log l
+		 JOIN tasks t ON t.id = l.task_id
+		 WHERE l.to_status='completed'
+		   AND l.changed_at >= datetime('now',?||' days')
+		 GROUP BY day ORDER BY day ASC`,
+		fmt.Sprintf("-%d", days))
+	if err != nil {
+		return nil, fmt.Errorf("task store: throughput report: %w", err)
+	}
+	defer rows.Close()
+	var out []*DailyThroughput
+	for rows.Next() {
+		dt := &DailyThroughput{}
+		if err := rows.Scan(&dt.Date, &dt.Count, &dt.StoryPoints); err != nil {
+			return nil, fmt.Errorf("task store: scan throughput: %w", err)
+		}
+		out = append(out, dt)
+	}
+	return out, rows.Err()
+}
+
+// ── Extended reports ──────────────────────────────────────────────────────────
+
+// AssigneeSprintPts is points delivered by one assignee in one sprint.
+type AssigneeSprintPts struct {
+	SprintID   string
+	SprintName string
+	Points     int32
+}
+
+// AssigneeVelocity aggregates sprint points for one assignee.
+type AssigneeVelocity struct {
+	UserID      string
+	DisplayName string // display_name from users; empty if user not found
+	Avg         float64
+	StdDev      float64
+	Sprints     []AssigneeSprintPts
+}
+
+func (s *Store) GetAssigneeVelocityReport(ctx context.Context) ([]*AssigneeVelocity, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT t.assignee_id, COALESCE(u.display_name,''), sp.id, sp.name, COALESCE(SUM(t.story_points),0)
+		FROM tasks t
+		JOIN sprints sp ON sp.id = t.sprint_id
+		LEFT JOIN users u ON u.id = t.assignee_id
+		WHERE t.status='completed' AND t.assignee_id != ''
+		GROUP BY t.assignee_id, sp.id
+		ORDER BY t.assignee_id, sp.created_at ASC`)
+	if err != nil {
+		return nil, fmt.Errorf("task store: assignee velocity: %w", err)
+	}
+	defer rows.Close()
+
+	byUser := map[string]*AssigneeVelocity{}
+	var order []string
+	for rows.Next() {
+		var userID, displayName, sprintID, sprintName string
+		var pts int32
+		if err := rows.Scan(&userID, &displayName, &sprintID, &sprintName, &pts); err != nil {
+			return nil, err
+		}
+		if _, ok := byUser[userID]; !ok {
+			byUser[userID] = &AssigneeVelocity{UserID: userID, DisplayName: displayName}
+			order = append(order, userID)
+		}
+		byUser[userID].Sprints = append(byUser[userID].Sprints, AssigneeSprintPts{SprintID: sprintID, SprintName: sprintName, Points: pts})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	out := make([]*AssigneeVelocity, 0, len(order))
+	for _, uid := range order {
+		v := byUser[uid]
+		var sum float64
+		for _, sp := range v.Sprints {
+			sum += float64(sp.Points)
+		}
+		n := float64(len(v.Sprints))
+		if n > 0 {
+			v.Avg = sum / n
+			var variance float64
+			for _, sp := range v.Sprints {
+				d := float64(sp.Points) - v.Avg
+				variance += d * d
+			}
+			if n > 1 {
+				v.StdDev = math.Sqrt(variance / n)
+			}
+		}
+		out = append(out, v)
+	}
+	return out, nil
+}
+
+// StatusBucket is task count + story points for one status.
+type StatusBucket struct {
+	Status      string
+	TaskCount   int32
+	StoryPoints int32
+}
+
+// SprintStatusReport holds the sprint status report.
+type SprintStatusReport struct {
+	SprintID    string
+	SprintName  string
+	Buckets     []StatusBucket
+	TotalTasks  int32
+	TotalPoints int32
+}
+
+// GetSprintStatusReport returns task counts per status for a sprint.
+// If sprintID is empty, uses the currently active sprint.
+func (s *Store) GetSprintStatusReport(ctx context.Context, sprintID string) (*SprintStatusReport, error) {
+	var sprintName string
+	if sprintID == "" {
+		err := s.db.QueryRowContext(ctx,
+			`SELECT id, name FROM sprints WHERE status='active' AND start_date <= date('now') AND end_date >= date('now') ORDER BY created_at ASC LIMIT 1`,
+		).Scan(&sprintID, &sprintName)
+		if err == sql.ErrNoRows {
+			return nil, ErrNoActiveSprint
+		}
+		if err != nil {
+			return nil, fmt.Errorf("task store: find active sprint: %w", err)
+		}
+	} else {
+		if err := s.db.QueryRowContext(ctx, `SELECT name FROM sprints WHERE id=?`, sprintID).Scan(&sprintName); err != nil {
+			return nil, fmt.Errorf("task store: sprint not found: %w", err)
+		}
+	}
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT status, COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=? GROUP BY status`, sprintID)
+	if err != nil {
+		return nil, fmt.Errorf("task store: sprint status report: %w", err)
+	}
+	defer rows.Close()
+	report := &SprintStatusReport{SprintID: sprintID, SprintName: sprintName}
+	for rows.Next() {
+		var b StatusBucket
+		if err := rows.Scan(&b.Status, &b.TaskCount, &b.StoryPoints); err != nil {
+			return nil, err
+		}
+		report.Buckets = append(report.Buckets, b)
+		report.TotalTasks += b.TaskCount
+		report.TotalPoints += b.StoryPoints
+	}
+	return report, rows.Err()
+}
+
+// StatusChangeEntry is a single status transition from the log.
+type StatusChangeEntry struct {
+	TaskID        string
+	DisplayID     int32
+	Title         string
+	FromStatus    string
+	ToStatus      string
+	ChangedByID   string
+	ChangedByName string // display_name from users; empty if user not found
+	ChangedAt     time.Time
+}
+
+// UserEODSummary is the per-user end-of-day summary.
+type UserEODSummary struct {
+	UserID         string
+	DisplayName    string // display_name from users; empty if user not found
+	CompletedToday int32
+	PointsToday    int32
+	StatusChanges  int32
+}
+
+// EODReport holds end-of-day report data.
+type EODReport struct {
+	SprintID             string
+	SprintName           string
+	CompletedToday       int32
+	CompletedPointsToday int32
+	TotalSprintTasks     int32
+	TotalSprintPoints    int32
+	TotalCompleted       int32
+	TotalCompletedPoints int32
+	CloseProbability     float32
+	StatusChangesToday   []StatusChangeEntry
+	UserSummaries        []UserEODSummary
+}
+
+// GetEndOfDayReport returns the end-of-day status snapshot for a sprint.
+// If sprintID is empty, uses the currently active sprint.
+func (s *Store) GetEndOfDayReport(ctx context.Context, sprintID string) (*EODReport, error) {
+	var sprintName string
+	if sprintID == "" {
+		err := s.db.QueryRowContext(ctx,
+			`SELECT id, name FROM sprints WHERE status='active' AND start_date <= date('now') AND end_date >= date('now') ORDER BY created_at ASC LIMIT 1`,
+		).Scan(&sprintID, &sprintName)
+		if err == sql.ErrNoRows {
+			return nil, ErrNoActiveSprint
+		}
+		if err != nil {
+			return nil, fmt.Errorf("task store: find active sprint: %w", err)
+		}
+	} else {
+		if err := s.db.QueryRowContext(ctx, `SELECT name FROM sprints WHERE id=?`, sprintID).Scan(&sprintName); err != nil {
+			return nil, fmt.Errorf("task store: sprint not found: %w", err)
+		}
+	}
+	report := &EODReport{SprintID: sprintID, SprintName: sprintName}
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=?`, sprintID,
+	).Scan(&report.TotalSprintTasks, &report.TotalSprintPoints); err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("task store: eod sprint totals: %w", err)
+	}
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=? AND status='completed'`, sprintID,
+	).Scan(&report.TotalCompleted, &report.TotalCompletedPoints); err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("task store: eod completed totals: %w", err)
+	}
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=? AND status='completed' AND date(completed_at)=date('now')`, sprintID,
+	).Scan(&report.CompletedToday, &report.CompletedPointsToday); err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("task store: eod completed today: %w", err)
+	}
+	if report.TotalSprintPoints > 0 {
+		report.CloseProbability = float32(report.TotalCompletedPoints) / float32(report.TotalSprintPoints)
+	}
+
+	changeRows, err := s.db.QueryContext(ctx, `
+		SELECT l.task_id, COALESCE(t.display_id,0), COALESCE(t.title,''),
+		       l.from_status, l.to_status, l.changed_by_id, COALESCE(u.display_name,''), l.changed_at
+		FROM task_status_log l
+		LEFT JOIN tasks t ON t.id = l.task_id
+		LEFT JOIN users u ON u.id = l.changed_by_id
+		WHERE date(l.changed_at) = date('now')
+		  AND t.sprint_id = ?
+		ORDER BY l.changed_at DESC`, sprintID)
+	if err != nil {
+		return nil, fmt.Errorf("task store: eod status changes: %w", err)
+	}
+	defer changeRows.Close()
+	userChanges := map[string]int32{}
+	userNames := map[string]string{}
+	for changeRows.Next() {
+		var e StatusChangeEntry
+		var changedAtStr string
+		if err := changeRows.Scan(&e.TaskID, &e.DisplayID, &e.Title, &e.FromStatus, &e.ToStatus, &e.ChangedByID, &e.ChangedByName, &changedAtStr); err != nil {
+			return nil, err
+		}
+		for _, layout := range []string{"2006-01-02 15:04:05", "2006-01-02T15:04:05Z"} {
+			if t, err2 := time.Parse(layout, changedAtStr); err2 == nil {
+				e.ChangedAt = t
+				break
+			}
+		}
+		report.StatusChangesToday = append(report.StatusChangesToday, e)
+		userChanges[e.ChangedByID]++
+		if e.ChangedByName != "" {
+			userNames[e.ChangedByID] = e.ChangedByName
+		}
+	}
+	if err := changeRows.Err(); err != nil {
+		return nil, err
+	}
+
+	userRows, err := s.db.QueryContext(ctx,
+		`SELECT t.assignee_id, COALESCE(u.display_name,''), COUNT(*), COALESCE(SUM(t.story_points),0)
+		 FROM tasks t
+		 LEFT JOIN users u ON u.id = t.assignee_id
+		 WHERE t.sprint_id=? AND t.status='completed' AND date(t.completed_at)=date('now') AND t.assignee_id != ''
+		 GROUP BY t.assignee_id`, sprintID)
+	if err != nil {
+		return nil, fmt.Errorf("task store: eod user summary: %w", err)
+	}
+	defer userRows.Close()
+	byUser := map[string]*UserEODSummary{}
+	for userRows.Next() {
+		var u UserEODSummary
+		if err := userRows.Scan(&u.UserID, &u.DisplayName, &u.CompletedToday, &u.PointsToday); err != nil {
+			return nil, err
+		}
+		byUser[u.UserID] = &u
+	}
+	for uid, changes := range userChanges {
+		if uid == "" {
+			continue
+		}
+		if _, ok := byUser[uid]; !ok {
+			byUser[uid] = &UserEODSummary{UserID: uid, DisplayName: userNames[uid]}
+		}
+		byUser[uid].StatusChanges = changes
+	}
+	for _, u := range byUser {
+		report.UserSummaries = append(report.UserSummaries, *u)
+	}
+	return report, nil
+}
+
+// ReporterStatusCount is a single status bucket for the reporter usage report.
+type ReporterStatusCount struct {
+	Status string
+	Count  int32
+}
+
+// ReporterUsageRow is per-reporter summary data.
+type ReporterUsageRow struct {
+	ReporterID           string
+	DisplayName          string // display_name from users; empty if user not found
+	StatusCounts         []ReporterStatusCount
+	TotalTasks           int32
+	CompletedOnTime      int32
+	CompletedLate        int32
+	OnTimePct            float32
+	TotalPointsCompleted int32
+}
+
+func (s *Store) GetReporterUsageReport(ctx context.Context) ([]*ReporterUsageRow, error) {
+	statusRows, err := s.db.QueryContext(ctx,
+		`SELECT t.reporter_id, COALESCE(u.display_name,''), t.status, COUNT(*)
+		 FROM tasks t
+		 LEFT JOIN users u ON u.id = t.reporter_id
+		 WHERE t.reporter_id != ''
+		 GROUP BY t.reporter_id, t.status
+		 ORDER BY t.reporter_id`)
+	if err != nil {
+		return nil, fmt.Errorf("task store: reporter usage status: %w", err)
+	}
+	defer statusRows.Close()
+	byReporter := map[string]*ReporterUsageRow{}
+	var order []string
+	for statusRows.Next() {
+		var rid, displayName, st string
+		var count int32
+		if err := statusRows.Scan(&rid, &displayName, &st, &count); err != nil {
+			return nil, err
+		}
+		if _, ok := byReporter[rid]; !ok {
+			byReporter[rid] = &ReporterUsageRow{ReporterID: rid, DisplayName: displayName}
+			order = append(order, rid)
+		}
+		byReporter[rid].StatusCounts = append(byReporter[rid].StatusCounts, ReporterStatusCount{Status: st, Count: count})
+		byReporter[rid].TotalTasks += count
+	}
+	if err := statusRows.Err(); err != nil {
+		return nil, err
+	}
+
+	onTimeRows, err := s.db.QueryContext(ctx, `
+		SELECT reporter_id,
+		    SUM(CASE WHEN date(completed_at) <= due_date THEN 1 ELSE 0 END),
+		    SUM(CASE WHEN date(completed_at) >  due_date THEN 1 ELSE 0 END),
+		    COALESCE(SUM(story_points),0)
+		FROM tasks
+		WHERE status='completed' AND completed_at IS NOT NULL AND due_date IS NOT NULL AND due_date != ''
+		GROUP BY reporter_id`)
+	if err != nil {
+		return nil, fmt.Errorf("task store: reporter usage on-time: %w", err)
+	}
+	defer onTimeRows.Close()
+	for onTimeRows.Next() {
+		var rid string
+		var onTime, late, pts int32
+		if err := onTimeRows.Scan(&rid, &onTime, &late, &pts); err != nil {
+			return nil, err
+		}
+		if _, ok := byReporter[rid]; !ok {
+			byReporter[rid] = &ReporterUsageRow{ReporterID: rid}
+			order = append(order, rid)
+		}
+		r := byReporter[rid]
+		r.CompletedOnTime = onTime
+		r.CompletedLate = late
+		r.TotalPointsCompleted = pts
+		if total := onTime + late; total > 0 {
+			r.OnTimePct = float32(onTime) / float32(total) * 100
+		}
+	}
+	if err := onTimeRows.Err(); err != nil {
+		return nil, err
+	}
+	out := make([]*ReporterUsageRow, 0, len(order))
+	for _, rid := range order {
+		out = append(out, byReporter[rid])
+	}
+	return out, nil
+}
+
+// ── internal helpers ──────────────────────────────────────────────────────────
+
+func (s *Store) inTx(ctx context.Context, fn func(*sql.Tx) error) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := fn(tx); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (s *Store) insertLogTx(ctx context.Context, tx *sql.Tx, taskID, fromStatus, toStatus, changedByID string) error {
+	_, err := tx.ExecContext(ctx,
+		`INSERT INTO task_status_log (id,task_id,from_status,to_status,changed_by_id)
+		 VALUES (?,?,?,?,?)`,
+		uuid.New().String(), taskID, fromStatus, toStatus, changedByID,
+	)
+	return err
 }
 
 // ── Sprints ───────────────────────────────────────────────────────────────────
