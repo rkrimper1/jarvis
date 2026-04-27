@@ -711,6 +711,9 @@ func (s *TaskServer) GetSprintStatusReport(ctx context.Context, req *taskv1.GetS
 	}
 	r, err := s.store.GetSprintStatusReport(ctx, req.SprintId)
 	if err != nil {
+		if errors.Is(err, store.ErrNoActiveSprint) {
+			return nil, status.Errorf(codes.NotFound, "no active sprint")
+		}
 		return nil, status.Errorf(codes.Internal, "sprint status report: %v", err)
 	}
 	var buckets []*taskv1.StatusBucket
@@ -747,6 +750,9 @@ func (s *TaskServer) GetEndOfDayReport(ctx context.Context, req *taskv1.GetEndOf
 	}
 	r, err := s.store.GetEndOfDayReport(ctx, req.SprintId)
 	if err != nil {
+		if errors.Is(err, store.ErrNoActiveSprint) {
+			return nil, status.Errorf(codes.NotFound, "no active sprint")
+		}
 		return nil, status.Errorf(codes.Internal, "end of day report: %v", err)
 	}
 	var changes []*taskv1.StatusChangeEntry

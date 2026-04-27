@@ -18,6 +18,9 @@ import (
 // ErrNotFound is returned by store methods when a requested record does not exist.
 var ErrNotFound = errors.New("not found")
 
+// ErrNoActiveSprint is returned when a report requires an active sprint but none exists.
+var ErrNoActiveSprint = errors.New("no active sprint")
+
 const schema = `
 CREATE TABLE IF NOT EXISTS task_status_log (
     id            TEXT PRIMARY KEY,
@@ -478,7 +481,7 @@ func (s *Store) GetSprintStatusReport(ctx context.Context, sprintID string) (*Sp
 			`SELECT id, name FROM sprints WHERE status='active' AND start_date <= date('now') AND end_date >= date('now') ORDER BY created_at ASC LIMIT 1`,
 		).Scan(&sprintID, &sprintName)
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("no active sprint")
+			return nil, ErrNoActiveSprint
 		}
 		if err != nil {
 			return nil, fmt.Errorf("task store: find active sprint: %w", err)
@@ -552,7 +555,7 @@ func (s *Store) GetEndOfDayReport(ctx context.Context, sprintID string) (*EODRep
 			`SELECT id, name FROM sprints WHERE status='active' AND start_date <= date('now') AND end_date >= date('now') ORDER BY created_at ASC LIMIT 1`,
 		).Scan(&sprintID, &sprintName)
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("no active sprint")
+			return nil, ErrNoActiveSprint
 		}
 		if err != nil {
 			return nil, fmt.Errorf("task store: find active sprint: %w", err)
@@ -563,15 +566,21 @@ func (s *Store) GetEndOfDayReport(ctx context.Context, sprintID string) (*EODRep
 		}
 	}
 	report := &EODReport{SprintID: sprintID, SprintName: sprintName}
-	_ = s.db.QueryRowContext(ctx,
+	if err := s.db.QueryRowContext(ctx,
 		`SELECT COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=?`, sprintID,
-	).Scan(&report.TotalSprintTasks, &report.TotalSprintPoints)
-	_ = s.db.QueryRowContext(ctx,
+	).Scan(&report.TotalSprintTasks, &report.TotalSprintPoints); err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("task store: eod sprint totals: %w", err)
+	}
+	if err := s.db.QueryRowContext(ctx,
 		`SELECT COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=? AND status='completed'`, sprintID,
-	).Scan(&report.TotalCompleted, &report.TotalCompletedPoints)
-	_ = s.db.QueryRowContext(ctx,
+	).Scan(&report.TotalCompleted, &report.TotalCompletedPoints); err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("task store: eod completed totals: %w", err)
+	}
+	if err := s.db.QueryRowContext(ctx,
 		`SELECT COUNT(*), COALESCE(SUM(story_points),0) FROM tasks WHERE sprint_id=? AND status='completed' AND date(completed_at)=date('now')`, sprintID,
-	).Scan(&report.CompletedToday, &report.CompletedPointsToday)
+	).Scan(&report.CompletedToday, &report.CompletedPointsToday); err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("task store: eod completed today: %w", err)
+	}
 	if report.TotalSprintPoints > 0 {
 		report.CloseProbability = float32(report.TotalCompletedPoints) / float32(report.TotalSprintPoints)
 	}

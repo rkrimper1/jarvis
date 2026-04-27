@@ -83,7 +83,6 @@
 	// ── Load on mount ─────────────────────────────────────────────────
 	onMount(() => {
 		loadTransitions();
-		loadThroughput();
 		tasks.listAllTasks()
 			.then(r => {
 				allTasks = r.tasks ?? [];
