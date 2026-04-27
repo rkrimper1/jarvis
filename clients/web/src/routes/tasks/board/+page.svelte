@@ -45,6 +45,7 @@
 	let editTitle = $state('');
 	let editDescription = $state('');
 	let editAssigneeId = $state('');
+	let editReporterId = $state('');
 	let editPriority = $state<TaskPriority>('TASK_PRIORITY_MEDIUM');
 	let editTaskType = $state<TaskType>('TASK_TYPE_TASK');
 	let editParentId = $state('');
@@ -150,6 +151,7 @@
 		editTitle = selectedTask.title;
 		editDescription = selectedTask.description ?? '';
 		editAssigneeId = selectedTask.assigneeId;
+		editReporterId = selectedTask.reporterId;
 		editPriority = selectedTask.priority;
 		editTaskType = selectedTask.taskType ?? 'TASK_TYPE_TASK';
 		editParentId = selectedTask.parentId ?? '';
@@ -175,6 +177,7 @@
 				title: editTitle.trim(),
 				description: editDescription.trim(),
 				assigneeId: editAssigneeId,
+				reporterId: editReporterId || undefined,
 				priority: editPriority,
 				taskType: editTaskType,
 				parentId: editParentId || undefined,
@@ -519,8 +522,28 @@
 							</select>
 						</div>
 						<div class="edit-field">
+							<label class="edit-label" for="me-reporter">REPORTER</label>
+							<select id="me-reporter" class="hud-input" bind:value={editReporterId}>
+								{#each userList as u}
+									<option value={u.id}>{u.displayName || u.username}{u.id === $userId ? ' (you)' : ''}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+					<div class="edit-row">
+						<div class="edit-field">
 							<label class="edit-label" for="me-pts">STORY POINTS</label>
 							<input id="me-pts" class="hud-input" type="number" min="0" bind:value={editStoryPoints} />
+						</div>
+						<div class="edit-field reporter-hint">
+							<span class="edit-label">SUBMITTING ON BEHALF OF</span>
+							<span class="reporter-name">
+								{#if editReporterId && editReporterId !== $userId}
+									{userList.find(u => u.id === editReporterId)?.displayName || userList.find(u => u.id === editReporterId)?.username || editReporterId}
+								{:else}
+									yourself
+								{/if}
+							</span>
 						</div>
 					</div>
 					<div class="edit-row">
@@ -739,6 +762,8 @@
 	.edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 	.edit-error { color: #ef4444; font-size: 11px; margin-bottom: 10px; }
 	.edit-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+	.reporter-hint { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+	.reporter-name { font-family: var(--font-mono); font-size: 12px; color: var(--hud-amber); letter-spacing: 0.04em; }
 	.hud-btn.small { font-size: 9px; padding: 4px 10px; }
 	.hud-btn.primary { color: var(--hud-cyan); border-color: var(--hud-cyan); }
 	.hud-btn.primary:hover { background: #00d4ff18; }

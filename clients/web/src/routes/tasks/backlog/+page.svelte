@@ -18,6 +18,7 @@
 	let newTitle = $state('');
 	let newDescription = $state('');
 	let newAssigneeId = $state('');
+	let newReporterId = $state($userId ?? '');
 	let newPriority = $state<TaskPriority>('TASK_PRIORITY_MEDIUM');
 	let newTaskType = $state<TaskType>('TASK_TYPE_TASK');
 	let newParentId = $state('');
@@ -32,6 +33,7 @@
 	let editTitle = $state('');
 	let editDescription = $state('');
 	let editAssigneeId = $state('');
+	let editReporterId = $state('');
 	let editPriority = $state<TaskPriority>('TASK_PRIORITY_MEDIUM');
 	let editTaskType = $state<TaskType>('TASK_TYPE_TASK');
 	let editParentId = $state('');
@@ -105,6 +107,7 @@
 			sprints = sp.sprints ?? [];
 			userList = ul.users ?? [];
 			allTasks = all.tasks ?? [];
+			if (!newReporterId && $userId) newReporterId = $userId;
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -122,7 +125,7 @@
 				title: newTitle.trim(),
 				description: newDescription.trim(),
 				assigneeId: newAssigneeId,
-				reporterId: $userId ?? '',
+				reporterId: newReporterId || $userId || '',
 				priority: newPriority,
 				taskType: newTaskType,
 				parentId: newParentId || undefined,
@@ -130,7 +133,9 @@
 				dueDate: newDueDate,
 				sprintId: newSprintId || undefined
 			});
-			newTitle = ''; newDescription = ''; newAssigneeId = ''; newPriority = 'TASK_PRIORITY_MEDIUM';
+			newTitle = ''; newDescription = ''; newAssigneeId = '';
+			newReporterId = $userId ?? '';
+			newPriority = 'TASK_PRIORITY_MEDIUM';
 			newTaskType = 'TASK_TYPE_TASK'; newParentId = '';
 			newStoryPoints = 0; newDueDate = ''; newSprintId = '';
 			showCreateTask = false;
@@ -147,6 +152,7 @@
 		editTitle = task.title;
 		editDescription = task.description ?? '';
 		editAssigneeId = task.assigneeId;
+		editReporterId = task.reporterId;
 		editPriority = task.priority;
 		editTaskType = task.taskType ?? 'TASK_TYPE_TASK';
 		editParentId = task.parentId ?? '';
@@ -167,6 +173,7 @@
 				title: editTitle.trim(),
 				description: editDescription.trim(),
 				assigneeId: editAssigneeId,
+				reporterId: editReporterId || undefined,
 				priority: editPriority,
 				taskType: editTaskType,
 				parentId: editParentId || undefined,
@@ -244,6 +251,26 @@
 									<option value={u.id}>{u.displayName || u.username}</option>
 								{/each}
 							</select>
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="field">
+							<label class="field-label" for="ct-reporter">REPORTER</label>
+							<select id="ct-reporter" class="hud-input" bind:value={newReporterId}>
+								{#each userList as u}
+									<option value={u.id}>{u.displayName || u.username}{u.id === $userId ? ' (you)' : ''}</option>
+								{/each}
+							</select>
+						</div>
+						<div class="field reporter-hint">
+							<span class="field-label">SUBMITTING ON BEHALF OF</span>
+							<span class="reporter-name">
+								{#if newReporterId && newReporterId !== $userId}
+									{userList.find(u => u.id === newReporterId)?.displayName || userList.find(u => u.id === newReporterId)?.username || newReporterId}
+								{:else}
+									yourself
+								{/if}
+							</span>
 						</div>
 					</div>
 					<div class="form-row">
@@ -367,6 +394,26 @@
 			</div>
 			<div class="form-row">
 				<div class="field">
+					<label class="field-label" for="et-reporter">REPORTER</label>
+					<select id="et-reporter" class="hud-input" bind:value={editReporterId}>
+						{#each userList as u}
+							<option value={u.id}>{u.displayName || u.username}{u.id === $userId ? ' (you)' : ''}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="field reporter-hint">
+					<span class="field-label">SUBMITTING ON BEHALF OF</span>
+					<span class="reporter-name">
+						{#if editReporterId && editReporterId !== $userId}
+							{userList.find(u => u.id === editReporterId)?.displayName || userList.find(u => u.id === editReporterId)?.username || editReporterId}
+						{:else}
+							yourself
+						{/if}
+					</span>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="field">
 					<label class="field-label" for="et-priority">PRIORITY</label>
 					<select id="et-priority" class="hud-input" bind:value={editPriority}>
 						<option value="TASK_PRIORITY_CRITICAL">CRITICAL</option>
@@ -440,6 +487,8 @@
 	.field-label { font-size: 9px; letter-spacing: 0.15em; color: var(--hud-muted); font-family: var(--font-hud, monospace); }
 	.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 	.form-error { color: #ef4444; font-size: 11px; margin-bottom: 8px; }
+	.reporter-hint { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+	.reporter-name { font-family: var(--font-mono); font-size: 12px; color: var(--hud-amber); letter-spacing: 0.04em; }
 
 	/* Task list */
 	.task-list { display: flex; flex-direction: column; gap: 8px; }

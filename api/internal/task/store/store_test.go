@@ -163,7 +163,7 @@ func TestUpdateTask(t *testing.T) {
 	task := mustCreateTask(t, s, "Original", "alice")
 
 	updated, err := s.UpdateTask(ctx, task.TaskId, "Updated", "new desc", "bob",
-		"high", "bug", "", 8, "2027-01-01")
+		"", "high", "bug", "", 8, "2027-01-01")
 	if err != nil {
 		t.Fatalf("UpdateTask: %v", err)
 	}
@@ -287,7 +287,7 @@ func TestAssignToSprint(t *testing.T) {
 	task := mustCreateTask(t, s, "Unassigned task", "alice")
 	sp := mustCreateSprint(t, s, "Sprint X")
 
-	updated, err := s.AssignToSprint(ctx, task.TaskId, sp.SprintId)
+	updated, err := s.AssignToSprint(ctx, task.TaskId, sp.SprintId, "system")
 	if err != nil {
 		t.Fatalf("AssignToSprint: %v", err)
 	}

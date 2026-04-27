@@ -117,6 +117,7 @@ message UpdateTaskRequest {
   string       due_date     = 8;
   TaskType     task_type    = 9;
   string       parent_id    = 10;
+  string       reporter_id  = 11;
 }
 
 message UpdateTaskResponse {
@@ -253,6 +254,163 @@ message GetSprintVelocityResponse {
   repeated UserVelocity velocities   = 2;
 }
 
+// ── Extended reports (ported from scrum-dash) ────────────────────────────────
+
+message AssigneeSprintPoints {
+  string sprint_id   = 1;
+  string sprint_name = 2;
+  int32  points      = 3;
+}
+
+message AssigneeVelocityItem {
+  string user_id                        = 1;
+  float  avg_points                     = 2;
+  float  std_dev                        = 3;
+  repeated AssigneeSprintPoints sprints = 4;
+}
+
+message GetAssigneeVelocityReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message GetAssigneeVelocityReportResponse {
+  jarvis.common.ResponseMeta        meta        = 1;
+  repeated AssigneeVelocityItem     velocities  = 2;
+}
+
+message StatusBucket {
+  string status       = 1;
+  int32  task_count   = 2;
+  int32  story_points = 3;
+}
+
+message GetSprintStatusReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2; // empty → active sprint
+}
+
+message GetSprintStatusReportResponse {
+  jarvis.common.ResponseMeta meta  = 1;
+  string sprint_id                 = 2;
+  string sprint_name               = 3;
+  repeated StatusBucket buckets    = 4;
+  int32  total_tasks               = 5;
+  int32  total_points              = 6;
+}
+
+message StatusChangeEntry {
+  string task_id       = 1;
+  int32  display_id    = 2;
+  string title         = 3;
+  string from_status   = 4;
+  string to_status     = 5;
+  string changed_by_id = 6;
+  google.protobuf.Timestamp changed_at = 7;
+}
+
+message UserEodSummary {
+  string user_id         = 1;
+  int32  completed_today = 2;
+  int32  points_today    = 3;
+  int32  status_changes  = 4;
+}
+
+message GetEndOfDayReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string sprint_id               = 2; // empty → active sprint
+}
+
+message GetEndOfDayReportResponse {
+  jarvis.common.ResponseMeta         meta                   = 1;
+  string sprint_id                                          = 2;
+  string sprint_name                                        = 3;
+  int32  completed_today                                    = 4;
+  int32  completed_points_today                             = 5;
+  int32  total_sprint_tasks                                 = 6;
+  int32  total_sprint_points                                = 7;
+  int32  total_completed                                    = 8;
+  int32  total_completed_points                             = 9;
+  float  close_probability                                  = 10;
+  repeated StatusChangeEntry status_changes_today           = 11;
+  repeated UserEodSummary    user_summaries                 = 12;
+}
+
+message ReporterStatusCount {
+  string status = 1;
+  int32  count  = 2;
+}
+
+message ReporterUsageItem {
+  string reporter_id                        = 1;
+  repeated ReporterStatusCount status_counts = 2;
+  int32  total_tasks                        = 3;
+  int32  completed_on_time                  = 4;
+  int32  completed_late                     = 5;
+  float  on_time_pct                        = 6;
+  int32  total_points_completed             = 7;
+}
+
+message GetReporterUsageReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message GetReporterUsageReportResponse {
+  jarvis.common.ResponseMeta   meta  = 1;
+  repeated ReporterUsageItem   items = 2;
+}
+
+// ── Task status log & reports ────────────────────────────────────────────────
+
+message StatusLogEntry {
+  string task_id       = 1;
+  string from_status   = 2;
+  string to_status     = 3;
+  string changed_by_id = 4;
+  string changed_at    = 5; // RFC3339
+}
+
+message TransitionCount {
+  string from_status = 1;
+  string to_status   = 2;
+  int32  count       = 3;
+}
+
+message DailyThroughput {
+  string date         = 1; // YYYY-MM-DD
+  int32  count        = 2;
+  int32  story_points = 3;
+}
+
+message GetTaskStatusLogRequest {
+  jarvis.common.RequestMeta meta = 1;
+  string task_id                 = 2;
+  int32  page_size               = 3;
+}
+
+message GetTaskStatusLogResponse {
+  jarvis.common.ResponseMeta  meta    = 1;
+  repeated StatusLogEntry     entries = 2;
+}
+
+message GetTransitionReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+}
+
+message GetTransitionReportResponse {
+  jarvis.common.ResponseMeta  meta        = 1;
+  repeated TransitionCount    transitions = 2;
+}
+
+message GetThroughputReportRequest {
+  jarvis.common.RequestMeta meta = 1;
+  int32 days                     = 2; // lookback window; 0 → 30
+}
+
+message GetThroughputReportResponse {
+  jarvis.common.ResponseMeta meta     = 1;
+  repeated DailyThroughput   buckets  = 2;
+}
+
 // ── Service ──────────────────────────────────────────────────────────────────
 
 service TaskService {
@@ -300,5 +458,26 @@ service TaskService {
   }
   rpc GetSprintVelocity(GetSprintVelocityRequest) returns (GetSprintVelocityResponse) {
     option (google.api.http) = { get: "/v1/sprints/{sprint_id}/velocity" };
+  }
+  rpc GetTaskStatusLog(GetTaskStatusLogRequest) returns (GetTaskStatusLogResponse) {
+    option (google.api.http) = { get: "/v1/tasks/{task_id}/status-log" };
+  }
+  rpc GetTransitionReport(GetTransitionReportRequest) returns (GetTransitionReportResponse) {
+    option (google.api.http) = { get: "/v1/tasks/reports/transitions" };
+  }
+  rpc GetThroughputReport(GetThroughputReportRequest) returns (GetThroughputReportResponse) {
+    option (google.api.http) = { get: "/v1/tasks/reports/throughput" };
+  }
+  rpc GetAssigneeVelocityReport(GetAssigneeVelocityReportRequest) returns (GetAssigneeVelocityReportResponse) {
+    option (google.api.http) = { get: "/v1/tasks/reports/assignee-velocity" };
+  }
+  rpc GetSprintStatusReport(GetSprintStatusReportRequest) returns (GetSprintStatusReportResponse) {
+    option (google.api.http) = { get: "/v1/tasks/reports/sprint-status" };
+  }
+  rpc GetEndOfDayReport(GetEndOfDayReportRequest) returns (GetEndOfDayReportResponse) {
+    option (google.api.http) = { get: "/v1/tasks/reports/end-of-day" };
+  }
+  rpc GetReporterUsageReport(GetReporterUsageReportRequest) returns (GetReporterUsageReportResponse) {
+    option (google.api.http) = { get: "/v1/tasks/reports/reporter-usage" };
   }
 }

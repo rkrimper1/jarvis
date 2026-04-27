@@ -201,7 +201,7 @@ func (s *TaskServer) UpdateTask(ctx context.Context, req *taskv1.UpdateTaskReque
 
 	priority := store.PriorityToString(req.Priority)
 	taskType := store.TaskTypeToString(req.TaskType)
-	t, err := s.store.UpdateTask(ctx, req.TaskId, req.Title, req.Description, req.AssigneeId, priority, taskType, req.ParentId, req.StoryPoints, req.DueDate)
+	t, err := s.store.UpdateTask(ctx, req.TaskId, req.Title, req.Description, req.AssigneeId, req.ReporterId, priority, taskType, req.ParentId, req.StoryPoints, req.DueDate)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "update task: %v", err)
 	}
@@ -331,25 +331,23 @@ func (s *TaskServer) AssignTaskToSprint(ctx context.Context, req *taskv1.AssignT
 	defer span.End()
 	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
 
-	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+	_, callerID, err := callerRole(ctx, s.mgr)
+	if err != nil {
 		return nil, err
 	}
 
 	if req.TaskId == "" {
 		return nil, status.Error(codes.InvalidArgument, "task_id is required")
 	}
-	var (
-		t   *taskv1.Task
-		err error
-	)
+	var t *taskv1.Task
 	if req.SprintId == "" {
-		t, err = s.store.RemoveFromSprint(ctx, req.TaskId)
+		t, err = s.store.RemoveFromSprint(ctx, req.TaskId, callerID)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "remove from sprint: %v", err)
 		}
 		s.log.InfoContext(ctx, "RemoveFromSprint", slog.String("task_id", req.TaskId))
 	} else {
-		t, err = s.store.AssignToSprint(ctx, req.TaskId, req.SprintId)
+		t, err = s.store.AssignToSprint(ctx, req.TaskId, req.SprintId, callerID)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "assign to sprint: %v", err)
 		}
@@ -564,6 +562,275 @@ func (s *TaskServer) GetSprintVelocity(ctx context.Context, req *taskv1.GetSprin
 		return nil, status.Errorf(codes.Internal, "get sprint velocity: %v", err)
 	}
 	return &taskv1.GetSprintVelocityResponse{Meta: metaOK(req.Meta.RequestId), Velocities: vels}, nil
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+func (s *TaskServer) GetTaskStatusLog(ctx context.Context, req *taskv1.GetTaskStatusLogRequest) (*taskv1.GetTaskStatusLogResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetTaskStatusLog")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	if req.TaskId == "" {
+		return nil, status.Error(codes.InvalidArgument, "task_id is required")
+	}
+	entries, err := s.store.GetTaskStatusLog(ctx, req.TaskId, req.PageSize)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "status log: %v", err)
+	}
+	var out []*taskv1.StatusLogEntry
+	for _, e := range entries {
+		out = append(out, &taskv1.StatusLogEntry{
+			TaskId:      e.TaskID,
+			FromStatus:  e.FromStatus,
+			ToStatus:    e.ToStatus,
+			ChangedById: displayOrID(e.ChangedByName, e.ChangedByID),
+			ChangedAt:   e.ChangedAt,
+		})
+	}
+	return &taskv1.GetTaskStatusLogResponse{Meta: metaOK(req.Meta.RequestId), Entries: out}, nil
+}
+
+func (s *TaskServer) GetTransitionReport(ctx context.Context, req *taskv1.GetTransitionReportRequest) (*taskv1.GetTransitionReportResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetTransitionReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	transitions, err := s.store.GetTransitionReport(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "transition report: %v", err)
+	}
+	var out []*taskv1.TransitionCount
+	for _, tc := range transitions {
+		out = append(out, &taskv1.TransitionCount{
+			FromStatus: tc.FromStatus,
+			ToStatus:   tc.ToStatus,
+			Count:      tc.Count,
+		})
+	}
+	return &taskv1.GetTransitionReportResponse{Meta: metaOK(req.Meta.RequestId), Transitions: out}, nil
+}
+
+func (s *TaskServer) GetThroughputReport(ctx context.Context, req *taskv1.GetThroughputReportRequest) (*taskv1.GetThroughputReportResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetThroughputReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	buckets, err := s.store.GetThroughputReport(ctx, req.Days)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "throughput report: %v", err)
+	}
+	var out []*taskv1.DailyThroughput
+	for _, dt := range buckets {
+		out = append(out, &taskv1.DailyThroughput{
+			Date:        dt.Date,
+			Count:       dt.Count,
+			StoryPoints: dt.StoryPoints,
+		})
+	}
+	return &taskv1.GetThroughputReportResponse{Meta: metaOK(req.Meta.RequestId), Buckets: out}, nil
+}
+
+func (s *TaskServer) GetAssigneeVelocityReport(ctx context.Context, req *taskv1.GetAssigneeVelocityReportRequest) (*taskv1.GetAssigneeVelocityReportResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetAssigneeVelocityReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	rows, err := s.store.GetAssigneeVelocityReport(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "assignee velocity report: %v", err)
+	}
+	var out []*taskv1.AssigneeVelocityItem
+	for _, r := range rows {
+		item := &taskv1.AssigneeVelocityItem{
+			UserId:    displayOrID(r.DisplayName, r.UserID),
+			AvgPoints: float32(r.Avg),
+			StdDev:    float32(r.StdDev),
+		}
+		for _, sp := range r.Sprints {
+			item.Sprints = append(item.Sprints, &taskv1.AssigneeSprintPoints{
+				SprintId:   sp.SprintID,
+				SprintName: sp.SprintName,
+				Points:     sp.Points,
+			})
+		}
+		out = append(out, item)
+	}
+	return &taskv1.GetAssigneeVelocityReportResponse{Meta: metaOK(req.Meta.RequestId), Velocities: out}, nil
+}
+
+func (s *TaskServer) GetSprintStatusReport(ctx context.Context, req *taskv1.GetSprintStatusReportRequest) (*taskv1.GetSprintStatusReportResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetSprintStatusReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	r, err := s.store.GetSprintStatusReport(ctx, req.SprintId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "sprint status report: %v", err)
+	}
+	var buckets []*taskv1.StatusBucket
+	for _, b := range r.Buckets {
+		buckets = append(buckets, &taskv1.StatusBucket{
+			Status:      b.Status,
+			TaskCount:   b.TaskCount,
+			StoryPoints: b.StoryPoints,
+		})
+	}
+	return &taskv1.GetSprintStatusReportResponse{
+		Meta:        metaOK(req.Meta.RequestId),
+		SprintId:    r.SprintID,
+		SprintName:  r.SprintName,
+		Buckets:     buckets,
+		TotalTasks:  r.TotalTasks,
+		TotalPoints: r.TotalPoints,
+	}, nil
+}
+
+func (s *TaskServer) GetEndOfDayReport(ctx context.Context, req *taskv1.GetEndOfDayReportRequest) (*taskv1.GetEndOfDayReportResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetEndOfDayReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	r, err := s.store.GetEndOfDayReport(ctx, req.SprintId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "end of day report: %v", err)
+	}
+	var changes []*taskv1.StatusChangeEntry
+	for _, c := range r.StatusChangesToday {
+		changes = append(changes, &taskv1.StatusChangeEntry{
+			TaskId:      c.TaskID,
+			DisplayId:   c.DisplayID,
+			Title:       c.Title,
+			FromStatus:  c.FromStatus,
+			ToStatus:    c.ToStatus,
+			ChangedById: displayOrID(c.ChangedByName, c.ChangedByID),
+			ChangedAt:   timestamppb.New(c.ChangedAt),
+		})
+	}
+	var summaries []*taskv1.UserEodSummary
+	for _, u := range r.UserSummaries {
+		summaries = append(summaries, &taskv1.UserEodSummary{
+			UserId:         displayOrID(u.DisplayName, u.UserID),
+			CompletedToday: u.CompletedToday,
+			PointsToday:    u.PointsToday,
+			StatusChanges:  u.StatusChanges,
+		})
+	}
+	return &taskv1.GetEndOfDayReportResponse{
+		Meta:                  metaOK(req.Meta.RequestId),
+		SprintId:              r.SprintID,
+		SprintName:            r.SprintName,
+		CompletedToday:        r.CompletedToday,
+		CompletedPointsToday:  r.CompletedPointsToday,
+		TotalSprintTasks:      r.TotalSprintTasks,
+		TotalSprintPoints:     r.TotalSprintPoints,
+		TotalCompleted:        r.TotalCompleted,
+		TotalCompletedPoints:  r.TotalCompletedPoints,
+		CloseProbability:      r.CloseProbability,
+		StatusChangesToday:    changes,
+		UserSummaries:         summaries,
+	}, nil
+}
+
+func (s *TaskServer) GetReporterUsageReport(ctx context.Context, req *taskv1.GetReporterUsageReportRequest) (*taskv1.GetReporterUsageReportResponse, error) {
+	if err := s.storeRequired(); err != nil {
+		return nil, err
+	}
+	if err := validateMeta(req.GetMeta()); err != nil {
+		return nil, err
+	}
+	ctx, span := trace.StartSpan(ctx, "task/GetReporterUsageReport")
+	defer span.End()
+	middleware.AddRequestAttributes(ctx, req.Meta.GetRequestId(), req.Meta.GetUserId())
+
+	if _, _, err := callerRole(ctx, s.mgr); err != nil {
+		return nil, err
+	}
+	rows, err := s.store.GetReporterUsageReport(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "reporter usage report: %v", err)
+	}
+	var out []*taskv1.ReporterUsageItem
+	for _, r := range rows {
+		item := &taskv1.ReporterUsageItem{
+			ReporterId:           displayOrID(r.DisplayName, r.ReporterID),
+			TotalTasks:           r.TotalTasks,
+			CompletedOnTime:      r.CompletedOnTime,
+			CompletedLate:        r.CompletedLate,
+			OnTimePct:            r.OnTimePct,
+			TotalPointsCompleted: r.TotalPointsCompleted,
+		}
+		for _, sc := range r.StatusCounts {
+			item.StatusCounts = append(item.StatusCounts, &taskv1.ReporterStatusCount{
+				Status: sc.Status,
+				Count:  sc.Count,
+			})
+		}
+		out = append(out, item)
+	}
+	return &taskv1.GetReporterUsageReportResponse{Meta: metaOK(req.Meta.RequestId), Items: out}, nil
+}
+
+// displayOrID returns displayName when non-empty, otherwise falls back to id.
+func displayOrID(displayName, id string) string {
+	if displayName != "" {
+		return displayName
+	}
+	return id
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
