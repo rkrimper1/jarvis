@@ -286,6 +286,10 @@ ANTHROPIC_API_KEY=           # Required for Claude dialogue, vision, and fusion
 
 TOKEN_SECRET=stark-industries-dev-secret-change-in-prod   # JWT signing secret — change in prod
 
+# ── User store ────────────────────────────────────────────────────────────────
+SEED_TONY_USER=tony-stark             # seeded admin username
+SEED_TONY_PASSWORD=tony-stark         # seeded admin password
+
 # ── Database ─────────────────────────────────────────────────────────────────
 JARVIS_DB_PATH=              # Absolute path to jarvis.db; empty = in-memory (resets on restart)
 
