@@ -53,10 +53,10 @@ run:            ## Build then run the binary directly (loads $$ENV_PATH if prese
 # ── Test ─────────────────────────────────────────────────────────────
 
 test:           ## Run all tests with race detector
-	go test ./... -v -race -cover
+	go test ./... -v -race -cover -timeout=120s
 
 test-short:     ## Run tests without -v (faster CI output)
-	go test ./... -race -cover
+	go test ./... -race -cover -timeout=120s
 
 test-voice:     ## Run voice tests only
 	go test ./api/internal/voice/... -v -race -count=1 -timeout=60s
